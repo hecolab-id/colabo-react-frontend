@@ -101,7 +101,7 @@ function TaskCardSurface({
             ref={setNodeRef}
             style={style}
             className={cn(
-                "cursor-pointer touch-manipulation select-none rounded-[1.15rem] border border-white/80 bg-white/88 p-3.5 shadow-[0_10px_24px_-22px_rgba(15,23,42,0.32)] md:p-4",
+                "kanban-task-card cursor-pointer touch-manipulation select-none rounded-[1.15rem] border border-white/80 bg-white/88 p-3.5 shadow-[0_10px_24px_-22px_rgba(15,23,42,0.32)] md:p-4",
                 isBoardDragging
                     ? "will-change-transform transition-none shadow-none"
                     : "backdrop-blur-xl transition-transform duration-150 hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-[0_16px_34px_-28px_rgba(15,23,42,0.38)]",

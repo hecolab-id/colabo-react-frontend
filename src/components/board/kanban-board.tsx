@@ -502,7 +502,10 @@ export function KanbanBoard({ initialTasks, columns, initialTaskId, onAddTask, o
                 items={sortedColumnIds}
                 strategy={horizontalListSortingStrategy}
             >
-                <div className="flex h-[calc(100dvh-16rem)] min-h-[24rem] snap-x snap-mandatory gap-3 overflow-x-auto overscroll-x-contain scroll-px-3 pl-3 pr-6 pb-4 touch-pan-x [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden md:h-[calc(100vh-140px)] md:min-h-[28rem] md:gap-5 md:px-0 md:snap-none">
+                <div
+                    data-board-dragging={isBoardDragging ? "true" : undefined}
+                    className="flex h-[calc(100dvh-16rem)] min-h-[24rem] snap-x snap-mandatory gap-3 overflow-x-auto overscroll-x-contain scroll-px-3 pl-3 pr-6 pb-4 touch-pan-x [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden md:h-[calc(100vh-140px)] md:min-h-[28rem] md:gap-5 md:px-0 md:snap-none"
+                >
                     {sortedColumns.map((column) => (
                         <SortableColumn
                             key={column.id}

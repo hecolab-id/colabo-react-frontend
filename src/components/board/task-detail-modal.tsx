@@ -52,6 +52,7 @@ import {
 } from "@/lib/api";
 import { Checklist } from "./checklist";
 import { useStore } from "@/lib/store";
+import { useEscapeKey } from "@/lib/hooks/use-escape-key";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 import { RichTextEditor } from "@/components/ui/rich-text-editor";
 import { LabelSelector } from "@/components/modals/label-selector";
@@ -301,16 +302,7 @@ export function TaskDetailModal({ task, projectColumns: initialProjectColumns, o
         loadData();
     }, [initialProjectColumns, task.id, task.project_id]);
 
-    useEffect(() => {
-        const handleKeyDown = (event: KeyboardEvent) => {
-            if (event.key === "Escape") {
-                onClose();
-            }
-        };
-
-        window.addEventListener("keydown", handleKeyDown);
-        return () => window.removeEventListener("keydown", handleKeyDown);
-    }, [onClose]);
+    useEscapeKey(!showDeleteDialog, onClose);
 
     useEffect(() => {
         const container = bodyRef.current;

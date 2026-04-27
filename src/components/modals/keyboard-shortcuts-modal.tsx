@@ -1,7 +1,7 @@
 "use client";
 
 import { X, Command } from "lucide-react";
-import { useEffect } from "react";
+import { useEscapeKey } from "@/lib/hooks/use-escape-key";
 
 interface KeyboardShortcutsModalProps {
   isOpen: boolean;
@@ -29,18 +29,7 @@ const shortcuts: Shortcut[] = [
 ];
 
 export function KeyboardShortcutsModal({ isOpen, onClose }: KeyboardShortcutsModalProps) {
-  useEffect(() => {
-    if (!isOpen) return;
-    
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        onClose();
-      }
-    };
-    
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen, onClose]);
+  useEscapeKey(isOpen, onClose);
 
   if (!isOpen) return null;
 

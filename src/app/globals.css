@@ -171,4 +171,14 @@
   select {
     @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background;
   }
+
+  [data-board-dragging="true"] .kanban-task-card {
+    transition: none !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+  }
+
+  [data-board-dragging="true"] .kanban-column-header {
+    backdrop-filter: none !important;
+  }
 }

@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { X } from "lucide-react";
+import { useEscapeKey } from "@/lib/hooks/use-escape-key";
 import { cn } from "@/lib/utils";
 
 export function ModalShell({
@@ -22,6 +23,8 @@ export function ModalShell({
   bodyClassName?: string;
   mobileSheet?: boolean;
 }) {
+  useEscapeKey(true, onClose);
+
   const modal = (
     <div className="fixed inset-0 z-50 flex items-end justify-center p-0 sm:items-center sm:p-4">
       <div className="absolute inset-0 bg-slate-950/28 backdrop-blur-md" onClick={onClose} aria-hidden="true" />

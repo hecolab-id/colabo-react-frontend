@@ -68,7 +68,6 @@ function SortableColumnBase({
                 onEditColumn={onEditColumn}
                 dragHandleProps={dragHandleProps}
                 isDragging={isDragging}
-                isBoardDragging={isBoardDragging}
                 isColumnDragging={isColumnDragging}
             />
         </div>

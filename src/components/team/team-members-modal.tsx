@@ -6,6 +6,7 @@ import { X, UserPlus, Trash2, Shield, Check, AlertCircle } from "lucide-react";
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { createInvite, removeMember, getTeamInvites } from "@/lib/api";
+import { useEscapeKey } from "@/lib/hooks/use-escape-key";
 
 interface TeamMembersModalProps {
     team: Team;
@@ -23,6 +24,7 @@ export function TeamMembersModal({ team, currentUser, onClose, onUpdate }: TeamM
     const [inviteError, setInviteError] = useState("");
     const [inviteSuccess, setInviteSuccess] = useState("");
     const safePendingInvites = Array.isArray(pendingInvites) ? pendingInvites : [];
+    useEscapeKey(mounted, onClose);
 
     useEffect(() => {
         setMounted(true);

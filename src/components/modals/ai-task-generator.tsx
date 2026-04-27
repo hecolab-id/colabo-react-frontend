@@ -4,6 +4,7 @@ import { useState } from "react";
 import { X, Sparkles, Plus, Check, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { generateTasksWithAI, GeneratedTask, createTask } from "@/lib/api";
+import { useEscapeKey } from "@/lib/hooks/use-escape-key";
 
 interface AITaskGeneratorProps {
     isOpen: boolean;
@@ -21,6 +22,9 @@ export function AITaskGenerator({ isOpen, onClose, projectId, onTasksCreated }: 
     const [selectedTasks, setSelectedTasks] = useState<Set<number>>(new Set());
     const [aiMessage, setAiMessage] = useState("");
     const [error, setError] = useState<string | null>(null);
+    useEscapeKey(isOpen && !isGenerating && !isCreating, () => {
+        handleClose();
+    });
 
     const handleGenerate = async (e: React.FormEvent) => {
         e.preventDefault();

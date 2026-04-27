@@ -20,7 +20,6 @@ interface BoardColumnProps {
     onEditColumn?: (column: Column) => void;
     dragHandleProps?: ComponentPropsWithoutRef<"div">;
     isDragging?: boolean;
-    isBoardDragging?: boolean;
     isColumnDragging?: boolean;
 }
 
@@ -35,7 +34,6 @@ const BoardColumnBase = forwardRef<HTMLDivElement, BoardColumnProps>(({
     onEditColumn,
     dragHandleProps,
     isDragging = false,
-    isBoardDragging = false,
     isColumnDragging = false,
 }, ref) => {
     const { setNodeRef } = useDroppable({
@@ -86,8 +84,7 @@ const BoardColumnBase = forwardRef<HTMLDivElement, BoardColumnProps>(({
             {/* Header with Drag Handle */}
             <div
                 className={cn(
-                    "group mb-2.5 flex items-center justify-between rounded-[1.1rem] border border-white/80 bg-white/82 px-3 py-2.5 shadow-[0_12px_30px_-28px_rgba(15,23,42,0.32)] md:mb-3 md:py-3",
-                    !isBoardDragging && "backdrop-blur-xl",
+                    "kanban-column-header group mb-2.5 flex items-center justify-between rounded-[1.1rem] border border-white/80 bg-white/82 px-3 py-2.5 shadow-[0_12px_30px_-28px_rgba(15,23,42,0.32)] backdrop-blur-xl md:mb-3 md:py-3",
                 )}
                 {...dragHandleProps}
             >
@@ -178,7 +175,7 @@ const BoardColumnBase = forwardRef<HTMLDivElement, BoardColumnProps>(({
                                     onMeasure={virtual.setSize}
                                     onClick={() => onTaskClick?.(task.id)}
                                 >
-                                    <TaskCard task={task} sortable={!isColumnDragging} isBoardDragging={isBoardDragging} />
+                                    <TaskCard task={task} sortable={!isColumnDragging} />
                                 </MeasuredVirtualTask>
                             ))}
                         </div>
@@ -186,7 +183,7 @@ const BoardColumnBase = forwardRef<HTMLDivElement, BoardColumnProps>(({
                         <div className="space-y-3">
                             {visibleTasks.map(({ task }) => (
                                 <div key={task.id} className="min-w-0" onClick={() => onTaskClick?.(task.id)}>
-                                    <TaskCard task={task} sortable={!isColumnDragging} isBoardDragging={isBoardDragging} />
+                                    <TaskCard task={task} sortable={!isColumnDragging} />
                                 </div>
                             ))}
                         </div>
