@@ -18,15 +18,17 @@ export function useVirtualWindow<TElement extends HTMLElement>({
     endIndex: number;
     totalSize: number;
     getOffset: (index: number) => number;
+    setSize: (index: number, size: number) => void;
 } {
     const containerRef = useRef<TElement | null>(null);
     const [viewport, setViewport] = useState({ scrollTop: 0, height: 0 });
+    const [measuredSizes, setMeasuredSizes] = useState<Record<number, number>>({});
 
     const sizes = useMemo(() => {
         return Array.from({ length: count }, (_, index) => (
-            typeof estimateSize === "function" ? estimateSize(index) : estimateSize
+            measuredSizes[index] || (typeof estimateSize === "function" ? estimateSize(index) : estimateSize)
         ));
-    }, [count, estimateSize]);
+    }, [count, estimateSize, measuredSizes]);
 
     const offsets = useMemo(() => {
         const nextOffsets = new Array<number>(count);
@@ -103,6 +105,20 @@ export function useVirtualWindow<TElement extends HTMLElement>({
     }, [count, offsets.offsets, overscan, sizes, viewport.height, viewport.scrollTop]);
 
     const getOffset = useCallback((index: number) => offsets.offsets[index] || 0, [offsets.offsets]);
+    const setSize = useCallback((index: number, size: number) => {
+        const nextSize = Math.max(0, Math.ceil(size));
+
+        setMeasuredSizes((current) => {
+            if (current[index] === nextSize) {
+                return current;
+            }
+
+            return {
+                ...current,
+                [index]: nextSize,
+            };
+        });
+    }, []);
 
     return {
         containerRef,
@@ -110,5 +126,6 @@ export function useVirtualWindow<TElement extends HTMLElement>({
         endIndex,
         totalSize: offsets.totalSize,
         getOffset,
+        setSize,
     };
 }

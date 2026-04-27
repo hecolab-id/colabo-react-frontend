@@ -174,7 +174,7 @@ function SectionCard({
     return (
         <section
             className={cn(
-                "rounded-[1.35rem] border border-white/75 bg-white/86 p-4 shadow-[0_22px_50px_-36px_rgba(15,23,42,0.26)] backdrop-blur-2xl md:rounded-[1.55rem] md:p-5",
+                "rounded-[1.35rem] border border-white/75 bg-white/86 p-4 shadow-[0_22px_50px_-36px_rgba(15,23,42,0.26)] md:rounded-[1.55rem] md:p-5",
                 className,
             )}
         >

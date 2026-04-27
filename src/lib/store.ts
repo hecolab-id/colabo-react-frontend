@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { AdminImpersonationState, AdminSessionSnapshot, User, Team } from "./types";
-import { performLogin, performRegister, getTeams, setAccessToken, sendVerificationEmail, getMe, impersonateUser, exitImpersonation } from "./api";
+import { API_BASE_URL, performLogin, performRegister, getTeams, setAccessToken, sendVerificationEmail, getMe, impersonateUser, exitImpersonation } from "./api";
 
 interface AppState {
     // Auth
@@ -112,7 +112,7 @@ export const useStore = create<AppState>()(
                             return;
                         }
 
-                        await fetch("/v1/notifications/push-subscriptions", {
+                        await fetch(`${API_BASE_URL}/notifications/push-subscriptions`, {
                             method: "DELETE",
                             headers: {
                                 "Content-Type": "application/json",

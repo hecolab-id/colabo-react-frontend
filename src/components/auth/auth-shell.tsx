@@ -26,21 +26,21 @@ export function AuthShell({
                 Colabo Workspace
               </div>
               <h1 className="font-space-grotesk text-[52px] font-semibold leading-[1.02] tracking-tight text-slate-950">
-                Apple-soft collaboration for teams that move fast.
+                Project clarity for teams that need to move together.
               </h1>
               <p className="max-w-[430px] text-[17px] leading-7 text-slate-500">
-                Rewrite-ready product shell, calmer operations, and a premium workspace feel that keeps the work legible.
+                Plan work, track ownership, and keep every project moving from one focused workspace.
               </p>
               <div className="grid grid-cols-2 gap-4 pt-4">
                 <div className="rounded-[1.5rem] border border-white/70 bg-white/62 p-5 shadow-[0_18px_40px_rgba(15,23,42,0.08)] backdrop-blur-xl">
-                  <p className="text-[12px] font-semibold uppercase tracking-[0.22em] text-slate-400">Focus</p>
-                  <p className="mt-3 text-[20px] font-semibold text-slate-950">One calm surface</p>
-                  <p className="mt-2 text-sm leading-6 text-slate-500">Tasks, projects, and team actions stay in a single visual language.</p>
+                  <p className="text-[12px] font-semibold uppercase tracking-[0.22em] text-slate-400">Work</p>
+                  <p className="mt-3 text-[20px] font-semibold text-slate-950">Clear priorities</p>
+                  <p className="mt-2 text-sm leading-6 text-slate-500">Projects, tasks, and owners stay easy to scan from day to day.</p>
                 </div>
                 <div className="rounded-[1.5rem] border border-white/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.86),rgba(245,249,255,0.74))] p-5 shadow-[0_18px_40px_rgba(15,23,42,0.08)] backdrop-blur-xl">
-                  <p className="text-[12px] font-semibold uppercase tracking-[0.22em] text-slate-400">State</p>
-                  <p className="mt-3 text-[20px] font-semibold text-slate-950">Realtime ready</p>
-                  <p className="mt-2 text-sm leading-6 text-slate-500">Offline, notifications, invite flows, and admin operations remain first-class.</p>
+                  <p className="text-[12px] font-semibold uppercase tracking-[0.22em] text-slate-400">Team</p>
+                  <p className="mt-3 text-[20px] font-semibold text-slate-950">Aligned execution</p>
+                  <p className="mt-2 text-sm leading-6 text-slate-500">Updates, invites, and handoffs stay connected across the workspace.</p>
                 </div>
               </div>
             </div>

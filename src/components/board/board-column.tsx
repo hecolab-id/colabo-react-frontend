@@ -48,7 +48,7 @@ const BoardColumnBase = forwardRef<HTMLDivElement, BoardColumnProps>(({
     const sortableItems = useMemo(() => tasks.map((task) => task.id), [tasks]);
     const virtual = useVirtualWindow<HTMLDivElement>({
         count: tasks.length,
-        estimateSize: 218,
+        estimateSize: 232,
         overscan: 5,
     });
     const visibleTasks = useMemo(() => {
@@ -81,13 +81,13 @@ const BoardColumnBase = forwardRef<HTMLDivElement, BoardColumnProps>(({
     return (
         <div
             ref={ref}
-            className={`flex h-full w-[min(19rem,calc(100vw-6.75rem))] shrink-0 snap-start snap-always flex-col rounded-[1.5rem] md:w-80 md:max-w-none md:snap-center ${isDragging ? "ring-2 ring-primary/20" : ""}`}
+            className={`flex h-full w-[min(17.5rem,calc(100vw-5.75rem))] shrink-0 snap-start snap-always flex-col rounded-[1.35rem] md:w-80 md:max-w-none md:snap-center ${isDragging ? "ring-2 ring-primary/20" : ""}`}
         >
             {/* Header with Drag Handle */}
             <div
                 className={cn(
-                    "group mb-3 flex items-center justify-between rounded-[1.2rem] border border-white/80 bg-white/82 px-3 py-3 shadow-[0_18px_40px_-34px_rgba(15,23,42,0.35)] md:mb-4 md:py-3",
-                    !isBoardDragging && "backdrop-blur-2xl",
+                    "group mb-2.5 flex items-center justify-between rounded-[1.1rem] border border-white/80 bg-white/82 px-3 py-2.5 shadow-[0_12px_30px_-28px_rgba(15,23,42,0.32)] md:mb-3 md:py-3",
+                    !isBoardDragging && "backdrop-blur-xl",
                 )}
                 {...dragHandleProps}
             >
@@ -165,20 +165,21 @@ const BoardColumnBase = forwardRef<HTMLDivElement, BoardColumnProps>(({
                     setNodeRef(node);
                     virtual.containerRef.current = node;
                 }}
-                className="flex-1 overflow-y-auto overscroll-y-contain rounded-[1.3rem] border border-white/55 bg-[linear-gradient(180deg,rgba(255,255,255,0.6),rgba(248,250,252,0.52))] p-2.5 touch-pan-y shadow-[inset_0_1px_0_rgba(255,255,255,0.75)] [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden md:p-2"
+                className="flex-1 overflow-y-auto overscroll-y-contain rounded-[1.15rem] border border-white/55 bg-[linear-gradient(180deg,rgba(255,255,255,0.6),rgba(248,250,252,0.52))] p-2 touch-pan-y shadow-[inset_0_1px_0_rgba(255,255,255,0.75)] [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
             >
                 <SortableContext items={sortableItems} strategy={verticalListSortingStrategy}>
                     {shouldVirtualize ? (
                         <div className="relative" style={{ height: virtual.totalSize }}>
                             {visibleTasks.map(({ task, index }) => (
-                                <div
+                                <MeasuredVirtualTask
                                     key={task.id}
-                                    className="absolute left-0 right-0 min-w-0"
-                                    style={{ transform: `translateY(${virtual.getOffset(index)}px)` }}
+                                    index={index}
+                                    offset={virtual.getOffset(index)}
+                                    onMeasure={virtual.setSize}
                                     onClick={() => onTaskClick?.(task.id)}
                                 >
                                     <TaskCard task={task} sortable={!isColumnDragging} isBoardDragging={isBoardDragging} />
-                                </div>
+                                </MeasuredVirtualTask>
                             ))}
                         </div>
                     ) : (
@@ -208,3 +209,52 @@ const BoardColumnBase = forwardRef<HTMLDivElement, BoardColumnProps>(({
 BoardColumnBase.displayName = "BoardColumn";
 
 export const BoardColumn = memo(BoardColumnBase);
+
+function MeasuredVirtualTask({
+    index,
+    offset,
+    onMeasure,
+    onClick,
+    children,
+}: {
+    index: number;
+    offset: number;
+    onMeasure: (index: number, size: number) => void;
+    onClick: () => void;
+    children: React.ReactNode;
+}) {
+    const ref = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const element = ref.current;
+        if (!element) {
+            return;
+        }
+
+        const measure = () => {
+            onMeasure(index, element.offsetHeight);
+        };
+
+        measure();
+
+        const resizeObserver = typeof ResizeObserver !== "undefined"
+            ? new ResizeObserver(measure)
+            : null;
+        resizeObserver?.observe(element);
+
+        return () => {
+            resizeObserver?.disconnect();
+        };
+    }, [index, onMeasure]);
+
+    return (
+        <div
+            ref={ref}
+            className="absolute left-0 right-0 min-w-0 pb-3"
+            style={{ transform: `translateY(${offset}px)` }}
+            onClick={onClick}
+        >
+            {children}
+        </div>
+    );
+}

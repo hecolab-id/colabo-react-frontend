@@ -218,11 +218,11 @@ export function KanbanBoard({ initialTasks, columns, initialTaskId, onAddTask, o
     const isBoardDragging = isTaskDragging || isColumnDragging;
     const autoScrollOptions = useMemo(() => ({
         activator: AutoScrollActivator.Pointer,
-        acceleration: isTaskDragging ? 2.4 : 7,
-        interval: isTaskDragging ? 16 : 8,
+        acceleration: isTaskDragging ? 1.45 : 6,
+        interval: isTaskDragging ? 18 : 10,
         threshold: {
-            x: isTaskDragging ? 0.12 : 0.2,
-            y: 0.18,
+            x: isTaskDragging ? 0.08 : 0.2,
+            y: isTaskDragging ? 0.14 : 0.18,
         },
     }), [isTaskDragging]);
 
@@ -502,7 +502,7 @@ export function KanbanBoard({ initialTasks, columns, initialTaskId, onAddTask, o
                 items={sortedColumnIds}
                 strategy={horizontalListSortingStrategy}
             >
-                <div className="flex h-[calc(100dvh-17rem)] min-h-[24rem] snap-x snap-mandatory gap-3 overflow-x-auto overscroll-x-contain scroll-px-3 pl-3 pr-5 pb-4 touch-pan-x [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden md:h-[calc(100vh-140px)] md:min-h-[28rem] md:gap-6 md:px-0 md:snap-none">
+                <div className="flex h-[calc(100dvh-16rem)] min-h-[24rem] snap-x snap-mandatory gap-3 overflow-x-auto overscroll-x-contain scroll-px-3 pl-3 pr-6 pb-4 touch-pan-x [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden md:h-[calc(100vh-140px)] md:min-h-[28rem] md:gap-5 md:px-0 md:snap-none">
                     {sortedColumns.map((column) => (
                         <SortableColumn
                             key={column.id}
@@ -519,7 +519,7 @@ export function KanbanBoard({ initialTasks, columns, initialTaskId, onAddTask, o
 
                     {/* Add Column Button */}
                     {onAddColumn && (
-                        <div className="w-[min(19rem,calc(100vw-6.75rem))] flex-shrink-0 snap-start snap-always md:w-72 md:max-w-none md:snap-center">
+                        <div className="w-[min(17.5rem,calc(100vw-5.75rem))] flex-shrink-0 snap-start snap-always md:w-72 md:max-w-none md:snap-center">
                             <button
                                 onClick={onAddColumn}
                                 className="flex h-14 w-full touch-manipulation items-center justify-center gap-2 rounded-[1.2rem] border-2 border-dashed border-slate-200 bg-white/60 text-slate-500 shadow-[0_16px_34px_-30px_rgba(15,23,42,0.28)] backdrop-blur-xl transition-[border-color,background-color,color] hover:border-slate-400 hover:bg-white hover:text-slate-950 md:h-12"

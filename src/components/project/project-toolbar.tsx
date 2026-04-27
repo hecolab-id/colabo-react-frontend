@@ -33,7 +33,7 @@ export function ProjectViewModeSwitcher({
     onChange: (mode: ProjectViewMode) => void;
 }) {
     return (
-        <div className="grid grid-cols-4 gap-1 rounded-[1rem] border border-white/70 bg-white/78 p-1 shadow-[0_16px_34px_rgba(15,23,42,0.06)] backdrop-blur-xl md:flex md:items-center md:gap-2 md:rounded-[1.2rem] md:p-1.5">
+        <div className="grid grid-cols-4 gap-1 rounded-[0.95rem] border border-white/70 bg-white/78 p-1 shadow-[0_10px_24px_rgba(15,23,42,0.05)] backdrop-blur-xl md:flex md:items-center md:rounded-[1.1rem] md:p-1">
             {([
                 ["board", "Board", Columns],
                 ["list", "List", List],
@@ -45,7 +45,7 @@ export function ProjectViewModeSwitcher({
                     onClick={() => onChange(value)}
                     aria-label={`${label} view`}
                     className={cn(
-                        "flex min-h-9 touch-manipulation items-center justify-center gap-1 rounded-lg px-2 py-1.5 text-[11px] font-medium transition-[background-color,color,box-shadow] md:min-h-11 md:gap-2 md:px-3 md:py-2 md:text-sm",
+                        "flex h-8 min-w-8 touch-manipulation items-center justify-center gap-1 rounded-lg px-2 text-[11px] font-medium transition-[background-color,color,box-shadow] md:h-9 md:min-w-0 md:gap-2 md:px-3 md:text-sm",
                         viewMode === value
                             ? "bg-primary text-primary-foreground shadow-sm"
                             : "text-muted-foreground hover:bg-muted/80 hover:text-foreground",
@@ -53,7 +53,7 @@ export function ProjectViewModeSwitcher({
                     title={`${label} View`}
                 >
                     <Icon className="h-3.5 w-3.5 shrink-0 md:h-4 md:w-4" />
-                    <span className="md:hidden">{label}</span>
+                    <span className="hidden md:inline">{label}</span>
                 </button>
             ))}
         </div>

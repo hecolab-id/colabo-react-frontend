@@ -183,7 +183,7 @@ function ProjectSettingsPageContent({ params }: { params: Promise<{ teamSlug: st
     }
 
     return (
-        <div className="space-y-7 pb-10">
+        <div className="space-y-5 pb-10">
             <div className="flex flex-wrap items-center justify-between gap-3">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Link href={`/${teamSlug}`} className="transition hover:text-foreground">Projects</Link>
@@ -201,28 +201,22 @@ function ProjectSettingsPageContent({ params }: { params: Promise<{ teamSlug: st
                 </Link>
             </div>
 
-            <section className="rounded-[2rem] border border-white/70 bg-[linear-gradient(180deg,#ffffff_0%,#f5f8fc_100%)] p-6 shadow-[0_24px_70px_-44px_rgba(15,23,42,0.35)] md:p-8">
-                <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-end">
-                    <div>
-                        <div className="inline-flex items-center gap-2 rounded-full border border-black/5 bg-white px-3 py-1.5 text-[12px] font-bold uppercase tracking-wide text-slate-500 shadow-sm">
-                            <Globe2 className="h-3.5 w-3.5 text-slate-900" aria-hidden="true" />
-                            Project Control Center
-                        </div>
-                        <h1 className="mt-5 max-w-3xl text-balance font-space-grotesk text-[32px] font-semibold tracking-tight text-slate-950 md:text-[40px]">
+            <section className="rounded-[1.5rem] border border-white/70 bg-white/82 p-4 shadow-[0_16px_48px_-38px_rgba(15,23,42,0.32)] backdrop-blur-xl md:p-5">
+                <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                    <div className="min-w-0">
+                        <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">Project Settings</p>
+                        <h1 className="mt-1 truncate text-xl font-semibold tracking-tight text-slate-950 md:text-2xl">
                             {project.name}
                         </h1>
-                        <p className="mt-3 max-w-2xl text-[15px] leading-7 text-slate-500">
-                            Keep project identity, visibility, and shared documents in one focused place without crowding the kanban board.
-                        </p>
                     </div>
-                    <div className="grid grid-cols-2 gap-3">
-                        <div className="rounded-[1.5rem] border border-black/5 bg-white p-4 shadow-sm">
+                    <div className="grid grid-cols-2 gap-2 md:w-72">
+                        <div className="rounded-[1rem] border border-black/5 bg-slate-50/80 p-3">
                             <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">Tasks</p>
-                            <p className="mt-2 text-2xl font-semibold text-slate-950">{project.task_count || 0}</p>
+                            <p className="mt-1 text-xl font-semibold text-slate-950">{project.task_count || 0}</p>
                         </div>
-                        <div className="rounded-[1.5rem] border border-black/5 bg-white p-4 shadow-sm">
+                        <div className="rounded-[1rem] border border-black/5 bg-slate-50/80 p-3">
                             <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">Documents</p>
-                            <p className="mt-2 text-2xl font-semibold text-slate-950">{documents.length}</p>
+                            <p className="mt-1 text-xl font-semibold text-slate-950">{documents.length}</p>
                         </div>
                     </div>
                 </div>
@@ -234,9 +228,9 @@ function ProjectSettingsPageContent({ params }: { params: Promise<{ teamSlug: st
                 </div>
             ) : null}
 
-            <div className="grid gap-5 lg:grid-cols-[260px_minmax(0,1fr)] lg:items-start">
-                <aside className="rounded-[1.75rem] border border-white/70 bg-white/78 p-2 shadow-[0_24px_70px_-44px_rgba(15,23,42,0.35)] backdrop-blur-2xl">
-                    <nav className="grid gap-1" aria-label="Project settings sections">
+            <div className="grid gap-4 lg:grid-cols-[240px_minmax(0,1fr)] lg:items-start">
+                <aside className="rounded-[1.35rem] border border-white/70 bg-white/78 p-1.5 shadow-[0_16px_48px_-38px_rgba(15,23,42,0.32)] backdrop-blur-xl">
+                    <nav className="grid grid-cols-2 gap-1 lg:grid-cols-1" aria-label="Project settings sections">
                         {([
                             ["details", "Details", Globe2, "Identity and visibility"],
                             ["documents", "Documents", Paperclip, `${documents.length} shared item${documents.length === 1 ? "" : "s"}`],
@@ -246,21 +240,21 @@ function ProjectSettingsPageContent({ params }: { params: Promise<{ teamSlug: st
                                 type="button"
                                 onClick={() => setActiveTab(tab)}
                                 className={cn(
-                                    "flex min-h-14 w-full items-center gap-3 rounded-[1.25rem] px-3.5 py-3 text-left transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900/15",
+                                    "flex min-h-12 w-full items-center gap-2.5 rounded-[1rem] px-3 py-2.5 text-left transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900/15",
                                     activeTab === tab
                                         ? "border border-black/5 bg-white text-slate-950 shadow-sm"
                                         : "border border-transparent text-slate-500 hover:bg-white/70 hover:text-slate-900",
                                 )}
                             >
                                 <span className={cn(
-                                    "flex h-9 w-9 shrink-0 items-center justify-center rounded-full",
+                                    "flex h-8 w-8 shrink-0 items-center justify-center rounded-full",
                                     activeTab === tab ? "bg-slate-950 text-white" : "bg-slate-100 text-slate-500",
                                 )}>
                                     <Icon className="h-4 w-4" aria-hidden="true" />
                                 </span>
                                 <span className="min-w-0">
                                     <span className="block text-sm font-semibold">{label}</span>
-                                    <span className="block truncate text-xs text-slate-500">{description}</span>
+                                    <span className="hidden truncate text-xs text-slate-500 sm:block">{description}</span>
                                 </span>
                             </button>
                         ))}

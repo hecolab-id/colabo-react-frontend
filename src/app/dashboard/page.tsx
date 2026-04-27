@@ -154,27 +154,27 @@ function DashboardPriorityActionLink({ item, label }: { item: DashboardActionIte
     return (
         <Link
             href={item.href}
-            className={`group flex flex-col md:flex-row justify-between md:items-center overflow-hidden rounded-[28px] ${
+            className={`group flex flex-col justify-between overflow-hidden rounded-[22px] md:flex-row md:items-center ${
                 isCritical 
-                ? "bg-rose-600 text-white shadow-xl shadow-rose-600/20" 
-                : "bg-slate-950 text-white shadow-xl shadow-slate-900/20"
-            } transition-all hover:scale-[1.01] active:scale-[0.99] p-5 sm:p-8`}
+                ? "bg-rose-600 text-white shadow-lg shadow-rose-600/16" 
+                : "bg-slate-950 text-white shadow-lg shadow-slate-900/16"
+            } p-4 transition-all hover:scale-[1.005] active:scale-[0.99] sm:p-5`}
         >
             <div className="flex-1">
-                <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-widest ${
+                <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest ${
                     isCritical ? "bg-white/20 text-white" : "bg-white/10 text-slate-300"
                 }`}>
                     <AlertTriangle className="h-3.5 w-3.5" aria-hidden="true" />
                     {label}
                 </span>
-                <h3 className="mt-3 text-balance text-2xl font-bold tracking-tight sm:text-4xl text-white">
+                <h3 className="mt-2 line-clamp-2 text-balance text-lg font-bold tracking-tight text-white sm:text-xl">
                     {item.title}
                 </h3>
-                <p className={`mt-2 text-base sm:text-lg ${isCritical ? "text-rose-100" : "text-slate-300"}`}>
+                <p className={`mt-1 line-clamp-2 text-sm ${isCritical ? "text-rose-100" : "text-slate-300"}`}>
                     {item.reason}
                 </p>
                 
-                <div className="mt-5 sm:mt-6 flex flex-wrap items-center gap-3">
+                <div className="mt-4 flex flex-wrap items-center gap-2">
                     {item.projectCode && (
                         <span className={`rounded-lg px-3 py-1.5 font-mono text-[13px] ${isCritical ? 'bg-rose-700 text-rose-100' : 'bg-white/10 text-slate-300'}`}>
                             {item.projectCode}
@@ -187,13 +187,13 @@ function DashboardPriorityActionLink({ item, label }: { item: DashboardActionIte
                 </div>
             </div>
 
-            <div className="mt-6 md:mt-0 flex shrink-0 items-center justify-end">
+            <div className="mt-4 flex shrink-0 items-center justify-end md:mt-0">
                 <div className="flex items-center gap-3 pr-2">
                     <span className="font-bold uppercase tracking-widest text-[11px] text-white/90 md:hidden">Execute Task</span>
-                    <div className={`flex h-12 w-12 sm:h-14 sm:w-14 shrink-0 items-center justify-center rounded-full ${
+                    <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full ${
                         isCritical ? "bg-white text-rose-600" : "bg-white text-slate-900"
                     } shadow-sm group-hover:scale-110 transition-transform`}>
-                        <ArrowRight className="h-5 w-5 sm:h-6 sm:w-6" aria-hidden="true" />
+                        <ArrowRight className="h-5 w-5" aria-hidden="true" />
                     </div>
                 </div>
             </div>
@@ -272,13 +272,6 @@ export default function DashboardPage() {
         );
     }
 
-    const hour = new Date().getHours();
-    let greeting = "Good evening";
-    if (hour < 12) greeting = "Good morning";
-    else if (hour < 18) greeting = "Good afternoon";
-
-    const firstName = user?.name.split(" ")[0] || "there";
-    const teamLabel = dashboardOverview?.workspace.teamName || currentTeam?.name || "your workspace";
     const recommendedAction = dashboardOverview?.recommendedAction;
     const actionBuckets = dashboardOverview?.actionBuckets;
     const bucketOrder: DashboardActionBucketId[] = ["needs_attention", "due_soon", "blocked", "ready_to_resume"];
@@ -299,60 +292,36 @@ export default function DashboardPage() {
     const showUpgradeModule = !!dashboardOverview?.utility.showUpgrade && !!dashboardOverview.utility.upgradeHref;
 
     return (
-        <div className="space-y-6 md:space-y-8 overflow-x-hidden min-h-screen pb-28 md:pb-16 font-sans">
+        <div className="min-h-screen space-y-4 overflow-x-hidden pb-28 font-sans md:space-y-6 md:pb-16">
             <InstallPrompt />
             <MobilePremiumPrompt team={currentTeam || null} />
 
-            {/* Unboxed, Clean Hero Section */}
-            <header className="pt-8 pb-4 md:pt-12 md:pb-6 wrap">
-                <div className="max-w-4xl">
-                    <div className="inline-flex items-center gap-2 rounded-full border border-black/5 bg-white px-3 py-1.5 text-[11px] font-semibold uppercase tracking-widest text-slate-500 mb-6 shadow-sm">
-                        <Sparkles className="h-3.5 w-3.5 text-sky-500" aria-hidden="true" />
-                        Decision Desk
-                    </div>
-
-                    <h1 className="text-4xl font-semibold tracking-tight text-slate-900 sm:text-5xl lg:text-6xl text-balance">
-                        {greeting}, {firstName}
-                    </h1>
-                    <p className="mt-4 text-lg text-slate-500 max-w-2xl leading-relaxed text-balance">
-                        Handle the top issue in <span className="font-semibold text-slate-900">{teamLabel}</span>, then move forward. One clear queue. One clear first move.
-                    </p>
-
-                    <div className="mt-8 flex flex-wrap items-center gap-3">
-                        <Link
-                            href="/my-tasks"
-                            className="inline-flex items-center gap-2 rounded-full bg-slate-900 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-slate-800 active:scale-95 shadow-sm"
-                        >
-                            Review All Tasks
-                            <ArrowRight className="h-4 w-4" aria-hidden="true" />
-                        </Link>
-                        <span className="inline-flex items-center gap-2 rounded-full px-4 py-2.5 text-sm text-slate-500">
-                            <Users className="h-4 w-4 text-slate-400" aria-hidden="true" />
-                            {numberFormatter.format(dashboardOverview?.workspace.teamCount || teams.length)} workspace{(dashboardOverview?.workspace.teamCount || teams.length) === 1 ? "" : "s"}
-                        </span>
-                    </div>
-                </div>
-            </header>
-
-            <div className="grid gap-5 xl:grid-cols-[1fr_340px] xl:gap-8 wrap">
+            <div className="grid gap-4 pt-3 md:pt-4 xl:grid-cols-[1fr_320px] xl:gap-6 wrap">
                 {/* Main Action Hub */}
-                <div className="space-y-6 md:space-y-8 min-w-0">
+                <div className="min-w-0 space-y-4 md:space-y-6">
                     {/* Team Health - Moved up for mobile visibility */}
                     {healthMetrics.length > 0 && (
-                        <section className="rounded-[32px] border border-black/5 bg-white p-6 shadow-sm">
-                            <div className="mb-4 md:mb-6">
+                        <section className="rounded-[24px] border border-black/5 bg-white p-4 shadow-sm md:p-5">
+                            <div className="mb-3 flex items-center justify-between gap-4 md:mb-4">
                                 <h2 className="text-lg md:text-xl font-semibold tracking-tight text-slate-900">Workspace Signals</h2>
+                                <Link
+                                    href="/my-tasks"
+                                    className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-black/10 bg-white px-3 py-2 text-xs font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 active:scale-95"
+                                >
+                                    All Tasks
+                                    <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+                                </Link>
                             </div>
 
-                            <div className="flex overflow-x-auto gap-3 pb-2 -mx-6 px-6 sm:mx-0 sm:px-0 scrollbar-hide md:grid md:grid-cols-4 md:pb-0">
+                            <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 scrollbar-hide sm:mx-0 sm:px-0 md:grid md:grid-cols-4 md:pb-0">
                                 {healthMetrics.map((metric) => (
-                                    <div key={metric.id} className="shrink-0 w-36 rounded-[20px] bg-slate-50 p-4 md:w-auto md:p-5 border border-black/5">
+                                    <div key={metric.id} className="w-36 shrink-0 rounded-[16px] border border-black/5 bg-slate-50 p-3 md:w-auto md:p-4">
                                         <p className="text-xs font-medium text-slate-500">{metric.label}</p>
-                                        <div className={`mt-2 text-2xl md:text-3xl font-semibold tracking-tight ${getMetricToneClasses(metric.tone)}`}>
+                                        <div className={`mt-1.5 text-2xl font-semibold tracking-tight md:text-[28px] ${getMetricToneClasses(metric.tone)}`}>
                                             {numberFormatter.format(metric.value)}
                                             <span className="text-sm md:text-lg font-medium text-slate-400 ml-0.5">{metric.suffix || ""}</span>
                                         </div>
-                                        <p className="mt-1 md:mt-2 text-[11px] md:text-xs text-slate-400 truncate">{metric.context}</p>
+                                        <p className="mt-1 truncate text-[11px] text-slate-400 md:text-xs">{metric.context}</p>
                                     </div>
                                 ))}
                             </div>
@@ -361,10 +330,10 @@ export default function DashboardPage() {
 
                     {projects.length > 0 ? (
                         <>
-                            <section className="rounded-[32px] border border-black/5 bg-white p-6 md:p-8 shadow-sm">
-                                <div className="mb-6 md:mb-8 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+                            <section className="rounded-[24px] border border-black/5 bg-white p-4 shadow-sm md:p-5">
+                                <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
                                     <div>
-                                        <h2 className="text-xl md:text-2xl font-semibold tracking-tight text-slate-900">
+                                        <h2 className="text-lg font-semibold tracking-tight text-slate-900 md:text-xl">
                                             Intervention Queue
                                         </h2>
                                         <p className="mt-1 text-sm text-slate-500">
@@ -373,7 +342,7 @@ export default function DashboardPage() {
                                     </div>
                                 </div>
 
-                                <div className="grid grid-cols-2 gap-3 lg:grid-cols-4 mb-8">
+                                <div className="mb-5 grid grid-cols-2 gap-2 lg:grid-cols-4">
                                     {bucketOrder.map((bucket) => {
                                         const meta = bucketMeta[bucket];
                                         const count = actionBuckets?.[bucket]?.length || 0;
@@ -383,7 +352,7 @@ export default function DashboardPage() {
                                         return (
                                             <div
                                                 key={bucket}
-                                                className={`flex flex-col justify-between rounded-[20px] border p-4 transition-colors ${
+                                                className={`flex flex-col justify-between rounded-[16px] border p-3 transition-colors ${
                                                     isCritical
                                                         ? "border-rose-500/30 bg-rose-50/50 shadow-sm shadow-rose-100"
                                                         : isWarning
@@ -395,7 +364,7 @@ export default function DashboardPage() {
                                                     <meta.icon className={`h-3.5 w-3.5 ${isCritical ? "text-rose-600" : isWarning ? "text-amber-600" : "text-slate-400"}`} aria-hidden="true" />
                                                     <span className={isCritical ? "text-rose-900 font-bold" : isWarning ? "text-amber-900 font-bold" : "text-slate-600"}>{meta.label}</span>
                                                 </div>
-                                                <div className={`mt-3 text-3xl md:text-4xl font-semibold tracking-tight ${isCritical ? "text-rose-600" : isWarning ? "text-amber-600" : "text-slate-900"}`}>
+                                                <div className={`mt-2 text-2xl font-semibold tracking-tight md:text-3xl ${isCritical ? "text-rose-600" : isWarning ? "text-amber-600" : "text-slate-900"}`}>
                                                     {count}
                                                 </div>
                                             </div>
@@ -404,7 +373,7 @@ export default function DashboardPage() {
                                 </div>
 
                                 {startHereItem && (
-                                    <div className="mb-8">
+                                    <div className="mb-5">
                                         <DashboardPriorityActionLink item={startHereItem} label="START HERE" />
                                     </div>
                                 )}
@@ -509,7 +478,7 @@ export default function DashboardPage() {
                                 <FolderKanban className="h-10 w-10 text-slate-400" />
                             </div>
                             <h2 className="text-3xl font-semibold tracking-tight text-slate-900">
-                                Welcome to {teamLabel}
+                                No projects yet
                             </h2>
                             <p className="mt-4 text-[16px] text-slate-500 max-w-lg mx-auto leading-relaxed">
                                 You don't have any projects in this workspace yet. Create your first project to start organizing work, collaborating with your team, and tracking delivery.

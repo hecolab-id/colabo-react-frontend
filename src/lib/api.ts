@@ -1,8 +1,11 @@
 import axios from "axios";
 import { AuthResponse, Plan, Project, ProjectDocument, ProjectDocumentKind, Task, Team, Comment, Notification, User, ActivityLog, Column, Checklist, ChecklistItem, Role, TeamUsage, CommentMention, LinkPreview, MessengerConnection, NotificationPreference, MessengerPlatform, TeamMessengerPolicy, MessengerLinkToken, BrowserPushSettings, BrowserPushSubscriptionInput, AdminImpersonationState, AdminOverview, AdminPaymentTransaction, AdminPlan, AdminProjectRow, AdminTeamRow, AdminUserRow, AdminListResponse, DashboardActionBucketId, DashboardActionItem, DashboardActionSeverity, DashboardHealthMetric, DashboardOverview, DashboardProjectSummary, DashboardRecommendedAction, PaginatedResult, TeamActivityItem, TeamActivityOverview, TeamInvite, TeamInvitePreview } from "./types";
 
+export const API_ORIGIN = (import.meta.env.VITE_API_URL || "").replace(/\/$/, "");
+export const API_BASE_URL = API_ORIGIN ? `${API_ORIGIN}/v1` : "/v1";
+
 const api = axios.create({
-    baseURL: "/v1",
+    baseURL: API_BASE_URL,
 });
 
 const OFFLINE_ACTION_EVENT = "colabo:offline-action-blocked";
@@ -73,7 +76,7 @@ function clearStoredAuth() {
 }
 
 async function refreshAuthTokens(refreshToken: string): Promise<AuthResponse["tokens"]> {
-    const { data } = await axios.post("/v1/auth/refresh-tokens", {
+    const { data } = await axios.post(`${API_BASE_URL}/auth/refresh-tokens`, {
         refresh_token: refreshToken,
     });
 
