@@ -31,7 +31,7 @@ const AppLink = forwardRef<HTMLAnchorElement, AppLinkProps>(function AppLink(
       return;
     }
 
-    void prefetchRouteModule(href);
+    void prefetchRouteModule(href).catch(() => undefined);
 
     const projectRoute = parseProjectRoute(href);
     if (projectRoute) {
@@ -107,8 +107,7 @@ function prefetchRouteModule(href: string) {
     return import("@/app/[teamSlug]/[projectSlug]/page");
   }
 
-  if (pathname === "/dashboard") return import("@/app/dashboard/page");
-  if (pathname === "/my-tasks") return import("@/app/my-tasks/page");
+  if (pathname === "/dashboard" || pathname === "/my-tasks") return Promise.resolve();
   if (pathname === "/notifications") return import("@/app/notifications/page");
   if (pathname.startsWith("/admin/users")) return import("@/app/admin/users/page");
   if (pathname.startsWith("/admin/teams")) return import("@/app/admin/teams/page");

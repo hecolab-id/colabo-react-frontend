@@ -1,4 +1,4 @@
-import { CalendarDays, Columns, LayoutGrid, List, SlidersHorizontal, Trash2, Users } from "lucide-react";
+import { CalendarDays, Columns, FolderCog, LayoutGrid, List, SlidersHorizontal, Trash2, Users } from "lucide-react";
 import type { RefObject, ReactNode } from "react";
 import type { Column, Task } from "@/lib/types";
 import type { DueDateFilter, TaskSortOption } from "@/lib/task-ui";
@@ -72,6 +72,7 @@ export function ProjectControlsContent({
     visibleTasksCount,
     totalTasksCount,
     onResetAll,
+    onViewProject,
     onManageMembers,
     onDeleteProject,
     canManageProjectMembers,
@@ -88,6 +89,7 @@ export function ProjectControlsContent({
     visibleTasksCount: number;
     totalTasksCount: number;
     onResetAll: () => void;
+    onViewProject: () => void;
     onManageMembers: () => void;
     onDeleteProject: () => void;
     canManageProjectMembers: boolean;
@@ -181,6 +183,13 @@ export function ProjectControlsContent({
                     </button>
                 </div>
                 <div className="grid gap-2">
+                    <button
+                        onClick={onViewProject}
+                        className="flex min-h-11 w-full touch-manipulation items-center justify-start gap-2 rounded-xl border border-border bg-[var(--surface-raised)] px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted/80"
+                    >
+                        <FolderCog className="h-4 w-4" />
+                        View Project
+                    </button>
                     {canManageProjectMembers ? (
                         <button
                             onClick={onManageMembers}

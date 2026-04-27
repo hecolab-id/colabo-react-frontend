@@ -75,9 +75,9 @@ export function CreateProjectModal({ isOpen, onClose, onSubmit, currentCount, ma
                             <Input
                                 type="text"
                                 value={key}
-                                onChange={(e) => setKey(e.target.value.toUpperCase().slice(0, 5))}
+                                onChange={(e) => setKey(e.target.value.toUpperCase().slice(0, 4))}
                                 placeholder="WEB"
-                                maxLength={5}
+                                maxLength={4}
                                 className="font-mono uppercase"
                                 required
                             />
@@ -93,20 +93,34 @@ export function CreateProjectModal({ isOpen, onClose, onSubmit, currentCount, ma
                             />
                         </SettingsField>
 
-                        <button
-                            type="button"
-                            onClick={() => setIsPrivate(!isPrivate)}
-                            disabled={isLimitReached}
-                            className="w-full rounded-[1.5rem] border border-black/5 bg-white/80 p-4 text-left shadow-[0_16px_36px_-30px_rgba(15,23,42,0.4)] transition-[border-color,background-color,box-shadow] hover:border-slate-200 hover:bg-white disabled:cursor-not-allowed disabled:opacity-60"
+                        <div
+                            role="switch"
+                            aria-checked={isPrivate}
+                            aria-disabled={isLimitReached}
+                            tabIndex={isLimitReached ? -1 : 0}
+                            onClick={() => {
+                                if (!isLimitReached) {
+                                    setIsPrivate(!isPrivate);
+                                }
+                            }}
+                            onKeyDown={(event) => {
+                                if (isLimitReached || (event.key !== "Enter" && event.key !== " ")) {
+                                    return;
+                                }
+
+                                event.preventDefault();
+                                setIsPrivate((current) => !current);
+                            }}
+                            className="w-full cursor-pointer rounded-[1.5rem] border border-black/5 bg-white/80 p-4 text-left shadow-[0_16px_36px_-30px_rgba(15,23,42,0.4)] transition-[border-color,background-color,box-shadow] hover:border-slate-200 hover:bg-white aria-disabled:cursor-not-allowed aria-disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900/15"
                         >
                             <div className="flex items-center justify-between gap-4">
                                 <div>
                                     <p className="text-[14px] font-semibold text-slate-900">Private Project</p>
                                     <p className="mt-1 text-[13px] text-slate-500">Only assigned members can view.</p>
                                 </div>
-                                <ToggleSwitch checked={isPrivate} disabled={isLimitReached} />
+                                <ToggleSwitch checked={isPrivate} disabled={isLimitReached} interactive={false} />
                             </div>
-                        </button>
+                        </div>
                     </fieldset>
 
                     <div className="flex gap-3 pt-4">

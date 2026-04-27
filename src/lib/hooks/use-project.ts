@@ -2,7 +2,9 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
     getProjectDetails,
     getProjectBySlugs,
+    getProjectDocuments,
     getProjectColumns,
+    updateProject,
     createTask,
     updateTask,
     deleteTask,
@@ -10,9 +12,11 @@ import {
     updateColumn,
     deleteColumn,
     reorderColumns,
-    deleteProject
+    deleteProject,
+    createProjectDocument,
+    deleteProjectDocument
 } from "@/lib/api";
-import { Task, Column, Project } from "@/lib/types";
+import { Task, Column, Project, ProjectDocument } from "@/lib/types";
 import { readSnapshot, writeSnapshot } from "@/lib/indexeddb-snapshot";
 
 type ProjectDetailCache = Project & {
@@ -66,6 +70,7 @@ export const projectKeys = {
     detail: (id: string) => [...projectKeys.all, "detail", id] as const,
     detailBySlugs: (teamSlug: string, projectSlug: string) => [...projectKeys.all, "detail", teamSlug, projectSlug] as const,
     columns: (id: string) => [...projectKeys.all, "columns", id] as const,
+    documents: (id: string) => [...projectKeys.all, "documents", id] as const,
 };
 
 // Hooks
@@ -126,6 +131,62 @@ export function useProjectColumns(id: string) {
             }
         },
         enabled: !!id,
+    });
+}
+
+export function useUpdateProject(projectId: string) {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: (updates: Partial<Project>) => updateProject(projectId, updates),
+        onSuccess: (updatedProject) => {
+            setProjectDetailCaches(queryClient, (project) => {
+                if (!project || project.id !== projectId) return project;
+                return {
+                    ...project,
+                    ...updatedProject,
+                    tasks: project.tasks,
+                    members: updatedProject.members ?? project.members,
+                };
+            });
+            queryClient.invalidateQueries({ queryKey: ["projects"], refetchType: "inactive" });
+        },
+    });
+}
+
+export function useProjectDocuments(projectId: string) {
+    return useQuery({
+        queryKey: projectKeys.documents(projectId),
+        queryFn: () => getProjectDocuments(projectId),
+        enabled: !!projectId,
+    });
+}
+
+export function useCreateProjectDocument(projectId: string) {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: (payload: {
+            name: string;
+            url: string;
+            kind: ProjectDocument["kind"];
+            mime_type?: string;
+            size_bytes?: number;
+        }) => createProjectDocument(projectId, payload),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: projectKeys.documents(projectId) });
+        },
+    });
+}
+
+export function useDeleteProjectDocument(projectId: string) {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: (documentId: string) => deleteProjectDocument(projectId, documentId),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: projectKeys.documents(projectId) });
+        },
     });
 }
 

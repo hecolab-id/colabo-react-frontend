@@ -1,5 +1,5 @@
 import { Project } from "@/lib/types";
-import { FolderKanban, Trash2 } from "lucide-react";
+import { FolderCog, FolderKanban, Trash2 } from "lucide-react";
 import Link from "@/components/app-link";
 
 interface ProjectCardProps {
@@ -31,6 +31,17 @@ export function ProjectCard({ project, teamSlug, canDelete = false, onDelete }: 
                     <span className="rounded-lg border border-black/5 bg-white px-2.5 py-1 font-mono text-xs text-slate-500 shadow-sm">
                         {project.key}
                     </span>
+                    {canDelete && (
+                        <Link
+                            href={`/${teamSlug}/${project.slug}/settings`}
+                            className="inline-flex h-8 items-center justify-center gap-1.5 rounded-full border border-black/5 bg-white px-3 text-xs font-semibold text-slate-600 shadow-sm transition-[background-color,border-color,color,transform] hover:scale-105 hover:bg-slate-50 hover:text-slate-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-200"
+                            aria-label={`View project settings for ${project.name}`}
+                            title="View project"
+                        >
+                            <FolderCog className="h-3.5 w-3.5" aria-hidden="true" />
+                            View
+                        </Link>
+                    )}
                     {canDelete && onDelete && (
                         <button
                             type="button"

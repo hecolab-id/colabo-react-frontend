@@ -13,7 +13,6 @@ import { KeyboardShortcutsModal } from "@/components/modals/keyboard-shortcuts-m
 import { CreateProjectModal } from "@/components/modals/create-project-modal";
 import { CreateTaskFormValues, CreateTaskModal } from "@/components/modals/create-task-modal";
 import { ManageProjectMembersModal } from "@/components/modals/manage-project-members-modal";
-import { OfflineRouteGuard } from "@/components/pwa/offline-route-guard";
 import { createProject, createTask, getProjects } from "@/lib/api";
 import { useStore } from "@/lib/store";
 import { useUsage } from "@/lib/hooks/use-billing";
@@ -140,7 +139,6 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
 
     return (
         <div className="flex h-screen overflow-hidden bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.82),transparent_18%),radial-gradient(circle_at_top_right,rgba(47,111,237,0.08),transparent_24%),linear-gradient(180deg,#fdfefe_0%,#eef3fb_100%)]">
-            <OfflineRouteGuard />
             <div className="relative z-40 hidden overflow-visible md:block">
                 <Sidebar
                     isCollapsed={isSidebarCollapsed}
@@ -152,6 +150,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
             <main className="flex flex-1 flex-col overflow-y-auto overflow-x-hidden transition-all duration-300 ease-in-out">
                 <Header
                     projectTitle={activeProject?.name}
+                    projectSettingsHref={teamSlug && projectSlug ? `/${teamSlug}/${projectSlug}/settings` : undefined}
                     onOpenProjectMembers={activeProject ? () => setIsProjectMembersOpen(true) : undefined}
                     onOpenCreateTask={() => {
                         setCreateTaskSuccessMessage(null);

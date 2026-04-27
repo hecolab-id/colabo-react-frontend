@@ -1,5 +1,5 @@
 import axios from "axios";
-import { AuthResponse, Plan, Project, Task, Team, Comment, Notification, User, ActivityLog, Column, Checklist, ChecklistItem, Role, TeamUsage, CommentMention, LinkPreview, MessengerConnection, NotificationPreference, MessengerPlatform, TeamMessengerPolicy, MessengerLinkToken, BrowserPushSettings, BrowserPushSubscriptionInput, AdminImpersonationState, AdminOverview, AdminPaymentTransaction, AdminPlan, AdminProjectRow, AdminTeamRow, AdminUserRow, AdminListResponse, DashboardActionBucketId, DashboardActionItem, DashboardActionSeverity, DashboardHealthMetric, DashboardOverview, DashboardProjectSummary, DashboardRecommendedAction, PaginatedResult, TeamActivityItem, TeamActivityOverview, TeamInvite, TeamInvitePreview } from "./types";
+import { AuthResponse, Plan, Project, ProjectDocument, ProjectDocumentKind, Task, Team, Comment, Notification, User, ActivityLog, Column, Checklist, ChecklistItem, Role, TeamUsage, CommentMention, LinkPreview, MessengerConnection, NotificationPreference, MessengerPlatform, TeamMessengerPolicy, MessengerLinkToken, BrowserPushSettings, BrowserPushSubscriptionInput, AdminImpersonationState, AdminOverview, AdminPaymentTransaction, AdminPlan, AdminProjectRow, AdminTeamRow, AdminUserRow, AdminListResponse, DashboardActionBucketId, DashboardActionItem, DashboardActionSeverity, DashboardHealthMetric, DashboardOverview, DashboardProjectSummary, DashboardRecommendedAction, PaginatedResult, TeamActivityItem, TeamActivityOverview, TeamInvite, TeamInvitePreview } from "./types";
 
 const api = axios.create({
     baseURL: "/v1",
@@ -374,8 +374,36 @@ export const createProject = async (teamId: string, name: string, key: string, d
     return data.data;
 };
 
+export const updateProject = async (projectId: string, updates: Partial<Project>): Promise<Project> => {
+    const { data } = await api.patch(`/projects/${projectId}`, updates);
+    return data.data;
+};
+
 export const deleteProject = async (projectId: string): Promise<void> => {
     await api.delete(`/projects/${projectId}`);
+};
+
+export const getProjectDocuments = async (projectId: string): Promise<ProjectDocument[]> => {
+    const { data } = await api.get(`/projects/${projectId}/documents`);
+    return data.data;
+};
+
+export const createProjectDocument = async (
+    projectId: string,
+    payload: {
+        name: string;
+        url: string;
+        kind: ProjectDocumentKind;
+        mime_type?: string;
+        size_bytes?: number;
+    },
+): Promise<ProjectDocument> => {
+    const { data } = await api.post(`/projects/${projectId}/documents`, payload);
+    return data.data;
+};
+
+export const deleteProjectDocument = async (projectId: string, documentId: string): Promise<void> => {
+    await api.delete(`/projects/${projectId}/documents/${documentId}`);
 };
 
 export const inviteProjectMember = async (projectId: string, payload: { user_id?: string; email?: string }): Promise<void> => {
@@ -691,13 +719,7 @@ async function buildDashboardOverviewFallback(teamSlug?: string, teamId?: string
 }
 
 export const getDashboardOverview = async (teamSlug?: string, teamId?: string): Promise<DashboardOverview> => {
-    try {
-        const endpoint = teamSlug ? `/teams/${teamSlug}/dashboard` : "/dashboard";
-        const { data } = await api.get(endpoint);
-        return data.data;
-    } catch {
-        return buildDashboardOverviewFallback(teamSlug, teamId);
-    }
+    return buildDashboardOverviewFallback(teamSlug, teamId);
 };
 
 export const createTask = async (

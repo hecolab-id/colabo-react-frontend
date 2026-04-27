@@ -1,9 +1,10 @@
 "use client";
 
 import { NotificationsPopover } from "@/components/notifications/notifications-popover";
+import Link from "@/components/app-link";
 import { usePathname } from "@/lib/navigation";
 import { TeamMembersModal } from "../team/team-members-modal";
-import { Plus, Users } from "lucide-react";
+import { FolderCog, Plus, Users } from "lucide-react";
 import { useStore } from "@/lib/store";
 import { useCallback, useState } from "react";
 import { UserMenu } from "./user-menu";
@@ -12,10 +13,12 @@ export function Header({
     onOpenCreateTask,
     projectTitle,
     onOpenProjectMembers,
+    projectSettingsHref,
 }: {
     onOpenCreateTask?: () => void;
     projectTitle?: string;
     onOpenProjectMembers?: () => void;
+    projectSettingsHref?: string;
 }) {
     const pathname = usePathname();
     const { currentTeam: team, user, loadTeams } = useStore();
@@ -54,6 +57,15 @@ export function Header({
                         <h1 className="max-w-[34vw] truncate text-[17px] font-semibold tracking-tight text-slate-900">
                             {projectTitle}
                         </h1>
+                        {projectSettingsHref ? (
+                            <Link
+                                href={projectSettingsHref}
+                                className="inline-flex h-9 items-center gap-2 rounded-full border border-black/5 bg-slate-950 px-3 text-[13px] font-semibold text-white shadow-sm transition-all hover:bg-slate-800 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900"
+                            >
+                                <FolderCog className="h-4 w-4" aria-hidden="true" />
+                                View Project
+                            </Link>
+                        ) : null}
                         {onOpenProjectMembers ? (
                             <button
                                 type="button"

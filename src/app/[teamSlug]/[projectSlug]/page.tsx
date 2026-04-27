@@ -383,6 +383,10 @@ function ProjectSlugPageContent({ params }: { params: Promise<{ teamSlug: string
                                     setFilters(defaultFilters);
                                     setSortOption("default");
                                 }}
+                                onViewProject={() => {
+                                    setIsMobileControlsOpen(false);
+                                    router.push(`/${teamSlug}/${projectSlug}/settings`);
+                                }}
                                 onManageMembers={() => {
                                     setIsMobileControlsOpen(false);
                                     setIsMembersModalOpen(true);
@@ -427,6 +431,10 @@ function ProjectSlugPageContent({ params }: { params: Promise<{ teamSlug: string
                                 onResetAll={() => {
                                     setFilters(defaultFilters);
                                     setSortOption("default");
+                                }}
+                                onViewProject={() => {
+                                    setIsControlsOpen(false);
+                                    router.push(`/${teamSlug}/${projectSlug}/settings`);
                                 }}
                                 onManageMembers={() => {
                                     setIsControlsOpen(false);

@@ -1,4 +1,4 @@
-const SW_VERSION = "colabo-pwa-v2";
+const SW_VERSION = "colabo-pwa-v3";
 const STATIC_CACHE = `${SW_VERSION}-static`;
 const ASSET_CACHE = `${SW_VERSION}-assets`;
 const API_CACHE = `${SW_VERSION}-api`;
@@ -16,13 +16,12 @@ const PRECACHE_URLS = [
     "/icons/icon-192.png",
     "/icons/icon-512.png",
     "/icons/icon-maskable-512.png",
-    "/favicon.ico",
 ];
 
 self.addEventListener("install", (event) => {
     event.waitUntil((async () => {
         const cache = await caches.open(STATIC_CACHE);
-        await cache.addAll(PRECACHE_URLS);
+        await precacheStaticUrls(cache, PRECACHE_URLS);
         await self.skipWaiting();
     })());
 });
@@ -191,6 +190,23 @@ function isStaticAssetRequest(request, url) {
     return /^\/assets\//.test(url.pathname)
         || /^\/icons\//.test(url.pathname)
         || ["/favicon.ico", "/manifest.webmanifest", "/logo.webp"].includes(url.pathname);
+}
+
+async function precacheStaticUrls(cache, urls) {
+    await Promise.all(urls.map(async (url) => {
+        try {
+            const response = await fetch(url, { cache: "reload" });
+
+            if (response.ok) {
+                await cache.put(url, response);
+                return;
+            }
+
+            console.warn(`[service-worker] Skipped precache for ${url}: ${response.status}`);
+        } catch (error) {
+            console.warn(`[service-worker] Skipped precache for ${url}`, error);
+        }
+    }));
 }
 
 function parsePushPayload(data) {

@@ -372,12 +372,30 @@ export type Project = {
     slug: string;
     key: string;
     description?: string;
+    is_private?: boolean;
     team_id: string;
     team?: Team;
     task_count: number;
     completed_count: number;
     members?: User[];
     created_at?: string;
+    updated_at?: string;
+};
+
+export type ProjectDocumentKind = "file" | "link";
+
+export type ProjectDocument = {
+    id: string;
+    project_id: string;
+    name: string;
+    url: string;
+    kind: ProjectDocumentKind;
+    mime_type?: string;
+    size_bytes?: number;
+    uploaded_by_id: string;
+    uploaded_by?: User;
+    created_at?: string;
+    updated_at?: string;
 };
 
 export type Column = {
