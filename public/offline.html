@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#0f172a" />
+  <title>Colabo Offline</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #eef2ff;
+      --card: rgba(255, 255, 255, 0.92);
+      --text: #0f172a;
+      --muted: #475569;
+      --accent: #0f172a;
+      --accent-soft: #e0f2fe;
+      --warning-bg: #fef3c7;
+      --warning-border: #fcd34d;
+      --warning-text: #92400e;
+      --border: rgba(148, 163, 184, 0.28);
+      --shadow: 0 30px 80px rgba(15, 23, 42, 0.18);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at top, rgba(59, 130, 246, 0.14), transparent 30%),
+        linear-gradient(180deg, #f8fafc 0%, var(--bg) 100%);
+      color: var(--text);
+    }
+
+    main {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .card {
+      width: min(720px, 100%);
+      border: 1px solid var(--border);
+      background: var(--card);
+      border-radius: 32px;
+      padding: 32px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(12px);
+    }
+
+    .eyebrow {
+      margin: 0;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      color: #0369a1;
+    }
+
+    h1 {
+      margin: 16px 0 0;
+      font-size: clamp(2.3rem, 5vw, 3.4rem);
+      line-height: 1.05;
+    }
+
+    p {
+      margin: 16px 0 0;
+      color: var(--muted);
+      line-height: 1.7;
+      font-size: 1rem;
+    }
+
+    .actions {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin-top: 32px;
+    }
+
+    a {
+      text-decoration: none;
+      border-radius: 18px;
+      padding: 16px 18px;
+      font-weight: 600;
+      text-align: center;
+      border: 1px solid rgba(148, 163, 184, 0.3);
+    }
+
+    .primary {
+      background: var(--accent);
+      color: white;
+    }
+
+    .secondary {
+      background: white;
+      color: var(--text);
+    }
+
+    .notice {
+      margin-top: 28px;
+      border-radius: 18px;
+      border: 1px solid var(--warning-border);
+      background: var(--warning-bg);
+      color: var(--warning-text);
+      padding: 16px 18px;
+      font-size: 0.95rem;
+      line-height: 1.6;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <section class="card">
+      <p class="eyebrow">Offline Mode</p>
+      <h1>You're offline right now.</h1>
+      <p>
+        Colabo can still open your cached dashboard and personal task list, but project boards,
+        team areas, and any task or project changes need an internet connection.
+      </p>
+
+      <div class="actions">
+        <a class="primary" href="/dashboard">Open Dashboard</a>
+        <a class="secondary" href="/my-tasks">Open My Tasks</a>
+      </div>
+
+      <div class="notice">
+        Creating, editing, deleting, or reordering tasks and projects is disabled while offline.
+      </div>
+    </section>
+  </main>
+</body>
+</html>
