@@ -1,4 +1,4 @@
-name: Deploy React to VPS
+name: Deploy React (Bun) to VPS
 
 on:
   push:
@@ -23,25 +23,30 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      # 🟣 Setup Bun
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
         with:
-          node-version: 22
-          cache: npm
+          bun-version: latest
 
+      # 📦 Install dependencies (deterministic)
       - name: Install dependencies
-        run: npm ci
+        run: bun install --frozen-lockfile
 
+      # ⚙️ Use production env
       - name: Use production env
         run: cp .env.prod .env
 
+      # 🏗️ Build
       - name: Build React app
-        run: npm run build
+        run: bun run build
 
+      # 📦 Archive build
       - name: Create release archive
         run: |
           tar -czf release.tar.gz -C $BUILD_DIR .
 
+      # 🚀 Upload ke VPS
       - name: Upload release to VPS
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -52,6 +57,7 @@ jobs:
           source: release.tar.gz
           target: /tmp/${{ env.APP_NAME }}
 
+      # 🔁 Deploy + rollback
       - name: Deploy with rollback
         uses: appleboy/ssh-action@v1.2.0
         with:
@@ -69,6 +75,7 @@ jobs:
             CURRENT_LINK="$DEPLOY_PATH/current"
             PREVIOUS_RELEASE=""
 
+            echo "📁 Setup directories..."
             mkdir -p "$DEPLOY_PATH/releases"
 
             if [ -L "$CURRENT_LINK" ]; then
@@ -76,33 +83,39 @@ jobs:
               echo "Previous release: $PREVIOUS_RELEASE"
             fi
 
+            echo "📦 Extract new release..."
             mkdir -p "$RELEASE_DIR"
             tar -xzf "/tmp/$APP_NAME/release.tar.gz" -C "$RELEASE_DIR"
 
+            echo "🔗 Switch symlink..."
             ln -sfn "$RELEASE_DIR" "$CURRENT_LINK"
 
+            echo "🔄 Reload nginx..."
             sudo nginx -t
             sudo systemctl reload nginx
 
+            echo "🩺 Health check..."
             sleep 3
 
             if ! curl -f -s "${{ env.HEALTHCHECK_URL }}" > /dev/null; then
-              echo "Health check failed. Rolling back..."
+              echo "❌ Health check failed → rollback"
 
               if [ -n "$PREVIOUS_RELEASE" ] && [ -d "$PREVIOUS_RELEASE" ]; then
                 ln -sfn "$PREVIOUS_RELEASE" "$CURRENT_LINK"
                 sudo systemctl reload nginx
-                echo "Rollback completed."
+                echo "✅ Rollback success"
               else
-                echo "No previous release found."
+                echo "⚠️ No previous release found"
               fi
 
               exit 1
             fi
 
-            echo "Deployment successful."
+            echo "✅ Deployment successful"
 
+            echo "🧹 Cleanup old releases..."
             cd "$DEPLOY_PATH/releases"
             ls -dt */ | tail -n +6 | xargs -r rm -rf
 
+            echo "🧹 Cleanup temp..."
             rm -rf "/tmp/$APP_NAME"
