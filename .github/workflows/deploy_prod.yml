@@ -1,0 +1,108 @@
+name: Deploy React to VPS
+
+on:
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: deploy-frontend-react-production
+  cancel-in-progress: false
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    env:
+      APP_NAME: frontend-react
+      BUILD_DIR: dist
+      DEPLOY_PATH: /var/www/html/colabo/frontend-react
+      HEALTHCHECK_URL: https://colabo.hecolab.id
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Use production env
+        run: cp .env.prod .env
+
+      - name: Build React app
+        run: npm run build
+
+      - name: Create release archive
+        run: |
+          tar -czf release.tar.gz -C $BUILD_DIR .
+
+      - name: Upload release to VPS
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT }}
+          source: release.tar.gz
+          target: /tmp/${{ env.APP_NAME }}
+
+      - name: Deploy with rollback
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT }}
+          script: |
+            set -e
+
+            APP_NAME="${{ env.APP_NAME }}"
+            DEPLOY_PATH="${{ env.DEPLOY_PATH }}"
+            RELEASE_ID="${{ github.sha }}"
+            RELEASE_DIR="$DEPLOY_PATH/releases/$RELEASE_ID"
+            CURRENT_LINK="$DEPLOY_PATH/current"
+            PREVIOUS_RELEASE=""
+
+            mkdir -p "$DEPLOY_PATH/releases"
+
+            if [ -L "$CURRENT_LINK" ]; then
+              PREVIOUS_RELEASE=$(readlink -f "$CURRENT_LINK")
+              echo "Previous release: $PREVIOUS_RELEASE"
+            fi
+
+            mkdir -p "$RELEASE_DIR"
+            tar -xzf "/tmp/$APP_NAME/release.tar.gz" -C "$RELEASE_DIR"
+
+            ln -sfn "$RELEASE_DIR" "$CURRENT_LINK"
+
+            sudo nginx -t
+            sudo systemctl reload nginx
+
+            sleep 3
+
+            if ! curl -f -s "${{ env.HEALTHCHECK_URL }}" > /dev/null; then
+              echo "Health check failed. Rolling back..."
+
+              if [ -n "$PREVIOUS_RELEASE" ] && [ -d "$PREVIOUS_RELEASE" ]; then
+                ln -sfn "$PREVIOUS_RELEASE" "$CURRENT_LINK"
+                sudo systemctl reload nginx
+                echo "Rollback completed."
+              else
+                echo "No previous release found."
+              fi
+
+              exit 1
+            fi
+
+            echo "Deployment successful."
+
+            cd "$DEPLOY_PATH/releases"
+            ls -dt */ | tail -n +6 | xargs -r rm -rf
+
+            rm -rf "/tmp/$APP_NAME"
