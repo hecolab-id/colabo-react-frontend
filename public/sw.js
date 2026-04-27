@@ -1,4 +1,4 @@
-const SW_VERSION = "colabo-pwa-v3";
+const SW_VERSION = "colabo-pwa-v4";
 const STATIC_CACHE = `${SW_VERSION}-static`;
 const ASSET_CACHE = `${SW_VERSION}-assets`;
 const API_CACHE = `${SW_VERSION}-api`;
@@ -162,7 +162,9 @@ async function handleApiRequest(request) {
         const response = await fetch(request);
 
         if (response.ok) {
-            await putApiCache(request, response.clone());
+            await putApiCache(request, response.clone()).catch((error) => {
+                console.warn(`[service-worker] Skipped API cache for ${request.url}`, error);
+            });
         }
 
         return response;
@@ -178,8 +180,7 @@ async function handleApiRequest(request) {
 
 function isCacheableApiRequest(url) {
     return url.pathname.startsWith("/v1/")
-        && !url.pathname.includes("/auth/refresh")
-        && !url.pathname.includes("/logout");
+        && !url.pathname.startsWith("/v1/auth/");
 }
 
 function isStaticAssetRequest(request, url) {
