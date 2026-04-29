@@ -2,6 +2,7 @@
 
 import Image from "@/components/app-image";
 import {
+    useCallback,
     useEffect,
     useMemo,
     useRef,
@@ -77,6 +78,13 @@ type MentionDraft = Pick<CommentMention, "user_id" | "display_text" | "start" | 
     local_id: string;
     user: AppUser;
 };
+
+function canReadAllProjects(member: AppUser) {
+    return member.roles?.some((role) => (
+        ["OWNER", "ADMIN"].includes(role.name.toUpperCase()) ||
+        role.permissions?.some((permission) => permission.name === "projects:read_all")
+    )) ?? false;
+}
 
 const urlPattern = /https?:\/\/[^\s<>"')\]]+/i;
 
@@ -175,12 +183,12 @@ function SectionCard({
     return (
         <section
             className={cn(
-                "rounded-[1.35rem] border border-white/75 bg-white/86 p-4 shadow-[0_22px_50px_-36px_rgba(15,23,42,0.26)] md:rounded-[1.55rem] md:p-5",
+                "rounded-[1.35rem] border border-slate-200/70 bg-white/82 p-4 shadow-[0_18px_50px_-42px_rgba(15,23,42,0.28)] md:rounded-[1.55rem] md:p-5",
                 className,
             )}
         >
             <div className="mb-4 flex items-center justify-between gap-3">
-                <h3 className="flex items-center gap-2 text-sm font-semibold tracking-[0.02em] text-foreground">
+                <h3 className="flex items-center gap-2 text-[15px] font-semibold tracking-normal text-slate-950">
                     {Icon ? <Icon className="h-4 w-4 text-primary" aria-hidden="true" /> : null}
                     {title}
                 </h3>
@@ -191,8 +199,27 @@ function SectionCard({
     );
 }
 
+function EmptyState({
+    title,
+    action,
+}: {
+    title: string;
+    action?: ReactNode;
+}) {
+    return (
+        <div className="rounded-[1.15rem] border border-dashed border-slate-300/80 bg-slate-50/70 px-4 py-5 text-sm text-slate-500">
+            <p>{title}</p>
+            {action ? <div className="mt-3">{action}</div> : null}
+        </div>
+    );
+}
+
+function FieldLabel({ children }: { children: ReactNode }) {
+    return <span className="mb-2 block text-xs font-medium text-slate-500">{children}</span>;
+}
+
 export function TaskDetailModal({ task, projectColumns: initialProjectColumns, onClose, onDelete, onUpdate }: TaskDetailModalProps) {
-    const { currentTeam } = useStore();
+    const { currentTeam, user: currentUser } = useStore();
     const bodyRef = useRef<HTMLDivElement>(null);
     const commentInputRef = useRef<HTMLTextAreaElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -214,6 +241,8 @@ export function TaskDetailModal({ task, projectColumns: initialProjectColumns, o
     const [comments, setComments] = useState<Comment[]>(task.comments || []);
     const [checklists, setChecklists] = useState<ChecklistType[]>(task.checklists || []);
     const [activities, setActivities] = useState<ActivityLog[]>([]);
+    const [isLoadingDetails, setIsLoadingDetails] = useState(true);
+    const [detailsError, setDetailsError] = useState<string | null>(null);
     const [projectColumns, setProjectColumns] = useState<Column[]>(initialProjectColumns || []);
     const [isProjectColumnsLoading, setIsProjectColumnsLoading] = useState(!initialProjectColumns);
     const [hasLoadedProjectColumns, setHasLoadedProjectColumns] = useState(Boolean(initialProjectColumns));
@@ -270,37 +299,42 @@ export function TaskDetailModal({ task, projectColumns: initialProjectColumns, o
         }
     }, [initialProjectColumns, task]);
 
-    useEffect(() => {
-        const loadData = async () => {
-            setIsProjectColumnsLoading(!initialProjectColumns);
-            try {
-                const [logs, fetchedComments, fetchedChecklists, fetchedTask, fetchedColumns] = await Promise.all([
-                    getTaskActivities(task.id),
-                    getComments(task.id),
-                    getChecklists(task.id),
-                    getTask(task.id),
-                    initialProjectColumns ? Promise.resolve(initialProjectColumns) : getProjectColumns(task.project_id),
-                ]);
+    const loadTaskDetails = useCallback(async () => {
+        setIsLoadingDetails(true);
+        setDetailsError(null);
+        setIsProjectColumnsLoading(!initialProjectColumns);
 
-                setActivities(logs || []);
-                if (fetchedComments) setComments(fetchedComments);
-                if (fetchedChecklists) setChecklists(fetchedChecklists);
-                setProjectColumns(fetchedColumns || []);
-                setHasLoadedProjectColumns(true);
-                if (fetchedTask) {
-                    setTaskState(fetchedTask);
-                    setLabels(fetchedTask.labels || []);
-                    setAttachments(fetchedTask.attachments || []);
-                }
-            } catch (error) {
-                console.error("Failed to load task details", error);
-            } finally {
-                setIsProjectColumnsLoading(false);
+        try {
+            const [logs, fetchedComments, fetchedChecklists, fetchedTask, fetchedColumns] = await Promise.all([
+                getTaskActivities(task.id),
+                getComments(task.id),
+                getChecklists(task.id),
+                getTask(task.id),
+                initialProjectColumns ? Promise.resolve(initialProjectColumns) : getProjectColumns(task.project_id),
+            ]);
+
+            setActivities(logs || []);
+            if (fetchedComments) setComments(fetchedComments);
+            if (fetchedChecklists) setChecklists(fetchedChecklists);
+            setProjectColumns(fetchedColumns || []);
+            setHasLoadedProjectColumns(true);
+            if (fetchedTask) {
+                setTaskState(fetchedTask);
+                setLabels(fetchedTask.labels || []);
+                setAttachments(fetchedTask.attachments || []);
             }
-        };
-
-        loadData();
+        } catch (error) {
+            console.error("Failed to load task details", error);
+            setDetailsError("Some task details could not be loaded.");
+        } finally {
+            setIsLoadingDetails(false);
+            setIsProjectColumnsLoading(false);
+        }
     }, [initialProjectColumns, task.id, task.project_id]);
+
+    useEffect(() => {
+        void loadTaskDetails();
+    }, [loadTaskDetails]);
 
     useEscapeKey(!showDeleteDialog, onClose);
 
@@ -683,10 +717,33 @@ export function TaskDetailModal({ task, projectColumns: initialProjectColumns, o
     const priority = priorityToneMap[taskState.priority] || priorityToneMap.MEDIUM;
     const status = statusToneMap[taskState.status] || statusToneMap.TODO;
     const dueDateTone = getDueDateTone(taskState.due_date || undefined);
-    const mentionableMembers = useMemo(
-        () => (taskState.project?.members || []).slice().sort((left, right) => left.name.localeCompare(right.name)),
-        [taskState.project?.members]
-    );
+    const mentionableMembers = useMemo(() => {
+        const membersById = new Map<string, AppUser>();
+        const addMembers = (members?: AppUser[]) => {
+            members?.forEach((member) => {
+                if (member.id !== currentUser?.id) {
+                    membersById.set(member.id, member);
+                }
+            });
+        };
+
+        addMembers(taskState.project?.members);
+
+        if (taskState.project?.is_private) {
+            addMembers(currentTeam?.members?.filter(canReadAllProjects));
+        } else {
+            addMembers(taskState.project?.team?.members);
+            addMembers(currentTeam?.members);
+        }
+
+        return [...membersById.values()].sort((left, right) => left.name.localeCompare(right.name));
+    }, [
+        currentTeam?.members,
+        currentUser?.id,
+        taskState.project?.is_private,
+        taskState.project?.members,
+        taskState.project?.team?.members,
+    ]);
     const filteredMentionMembers = useMemo(() => {
         if (!mentionRange) return [];
 
@@ -709,6 +766,12 @@ export function TaskDetailModal({ task, projectColumns: initialProjectColumns, o
         || null;
     const isTaskDone = taskState.status === "DONE" || currentTaskColumn?.type === "done";
     const canShowMissingDoneColumnMessage = hasLoadedProjectColumns && !isProjectColumnsLoading && !doneColumn && !isTaskDone;
+    const canManageLabels = Boolean(
+        currentTeam && currentUser && (
+            currentTeam.owner_id === currentUser.id ||
+            ["OWNER", "ADMIN"].includes((currentTeam.role || "").toUpperCase())
+        )
+    );
     const selectMention = (member: AppUser) => {
         if (!mentionRange) return;
 
@@ -839,26 +902,26 @@ export function TaskDetailModal({ task, projectColumns: initialProjectColumns, o
 
     const modal = (
         <div
-            className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.18),transparent_32%),rgba(2,6,23,0.68)] p-0 backdrop-blur-md md:p-6"
+            className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-[rgba(15,23,42,0.46)] p-0 backdrop-blur-xl md:p-6"
             onClick={onClose}
         >
             <div
-                className="h-[100dvh] w-full overflow-hidden border-0 border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.97),rgba(248,250,252,0.94))] shadow-none overscroll-contain md:max-h-[96vh] md:h-auto md:max-w-7xl md:rounded-[2.15rem] md:border md:border-white/70 md:shadow-[0_46px_140px_-50px_rgba(15,23,42,0.82)]"
+                className="h-[100dvh] w-full overflow-hidden border-0 border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(246,248,251,0.96))] shadow-none overscroll-contain md:h-auto md:max-h-[96vh] md:max-w-7xl md:rounded-[2rem] md:border md:border-white/70 md:shadow-[0_46px_140px_-56px_rgba(15,23,42,0.78)]"
                 onClick={(event) => event.stopPropagation()}
             >
                 <div className="flex h-[100dvh] flex-col overflow-hidden md:max-h-[96vh] md:h-auto">
-                    <header className="sticky top-0 z-20 border-b border-white/70 bg-white/86 px-4 py-3 backdrop-blur-2xl md:px-7 md:py-4">
+                    <header className="sticky top-0 z-20 border-b border-slate-200/70 bg-white/88 px-4 py-3 backdrop-blur-2xl md:px-7 md:py-5">
                         <div className="flex items-start justify-between gap-4">
                             <div className="min-w-0 flex-1 space-y-2 md:space-y-3">
                                 <div className="flex flex-wrap items-center gap-2">
-                                    <span className={cn("rounded-full px-3 py-1 text-xs font-semibold tracking-[0.08em]", status.className)}>
+                                    <span className={cn("rounded-full px-3 py-1 text-xs font-medium tracking-normal", status.className)}>
                                         {status.label}
                                     </span>
-                                    <span className={cn("rounded-full px-3 py-1 text-xs font-semibold tracking-[0.08em]", priority.badgeClassName)}>
+                                    <span className={cn("rounded-full px-3 py-1 text-xs font-medium tracking-normal", priority.badgeClassName)}>
                                         {priority.label}
                                     </span>
                                     {taskState.due_date && (
-                                        <span className={cn("rounded-full px-3 py-1 text-xs font-semibold tracking-[0.08em]", dueDateTone.className)}>
+                                        <span className={cn("rounded-full px-3 py-1 text-xs font-medium tracking-normal", dueDateTone.className)}>
                                             {dueDateTone.label || `Due ${formatTaskDate(taskState.due_date)}`}
                                         </span>
                                     )}
@@ -870,7 +933,7 @@ export function TaskDetailModal({ task, projectColumns: initialProjectColumns, o
                                         onClick={handleMarkAsDone}
                                         disabled={isMarkingDone || isProjectColumnsLoading || isTaskDone || !doneColumn}
                                         className={cn(
-                                            "inline-flex touch-manipulation items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-4",
+                                            "inline-flex touch-manipulation items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-4",
                                             isTaskDone
                                                 ? "border border-emerald-200 bg-emerald-50 text-emerald-700 focus-visible:ring-emerald-100"
                                                 : "bg-slate-950 text-white hover:bg-slate-800 focus-visible:ring-slate-300",
@@ -936,7 +999,7 @@ export function TaskDetailModal({ task, projectColumns: initialProjectColumns, o
                                         onClick={() => setIsEditingTitle(true)}
                                         className="group flex w-full items-start gap-2 rounded-2xl px-1 py-1 text-left transition-colors hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15"
                                     >
-                                        <h2 className="min-w-0 flex-1 text-balance text-xl font-semibold tracking-tight text-slate-950 md:text-[2rem]">
+                                        <h2 className="min-w-0 flex-1 text-balance text-2xl font-semibold tracking-normal text-slate-950 md:text-[2rem]">
                                             {taskState.title}
                                         </h2>
                                         <Edit2 className="mt-1 h-4 w-4 shrink-0 text-slate-400 transition-colors group-hover:text-primary" aria-hidden="true" />
@@ -948,7 +1011,7 @@ export function TaskDetailModal({ task, projectColumns: initialProjectColumns, o
                                 type="button"
                                 onClick={onClose}
                                 aria-label="Close task details"
-                                className="touch-manipulation rounded-2xl border border-slate-200 bg-white p-3 text-slate-600 transition-[border-color,background-color,color] hover:border-slate-300 hover:bg-slate-50 hover:text-slate-950 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15"
+                                className="touch-manipulation rounded-full border border-slate-200 bg-white/90 p-3 text-slate-600 transition-[border-color,background-color,color] hover:border-slate-300 hover:bg-slate-50 hover:text-slate-950 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15"
                             >
                                 <X className="h-5 w-5" aria-hidden="true" />
                             </button>
@@ -980,7 +1043,27 @@ export function TaskDetailModal({ task, projectColumns: initialProjectColumns, o
                     </div>
 
                     <div ref={bodyRef} className="flex-1 overflow-y-auto">
-                        <div className="grid gap-4 px-4 pb-[calc(env(safe-area-inset-bottom)+7rem)] pt-4 md:grid-cols-[minmax(0,1.7fr)_minmax(300px,0.95fr)] md:gap-5 md:p-6 md:pb-6">
+                        {detailsError ? (
+                            <div className="mx-4 mt-4 rounded-[1.15rem] border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 md:mx-6">
+                                <div className="flex flex-wrap items-center justify-between gap-3">
+                                    <span>{detailsError}</span>
+                                    <button
+                                        type="button"
+                                        onClick={() => void loadTaskDetails()}
+                                        className="rounded-full bg-white px-3 py-1.5 text-xs font-medium text-amber-900 shadow-sm transition-colors hover:bg-amber-100 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-amber-200"
+                                    >
+                                        Retry
+                                    </button>
+                                </div>
+                            </div>
+                        ) : null}
+                        {isLoadingDetails ? (
+                            <div className="mx-4 mt-4 flex items-center gap-2 rounded-[1.15rem] border border-slate-200 bg-white/80 px-4 py-3 text-sm text-slate-500 md:mx-6">
+                                <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+                                Loading task details...
+                            </div>
+                        ) : null}
+                        <div className="grid gap-4 px-4 pb-[calc(env(safe-area-inset-bottom)+7rem)] pt-4 md:grid-cols-[minmax(0,1.85fr)_minmax(280px,0.75fr)] md:gap-5 md:p-6 md:pb-6">
                             <div className="space-y-5">
                                 <SectionCard title="Description" className="scroll-mt-28" contentClassName="space-y-3">
                                     <span ref={sectionRefs.description} className="block h-0" aria-hidden="true" />
@@ -1016,7 +1099,7 @@ export function TaskDetailModal({ task, projectColumns: initialProjectColumns, o
                                         <button
                                             type="button"
                                             onClick={() => setIsEditingDesc(true)}
-                                            className="w-full rounded-[1.2rem] border border-dashed border-slate-300/90 bg-[linear-gradient(180deg,#ffffff_0%,#f8fafc_100%)] p-4 text-left transition-[border-color,background-color,transform] hover:border-primary/35 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15"
+                                            className="w-full rounded-[1.2rem] border border-slate-200/80 bg-white/58 p-4 text-left transition-[border-color,background-color,transform] hover:border-primary/30 hover:bg-white focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15"
                                         >
                                             {taskState.description ? (
                                                 <div
@@ -1024,9 +1107,10 @@ export function TaskDetailModal({ task, projectColumns: initialProjectColumns, o
                                                     dangerouslySetInnerHTML={{ __html: taskState.description }}
                                                 />
                                             ) : (
-                                                <p className="text-sm italic text-slate-500">
-                                                    Click to add a description…
-                                                </p>
+                                                <div className="flex items-center justify-between gap-3 text-sm text-slate-500">
+                                                    <span>Add context, links, or acceptance notes.</span>
+                                                    <span className="shrink-0 rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600">Add</span>
+                                                </div>
                                             )}
                                         </button>
                                     )}
@@ -1052,7 +1136,7 @@ export function TaskDetailModal({ task, projectColumns: initialProjectColumns, o
                                     <div className="space-y-5">
                                         {checklists.length > 0 ? (
                                             checklists.map((checklist) => (
-                                                <div key={checklist.id} className="rounded-[1.2rem] border border-border bg-[var(--surface-raised)]/35 p-4">
+                                                <div key={checklist.id} className="rounded-[1.2rem] border border-slate-200/70 bg-white/70 p-4">
                                                     <Checklist
                                                         checklist={checklist}
                                                         onUpdate={handleUpdateChecklist}
@@ -1061,15 +1145,13 @@ export function TaskDetailModal({ task, projectColumns: initialProjectColumns, o
                                                 </div>
                                             ))
                                         ) : (
-                                            <div className="rounded-[1.2rem] border border-dashed border-slate-300 bg-slate-50 px-4 py-6 text-sm text-slate-500">
-                                                No checklist yet. Break the work into steps so progress is easy to track.
-                                            </div>
+                                            <EmptyState title="No checklist yet. Break the work into steps so progress is easy to track." />
                                         )}
 
                                         {isCreatingChecklist && (
                                             <form onSubmit={handleCreateChecklist} className="rounded-[1.2rem] border border-slate-300 bg-white p-4">
-                                                <label htmlFor="checklist-title" className="mb-2 block text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
-                                                    Checklist Title
+                                                <label htmlFor="checklist-title" className="mb-2 block text-xs font-medium text-slate-500">
+                                                    Checklist title
                                                 </label>
                                                 <input
                                                     id="checklist-title"
@@ -1155,7 +1237,7 @@ export function TaskDetailModal({ task, projectColumns: initialProjectColumns, o
                                                 return (
                                                     <div
                                                         key={`${url}-${index}`}
-                                                        className="flex items-center gap-3 rounded-[1.15rem] border border-border bg-[linear-gradient(180deg,#ffffff_0%,#f8fafc_100%)] p-3 transition-[border-color,transform] hover:border-primary/30"
+                                                        className="flex items-center gap-3 rounded-[1.15rem] border border-slate-200/80 bg-white/68 p-3 transition-[border-color,background-color] hover:border-primary/30 hover:bg-white"
                                                     >
                                                         {isImage ? (
                                                             <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-[1rem] border border-border bg-slate-100">
@@ -1214,9 +1296,18 @@ export function TaskDetailModal({ task, projectColumns: initialProjectColumns, o
                                             )}
                                         </div>
                                     ) : (
-                                        <div className="rounded-[1.2rem] border border-dashed border-slate-300 bg-slate-50 px-4 py-6 text-sm text-slate-500">
-                                            No attachments yet. Upload references, screenshots, or specs so the task stays self-contained.
-                                        </div>
+                                        <EmptyState
+                                            title="No attachments yet. Upload references, screenshots, or specs so the task stays self-contained."
+                                            action={
+                                                <button
+                                                    type="button"
+                                                    onClick={() => fileInputRef.current?.click()}
+                                                    className="rounded-full bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm transition-colors hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15"
+                                                >
+                                                    Upload a file
+                                                </button>
+                                            }
+                                        />
                                     )}
                                 </SectionCard>
 
@@ -1236,7 +1327,7 @@ export function TaskDetailModal({ task, projectColumns: initialProjectColumns, o
                                                         : "text-slate-500 hover:text-slate-950"
                                                 )}
                                             >
-                                                Comments
+                                                Comments {comments.length}
                                             </button>
                                             <button
                                                 type="button"
@@ -1248,7 +1339,7 @@ export function TaskDetailModal({ task, projectColumns: initialProjectColumns, o
                                                         : "text-slate-500 hover:text-slate-950"
                                                 )}
                                             >
-                                                Activity
+                                                Activity {activities.length}
                                             </button>
                                         </div>
                                     }
@@ -1261,7 +1352,7 @@ export function TaskDetailModal({ task, projectColumns: initialProjectColumns, o
                                                     const firstUrl = extractFirstUrl(item.content);
 
                                                     return (
-                                                        <article key={item.id} className="flex gap-3 rounded-[1.1rem] border border-border bg-[var(--surface-raised)]/32 p-3">
+                                                        <article key={item.id} className="flex gap-3 rounded-[1.1rem] border border-slate-200/70 bg-white/62 p-3">
                                                             <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
                                                                 {item.user.name.charAt(0)}
                                                             </div>
@@ -1277,12 +1368,10 @@ export function TaskDetailModal({ task, projectColumns: initialProjectColumns, o
                                                     );
                                                 })
                                             ) : (
-                                                <div className="rounded-[1.2rem] border border-dashed border-slate-300 bg-slate-50 px-4 py-6 text-sm text-slate-500">
-                                                    No comments yet. Use this thread to capture decisions, blockers, and quick follow-ups.
-                                                </div>
+                                                <EmptyState title="No comments yet. Capture a decision, blocker, or quick follow-up." />
                                             )}
 
-                                            <form onSubmit={handleSend} className="hidden rounded-[1.2rem] border border-slate-200 bg-white p-3 md:block">
+                                            <form onSubmit={handleSend} className="sticky bottom-0 z-20 hidden rounded-[1.25rem] border border-slate-200/80 bg-white/94 p-3 shadow-[0_-18px_46px_-34px_rgba(15,23,42,0.34)] backdrop-blur-xl md:block">
                                                 <label htmlFor="task-comment" className="sr-only">Write a comment</label>
                                                 <div className="relative">
                                                     <div className="flex gap-2">
@@ -1298,43 +1387,47 @@ export function TaskDetailModal({ task, projectColumns: initialProjectColumns, o
                                                             placeholder="Write a comment… Use @ to mention a project member."
                                                             autoComplete="off"
                                                             rows={3}
-                                                            className="min-w-0 flex-1 resize-none rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-950 outline-none transition-[border-color,box-shadow] focus-visible:border-primary focus-visible:ring-4 focus-visible:ring-primary/15"
+                                                            className="min-w-0 flex-1 resize-none rounded-[1rem] border border-slate-200 bg-slate-50/70 px-3 py-2 text-sm text-slate-950 outline-none transition-[border-color,box-shadow,background-color] focus-visible:border-primary focus-visible:bg-white focus-visible:ring-4 focus-visible:ring-primary/15"
                                                         />
                                                         <button
                                                             type="submit"
                                                             disabled={!comment.trim()}
                                                             aria-label="Send comment"
-                                                            className="touch-manipulation self-end rounded-xl bg-slate-950 p-2.5 text-white transition-colors hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-slate-300"
+                                                            className="touch-manipulation self-end rounded-[1rem] bg-slate-950 p-2.5 text-white transition-colors hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-slate-300"
                                                         >
                                                             <Send className="h-4 w-4" aria-hidden="true" />
                                                         </button>
                                                     </div>
 
-                                                    {mentionRange && filteredMentionMembers.length > 0 && (
-                                                        <div className="absolute left-0 top-full z-10 mt-2 w-full overflow-hidden rounded-[1rem] border border-slate-200 bg-white shadow-[0_18px_36px_-22px_rgba(15,23,42,0.35)]">
-                                                            <div className="border-b border-slate-100 px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
-                                                                Mention a Project Member
+                                                    {mentionRange && (filteredMentionMembers.length > 0 || mentionQuery.trim().length > 0) && (
+                                                        <div className="absolute bottom-full left-0 z-30 mb-2 w-full overflow-hidden rounded-[1rem] border border-slate-200 bg-white shadow-[0_18px_36px_-22px_rgba(15,23,42,0.35)]">
+                                                            <div className="border-b border-slate-100 px-3 py-2 text-xs font-medium text-slate-500">
+                                                                Mention a project member
                                                             </div>
                                                             <div className="max-h-56 overflow-y-auto p-2">
-                                                                {filteredMentionMembers.map((member, index) => (
-                                                                    <button
-                                                                        key={member.id}
-                                                                        type="button"
-                                                                        onClick={() => selectMention(member)}
-                                                                        className={cn(
-                                                                            "flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left transition-colors focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15",
-                                                                            index === activeMentionIndex ? "bg-primary/10 text-primary" : "hover:bg-slate-50"
-                                                                        )}
-                                                                    >
-                                                                        <div className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-primary/10 text-xs font-semibold text-primary">
-                                                                            {member.name.charAt(0)}
-                                                                        </div>
-                                                                        <div className="min-w-0 flex-1">
-                                                                            <div className="truncate text-sm font-medium text-slate-950">{member.name}</div>
-                                                                            <div className="truncate text-xs text-slate-500">{member.email}</div>
-                                                                        </div>
-                                                                    </button>
-                                                                ))}
+                                                                {filteredMentionMembers.length > 0 ? (
+                                                                    filteredMentionMembers.map((member, index) => (
+                                                                        <button
+                                                                            key={member.id}
+                                                                            type="button"
+                                                                            onClick={() => selectMention(member)}
+                                                                            className={cn(
+                                                                                "flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left transition-colors focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15",
+                                                                                index === activeMentionIndex ? "bg-primary/10 text-primary" : "hover:bg-slate-50"
+                                                                            )}
+                                                                        >
+                                                                            <div className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-primary/10 text-xs font-semibold text-primary">
+                                                                                {member.name.charAt(0)}
+                                                                            </div>
+                                                                            <div className="min-w-0 flex-1">
+                                                                                <div className="truncate text-sm font-medium text-slate-950">{member.name}</div>
+                                                                                <div className="truncate text-xs text-slate-500">{member.email}</div>
+                                                                            </div>
+                                                                        </button>
+                                                                    ))
+                                                                ) : (
+                                                                    <div className="px-3 py-4 text-sm text-slate-500">No matching member.</div>
+                                                                )}
                                                             </div>
                                                         </div>
                                                     )}
@@ -1345,7 +1438,7 @@ export function TaskDetailModal({ task, projectColumns: initialProjectColumns, o
                                         <div className="space-y-3">
                                             {activities.length > 0 ? (
                                                 activities.map((log) => (
-                                                    <article key={log.id} className="flex gap-3 rounded-[1.1rem] border border-border bg-[var(--surface-raised)]/32 p-3 text-sm">
+                                                    <article key={log.id} className="flex gap-3 border-b border-slate-200/70 px-1 py-3 text-sm last:border-b-0">
                                                         <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-500">
                                                             <Activity className="h-4 w-4" aria-hidden="true" />
                                                         </div>
@@ -1389,23 +1482,19 @@ export function TaskDetailModal({ task, projectColumns: initialProjectColumns, o
                                                     </article>
                                                 ))
                                             ) : (
-                                                <div className="rounded-[1.2rem] border border-dashed border-slate-300 bg-slate-50 px-4 py-6 text-sm text-slate-500">
-                                                    No activity yet. Changes to this task will show up here.
-                                                </div>
+                                                <EmptyState title="No activity yet. Changes to this task will show up here." />
                                             )}
                                         </div>
                                     )}
                                 </SectionCard>
                             </div>
 
-                            <aside className="space-y-5">
-                                <SectionCard title="Task Settings" icon={Flag} className="scroll-mt-28">
+                            <aside className="space-y-5 md:sticky md:top-6 md:self-start">
+                                <SectionCard title="Properties" icon={Flag} className="scroll-mt-28">
                                     <span ref={sectionRefs.settings} className="block h-0" aria-hidden="true" />
-                                    <div className="space-y-4">
+                                    <div className="divide-y divide-slate-200/70">
                                         <div>
-                                            <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-500">
-                                                Assignee
-                                            </p>
+                                            <FieldLabel>Assignee</FieldLabel>
                                             <div className={cn("relative", isAssigning && "z-20")}>
                                                 <button
                                                     type="button"
@@ -1487,10 +1576,8 @@ export function TaskDetailModal({ task, projectColumns: initialProjectColumns, o
                                             </div>
                                         </div>
 
-                                        <div>
-                                            <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-500">
-                                                Priority
-                                            </p>
+                                        <div className="pt-4">
+                                            <FieldLabel>Priority</FieldLabel>
                                             <div className={cn("relative", isPriorityOpen && "z-20")}>
                                                 <button
                                                     type="button"
@@ -1527,15 +1614,14 @@ export function TaskDetailModal({ task, projectColumns: initialProjectColumns, o
                                             </div>
                                         </div>
 
-                                        <div>
-                                            <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-500">
-                                                Labels
-                                            </p>
+                                        <div className="pt-4">
+                                            <FieldLabel>Labels</FieldLabel>
                                             {currentTeam?.slug ? (
                                                 <LabelSelector
                                                     taskId={task.id}
                                                     teamSlug={currentTeam.slug}
                                                     currentLabels={labels || []}
+                                                    canManageLabels={canManageLabels}
                                                     onUpdate={async () => {
                                                         try {
                                                             const updatedTask = await getTask(task.id);
@@ -1555,9 +1641,9 @@ export function TaskDetailModal({ task, projectColumns: initialProjectColumns, o
                                             )}
                                         </div>
 
-                                        <div>
-                                            <label htmlFor="task-due-date" className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-500">
-                                                Due Date
+                                        <div className="pt-4">
+                                            <label htmlFor="task-due-date">
+                                                <FieldLabel>Due date</FieldLabel>
                                             </label>
                                             <input
                                                 id="task-due-date"
@@ -1647,31 +1733,35 @@ export function TaskDetailModal({ task, projectColumns: initialProjectColumns, o
                                 </button>
                             </div>
 
-                            {mentionRange && filteredMentionMembers.length > 0 && (
-                                <div className="absolute bottom-full left-0 right-0 mb-2 overflow-hidden rounded-[1rem] border border-slate-200 bg-white shadow-[0_18px_36px_-22px_rgba(15,23,42,0.35)]">
-                                    <div className="border-b border-slate-100 px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
-                                        Mention a Project Member
+                            {mentionRange && (filteredMentionMembers.length > 0 || mentionQuery.trim().length > 0) && (
+                                <div className="absolute bottom-full left-0 right-0 z-30 mb-2 overflow-hidden rounded-[1rem] border border-slate-200 bg-white shadow-[0_18px_36px_-22px_rgba(15,23,42,0.35)]">
+                                    <div className="border-b border-slate-100 px-3 py-2 text-xs font-medium text-slate-500">
+                                        Mention a project member
                                     </div>
                                     <div className="max-h-56 overflow-y-auto p-2">
-                                        {filteredMentionMembers.map((member, index) => (
-                                            <button
-                                                key={member.id}
-                                                type="button"
-                                                onClick={() => selectMention(member)}
-                                                className={cn(
-                                                    "flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left transition-colors focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15",
-                                                    index === activeMentionIndex ? "bg-primary/10 text-primary" : "hover:bg-slate-50"
-                                                )}
-                                            >
-                                                <div className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-primary/10 text-xs font-semibold text-primary">
-                                                    {member.name.charAt(0)}
-                                                </div>
-                                                <div className="min-w-0 flex-1">
-                                                    <div className="truncate text-sm font-medium text-slate-950">{member.name}</div>
-                                                    <div className="truncate text-xs text-slate-500">{member.email}</div>
-                                                </div>
-                                            </button>
-                                        ))}
+                                        {filteredMentionMembers.length > 0 ? (
+                                            filteredMentionMembers.map((member, index) => (
+                                                <button
+                                                    key={member.id}
+                                                    type="button"
+                                                    onClick={() => selectMention(member)}
+                                                    className={cn(
+                                                        "flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left transition-colors focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15",
+                                                        index === activeMentionIndex ? "bg-primary/10 text-primary" : "hover:bg-slate-50"
+                                                    )}
+                                                >
+                                                    <div className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-primary/10 text-xs font-semibold text-primary">
+                                                        {member.name.charAt(0)}
+                                                    </div>
+                                                    <div className="min-w-0 flex-1">
+                                                        <div className="truncate text-sm font-medium text-slate-950">{member.name}</div>
+                                                        <div className="truncate text-xs text-slate-500">{member.email}</div>
+                                                    </div>
+                                                </button>
+                                            ))
+                                        ) : (
+                                            <div className="px-3 py-4 text-sm text-slate-500">No matching member.</div>
+                                        )}
                                     </div>
                                 </div>
                             )}

@@ -74,6 +74,14 @@ function applyTaskColumnChange(tasks: TaskLite[], taskId: string, columnId: stri
     return nextTasks;
 }
 
+function sortColumnsByOrder(columns: Column[]): Column[] {
+    return [...columns].sort((a, b) => a.order - b.order);
+}
+
+function applyColumnOrder(columns: Column[]): Column[] {
+    return columns.map((column, index) => ({ ...column, order: index }));
+}
+
 type TaskLookup = {
     taskById: Map<string, TaskLite>;
     indexById: Map<string, number>;
@@ -159,10 +167,7 @@ export function KanbanBoard({ initialTasks, columns, initialTaskId, onAddTask, o
         return new Map(localColumns.map((column) => [column.id, column]));
     }, [localColumns]);
 
-    const sortedColumns = useMemo(
-        () => [...localColumns].sort((a, b) => a.order - b.order),
-        [localColumns],
-    );
+    const sortedColumns = useMemo(() => sortColumnsByOrder(localColumns), [localColumns]);
     const sortedColumnIds = useMemo(() => sortedColumns.map((column) => `column-${column.id}`), [sortedColumns]);
     const addTaskHandlersByColumnId = useMemo(() => {
         const handlers = new Map<string, () => void>();
@@ -342,13 +347,13 @@ export function KanbanBoard({ initialTasks, columns, initialTaskId, onAddTask, o
         if (activeId.startsWith("column-") && overId.startsWith("column-")) {
             const activeColumnId = activeId.replace("column-", "");
             const overColumnId = overId.replace("column-", "");
-            const currentColumns = localColumnsRef.current;
+            const currentColumns = sortColumnsByOrder(localColumnsRef.current);
 
             const activeIndex = currentColumns.findIndex(c => c.id === activeColumnId);
             const overIndex = currentColumns.findIndex(c => c.id === overColumnId);
 
             if (activeIndex !== -1 && overIndex !== -1 && activeIndex !== overIndex) {
-                const newColumns = arrayMove(currentColumns, activeIndex, overIndex);
+                const newColumns = applyColumnOrder(arrayMove(currentColumns, activeIndex, overIndex));
                 setLocalColumns(newColumns);
 
                 // Call API to persist column order

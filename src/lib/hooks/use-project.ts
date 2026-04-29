@@ -64,6 +64,26 @@ function setProjectDetailCaches(
     });
 }
 
+function applyColumnOrder(columns: Column[], orderedIds: string[]) {
+    const orderById = new Map(orderedIds.map((id, index) => [id, index]));
+
+    return [...columns]
+        .sort((left, right) => {
+            const leftOrder = orderById.get(left.id);
+            const rightOrder = orderById.get(right.id);
+
+            if (leftOrder !== undefined && rightOrder !== undefined) {
+                return leftOrder - rightOrder;
+            }
+
+            if (leftOrder !== undefined) return -1;
+            if (rightOrder !== undefined) return 1;
+
+            return left.order - right.order;
+        })
+        .map((column, index) => ({ ...column, order: index }));
+}
+
 // Keys
 export const projectKeys = {
     all: ["projects"] as const,
@@ -399,10 +419,9 @@ export function useReorderColumns(projectId: string) {
 
             // Optimistically update to the new value
             if (previousColumns) {
-                const newColumns = [...previousColumns].sort((a, b) => {
-                    return newOrderIds.indexOf(a.id) - newOrderIds.indexOf(b.id);
-                });
+                const newColumns = applyColumnOrder(previousColumns, newOrderIds);
                 queryClient.setQueryData(projectKeys.columns(projectId), newColumns);
+                void writeSnapshot(`project-columns:${projectId}`, newColumns);
             }
 
             return { previousColumns };
