@@ -3,12 +3,11 @@
 import { use, useMemo } from "react";
 import { useState } from "react";
 import { KanbanBoard } from "@/components/board/kanban-board";
-import { TaskGridView } from "@/components/board/task-grid-view";
 import { TaskListView } from "@/components/board/task-list-view";
 import { CreateTaskFormValues, CreateTaskModal } from "@/components/modals/create-task-modal";
 import { CreateColumnModal } from "@/components/modals/create-column-modal";
 import { EditColumnModal } from "@/components/modals/edit-column-modal";
-import { Plus, Filter, ArrowUpDown, LayoutGrid, Columns, List } from "lucide-react";
+import { Plus, Filter, ArrowUpDown, Columns, List } from "lucide-react";
 import { Column, Task, TaskStatus } from "@/lib/types";
 import {
     useProject,
@@ -22,7 +21,7 @@ import {
     useReorderColumns
 } from "@/lib/hooks/use-project";
 
-type ViewMode = "board" | "grid" | "list";
+type ViewMode = "board" | "list";
 
 function getStatusFromColumn(columnId: string | undefined, columns: Column[]): TaskStatus {
     const column = columns.find((item) => item.id === columnId);
@@ -187,16 +186,6 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                     >
                         <List className="w-4 h-4" />
                     </button>
-                    <button
-                        onClick={() => setViewMode("grid")}
-                        className={`p-2 rounded-md transition-all ${viewMode === "grid"
-                            ? "bg-primary/10 text-primary shadow-sm"
-                            : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                            }`}
-                        title="Grid View"
-                    >
-                        <LayoutGrid className="w-4 h-4" />
-                    </button>
                 </div>
 
                 <div className="flex items-center gap-3">
@@ -219,6 +208,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                         columns={columns}
                         onAddTask={openCreateTask}
                         onTaskMove={handleTaskMove}
+                        onTaskDelete={handleTaskDelete}
                         onAddColumn={() => setIsColumnModalOpen(true)}
                         onEditColumn={(column) => setEditingColumn(column)}
                         onColumnReorder={handleColumnReorder}
@@ -232,16 +222,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                             onDelete={handleTaskDelete}
                         />
                     </div>
-                ) : (
-                    <div className="h-full overflow-y-auto">
-                        <TaskGridView
-                            tasks={tasks}
-                            columns={columns}
-                            onUpdate={handleTaskUpdateWrapper}
-                            onDelete={handleTaskDelete}
-                        />
-                    </div>
-                )}
+                ) : null}
             </div>
 
             <CreateTaskModal
@@ -252,6 +233,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                 initialProjectId={project?.id}
                 initialStatus={getStatusFromColumn(defaultColumnId, columns)}
                 seededColumnId={defaultColumnId || undefined}
+                projectColumns={columns}
                 lockProjectSelection
                 isSubmitting={createTaskMutation.isPending}
                 assignees={availableAssignees}

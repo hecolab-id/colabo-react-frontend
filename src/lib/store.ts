@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { AdminImpersonationState, AdminSessionSnapshot, User, Team } from "./types";
-import { API_BASE_URL, performLogin, performRegister, getTeams, setAccessToken, sendVerificationEmail, getMe, impersonateUser, exitImpersonation } from "./api";
+import { API_BASE_URL, performLogin, performRegister, getTeams, setAccessToken, sendVerificationEmail, getMe, impersonateUser, exitImpersonation, resetAuthExpiredDispatch } from "./api";
 
 interface AppState {
     // Auth
@@ -49,6 +49,7 @@ export const useStore = create<AppState>()(
                 set({ isLoading: true });
                 try {
                     const { user, tokens } = await performLogin(email, password);
+                    resetAuthExpiredDispatch();
                     setAccessToken(tokens.access.token);
                     set({
                         user,
@@ -84,6 +85,7 @@ export const useStore = create<AppState>()(
                 set({ isLoading: true });
                 try {
                     const { user, tokens } = await performRegister(name, email, password);
+                    resetAuthExpiredDispatch();
                     setAccessToken(tokens.access.token);
                     set({
                         user,

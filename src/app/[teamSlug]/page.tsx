@@ -17,6 +17,7 @@ import { DeleteProjectModal } from "@/components/modals/delete-project-modal";
 import { ProjectCard } from "@/components/project-card";
 import { Project, Team } from "@/lib/types";
 import { useStore } from "@/lib/store";
+import { useUsage } from "@/lib/hooks/use-billing";
 
 const numberFormatter = new Intl.NumberFormat();
 
@@ -31,6 +32,7 @@ export default function TeamDashboardPage() {
 
     const setCurrentTeam = useStore((state) => state.setTeam);
     const currentUser = useStore((state) => state.user);
+    const { data: usage } = useUsage(team?.id || "");
 
     useEffect(() => {
         async function loadData() {
@@ -296,6 +298,9 @@ export default function TeamDashboardPage() {
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
                 onSubmit={handleCreateProject}
+                currentCount={usage?.projects_count ?? projects.length}
+                maxCount={usage?.plan?.max_projects}
+                teamSlug={team.slug}
             />
 
             {projectToDelete && (

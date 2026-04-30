@@ -1,10 +1,10 @@
-import { CalendarDays, Columns, FolderCog, LayoutGrid, List, SlidersHorizontal, Trash2, Users } from "lucide-react";
+import { CalendarDays, Columns, FolderCog, List, SlidersHorizontal, Trash2, Users } from "lucide-react";
 import type { RefObject, ReactNode } from "react";
 import type { Column, Task } from "@/lib/types";
 import type { DueDateFilter, TaskSortOption } from "@/lib/task-ui";
 import { cn } from "@/lib/utils";
 
-export type ProjectViewMode = "board" | "grid" | "list" | "calendar";
+export type ProjectViewMode = "board" | "list" | "calendar";
 
 export type ProjectFilterState = {
     columnIds: string[];
@@ -33,11 +33,10 @@ export function ProjectViewModeSwitcher({
     onChange: (mode: ProjectViewMode) => void;
 }) {
     return (
-        <div className="grid grid-cols-4 gap-1 rounded-[0.95rem] border border-white/70 bg-white/78 p-1 shadow-[0_10px_24px_rgba(15,23,42,0.05)] backdrop-blur-xl md:flex md:items-center md:rounded-[1.1rem] md:p-1">
+        <div className="grid grid-cols-3 gap-1 rounded-[0.95rem] border border-white/70 bg-white/78 p-1 shadow-[0_10px_24px_rgba(15,23,42,0.05)] backdrop-blur-xl md:flex md:items-center md:rounded-[1.1rem] md:p-1">
             {([
                 ["board", "Board", Columns],
                 ["list", "List", List],
-                ["grid", "Grid", LayoutGrid],
                 ["calendar", "Calendar", CalendarDays],
             ] as const).map(([value, label, Icon]) => (
                 <button

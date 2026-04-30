@@ -578,6 +578,9 @@ export default function DashboardPage() {
                         console.error(error);
                     }
                 }}
+                currentCount={dashboardOverview?.utility.projectsUsed}
+                maxCount={dashboardOverview?.utility.projectsLimit}
+                teamSlug={currentTeam?.slug}
             />
         </div>
     );

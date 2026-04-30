@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "@/lib/navigation";
 import { useStore } from "@/lib/store";
+import { AUTH_EXPIRED_EVENT } from "@/lib/api";
 
 const PUBLIC_PATHS = [
     "/login",
@@ -34,7 +35,7 @@ function getAuthenticatedRedirectPath(verifiedEmail: boolean | undefined) {
 export function AuthGuard({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
     const router = useRouter();
-    const { user, accessToken, loadTeams, teams, isTeamsLoading, hasLoadedTeams } = useStore();
+    const { user, accessToken, loadTeams, teams, isTeamsLoading, hasLoadedTeams, logout } = useStore();
     const [checked, setChecked] = useState(false);
     const [hasHydrated, setHasHydrated] = useState(false);
     const isPublicPath = PUBLIC_PATHS.some(path => pathname === path || pathname.startsWith(path + "?"));
@@ -164,6 +165,19 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
 
         checkAuth();
     }, [accessToken, hasHydrated, hasLoadedTeams, isInvitePath, isPublicPath, isTeamsLoading, loadTeams, pathname, router, teams, user]);
+
+    useEffect(() => {
+        const handleAuthExpired = () => {
+            logout();
+            setChecked(true);
+            if (!pathname.startsWith("/login")) {
+                router.replace("/login");
+            }
+        };
+
+        window.addEventListener(AUTH_EXPIRED_EVENT, handleAuthExpired);
+        return () => window.removeEventListener(AUTH_EXPIRED_EVENT, handleAuthExpired);
+    }, [logout, pathname, router]);
 
     if (!checked && !isPublicPath && !isInvitePath) {
         // Show loading only for protected routes while checking

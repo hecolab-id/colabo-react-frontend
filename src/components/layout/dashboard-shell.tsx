@@ -81,13 +81,11 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
         return () => window.removeEventListener("keydown", handleKeyDown);
     }, []);
 
-    const handleCreateProject = async (name: string, description: string) => {
+    const handleCreateProject = async (name: string, key: string, description: string, isPrivate: boolean) => {
         if (!currentTeam) return;
 
         try {
-            // Generate a simple key from name
-            const key = name.trim().substring(0, 3).toUpperCase();
-            const newProject = await createProject(currentTeam.id, name, key, description);
+            const newProject = await createProject(currentTeam.id, name, key, description, isPrivate);
             await queryClient.invalidateQueries({ queryKey: ["projects", "list", currentTeam.slug] });
             setIsProjectModalOpen(false);
             router.push(`/${currentTeam.slug}/${newProject.slug}`);
@@ -177,7 +175,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
                         setCreateTaskSuccessMessage(null);
                         setIsCreateTaskModalOpen(true);
                     }}
-                    className="fixed bottom-[72px] right-4 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-slate-950 text-white shadow-[0_20px_40px_rgba(15,23,42,0.22)] transition-all hover:cursor-pointer hover:scale-110 active:scale-95 md:hidden"
+                    className="fixed bottom-[86px] right-4 z-40 flex h-[52px] w-[52px] items-center justify-center rounded-full bg-primary text-primary-foreground shadow-[0_18px_36px_rgba(109,93,252,0.24)] transition-all hover:cursor-pointer hover:scale-105 active:scale-95 md:hidden"
                     aria-label="Create task"
                 >
                     <Plus className="h-6 w-6" aria-hidden="true" />
@@ -196,6 +194,8 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
                     isOpen={isTaskGeneratorOpen}
                     onClose={() => setIsTaskGeneratorOpen(false)}
                     projectId={projectId}
+                    projectName={activeProject?.name}
+                    projectDescription={activeProject?.description}
                     onTasksCreated={() => {
                         setIsTaskGeneratorOpen(false);
                         // Refresh the page to show new tasks
@@ -218,6 +218,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
                     onSubmit={handleCreateProject}
                     currentCount={usage?.projects_count}
                     maxCount={usage?.plan?.max_projects}
+                    teamSlug={currentTeam.slug}
                 />
             )}
 

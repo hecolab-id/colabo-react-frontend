@@ -4,7 +4,7 @@ import Image from "@/components/app-image";
 import { usePathname, useRouter, useSearchParams } from "@/lib/navigation";
 import { Task, Column } from "@/lib/types";
 import { TaskDetailModal } from "./task-detail-modal";
-import { useEffect, useMemo, useState } from "react";
+import { ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { ChevronRight, ChevronDown, Circle, Clock, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { LabelBadge } from "@/components/ui/label-badge";
@@ -152,12 +152,16 @@ export function TaskListView({ tasks, columns, initialTaskId, onUpdate, onDelete
                         </div>
 
                         <div className="relative" style={{ height: virtual.totalSize }}>
-                            {visibleRows.map((row, offsetIndex) => (
-                                <div
-                                    key={row.id}
-                                    className="absolute left-0 right-0"
-                                    style={{ transform: `translateY(${virtual.getOffset(virtual.startIndex + offsetIndex)}px)` }}
-                                >
+                            {visibleRows.map((row, offsetIndex) => {
+                                const rowIndex = virtual.startIndex + offsetIndex;
+
+                                return (
+                                    <MeasuredListRow
+                                        key={row.id}
+                                        index={rowIndex}
+                                        top={virtual.getOffset(rowIndex)}
+                                        setSize={virtual.setSize}
+                                    >
                                     {row.type === "header" ? (
                                         <button
                                             onClick={() => toggleColumn(row.column.id)}
@@ -184,8 +188,9 @@ export function TaskListView({ tasks, columns, initialTaskId, onUpdate, onDelete
                                             onClick={() => setSelectedTask(row.task)}
                                         />
                                     )}
-                                </div>
-                            ))}
+                                    </MeasuredListRow>
+                                );
+                            })}
                         </div>
                     </div>
                 )}
@@ -207,6 +212,51 @@ export function TaskListView({ tasks, columns, initialTaskId, onUpdate, onDelete
                 />
             )}
         </>
+    );
+}
+
+function MeasuredListRow({
+    index,
+    top,
+    setSize,
+    children,
+}: {
+    index: number;
+    top: number;
+    setSize: (index: number, size: number) => void;
+    children: ReactNode;
+}) {
+    const rowRef = useRef<HTMLDivElement | null>(null);
+
+    useEffect(() => {
+        const element = rowRef.current;
+        if (!element) return;
+
+        const measure = () => {
+            setSize(index, element.getBoundingClientRect().height + 12);
+        };
+
+        measure();
+
+        if (typeof ResizeObserver === "undefined") {
+            return;
+        }
+
+        const observer = new ResizeObserver(measure);
+        observer.observe(element);
+
+        return () => observer.disconnect();
+    }, [index, setSize]);
+
+    return (
+        <div
+            className="absolute left-0 right-0 pb-3"
+            style={{ transform: `translateY(${top}px)` }}
+        >
+            <div ref={rowRef}>
+                {children}
+            </div>
+        </div>
     );
 }
 

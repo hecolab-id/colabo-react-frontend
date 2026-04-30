@@ -3,6 +3,7 @@
 import { Suspense, use, useEffect, useMemo, useRef, useState, type ChangeEvent, type FormEvent } from "react";
 import {
     ArrowLeft,
+    ChevronRight,
     Download,
     ExternalLink,
     File,
@@ -183,14 +184,16 @@ function ProjectSettingsPageContent({ params }: { params: Promise<{ teamSlug: st
     }
 
     return (
-        <div className="space-y-5 pb-10">
+        <div className="max-w-6xl space-y-6 pb-10">
             <div className="flex flex-wrap items-center justify-between gap-3">
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Link href={`/${teamSlug}`} className="transition hover:text-foreground">Projects</Link>
-                    <span>/</span>
-                    <Link href={`/${teamSlug}/${projectSlug}`} className="transition hover:text-foreground">{project.name}</Link>
-                    <span>/</span>
-                    <span className="font-medium text-foreground">Settings</span>
+                <div className="inline-flex items-center gap-2 rounded-full border border-black/5 bg-white px-4 py-2 text-[13px] font-semibold text-slate-500 shadow-sm">
+                    <Link href={`/${teamSlug}`} className="transition-colors hover:text-slate-900">Projects</Link>
+                    <ChevronRight className="h-4 w-4 text-slate-400" aria-hidden="true" />
+                    <Link href={`/${teamSlug}/${projectSlug}`} className="max-w-[11rem] truncate transition-colors hover:text-slate-900 sm:max-w-xs">
+                        {project.name}
+                    </Link>
+                    <ChevronRight className="h-4 w-4 text-slate-400" aria-hidden="true" />
+                    <span className="text-slate-900">Settings</span>
                 </div>
                 <Link
                     href={`/${teamSlug}/${projectSlug}`}
@@ -201,22 +204,25 @@ function ProjectSettingsPageContent({ params }: { params: Promise<{ teamSlug: st
                 </Link>
             </div>
 
-            <section className="rounded-[1.5rem] border border-white/70 bg-white/82 p-4 shadow-[0_16px_48px_-38px_rgba(15,23,42,0.32)] backdrop-blur-xl md:p-5">
-                <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                    <div className="min-w-0">
-                        <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">Project Settings</p>
-                        <h1 className="mt-1 truncate text-xl font-semibold tracking-tight text-slate-950 md:text-2xl">
+            <section className="rounded-[2rem] border border-white/70 bg-white/82 p-6 shadow-[0_24px_70px_-40px_rgba(15,23,42,0.25)] backdrop-blur-2xl sm:p-8">
+                <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+                    <div className="min-w-0 space-y-3">
+                        <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-400">Project Settings</p>
+                        <h1 className="truncate font-space-grotesk text-[32px] font-semibold tracking-tight text-slate-950 md:text-[40px]">
                             {project.name}
                         </h1>
+                        <p className="max-w-2xl text-[15px] leading-relaxed text-slate-500">
+                            Manage the project identity, visibility, and shared documents used by this workspace.
+                        </p>
                     </div>
-                    <div className="grid grid-cols-2 gap-2 md:w-72">
-                        <div className="rounded-[1rem] border border-black/5 bg-slate-50/80 p-3">
-                            <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">Tasks</p>
-                            <p className="mt-1 text-xl font-semibold text-slate-950">{project.task_count || 0}</p>
+                    <div className="grid w-full grid-cols-2 gap-3 md:w-80">
+                        <div className="rounded-[1.15rem] border border-black/5 bg-slate-50/80 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.75)]">
+                            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400">Tasks</p>
+                            <p className="mt-2 text-2xl font-semibold text-slate-950">{project.task_count || 0}</p>
                         </div>
-                        <div className="rounded-[1rem] border border-black/5 bg-slate-50/80 p-3">
-                            <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">Documents</p>
-                            <p className="mt-1 text-xl font-semibold text-slate-950">{documents.length}</p>
+                        <div className="rounded-[1.15rem] border border-black/5 bg-slate-50/80 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.75)]">
+                            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400">Documents</p>
+                            <p className="mt-2 text-2xl font-semibold text-slate-950">{documents.length}</p>
                         </div>
                     </div>
                 </div>
@@ -228,9 +234,12 @@ function ProjectSettingsPageContent({ params }: { params: Promise<{ teamSlug: st
                 </div>
             ) : null}
 
-            <div className="grid gap-4 lg:grid-cols-[240px_minmax(0,1fr)] lg:items-start">
-                <aside className="rounded-[1.35rem] border border-white/70 bg-white/78 p-1.5 shadow-[0_16px_48px_-38px_rgba(15,23,42,0.32)] backdrop-blur-xl">
-                    <nav className="grid grid-cols-2 gap-1 lg:grid-cols-1" aria-label="Project settings sections">
+            <div className="grid gap-5 lg:grid-cols-[280px_minmax(0,1fr)] lg:items-start">
+                <aside className="lg:sticky lg:top-24">
+                    <nav
+                        className="flex gap-2 overflow-x-auto rounded-[1.4rem] border border-white/70 bg-white/80 p-2 shadow-[0_20px_60px_-42px_rgba(15,23,42,0.38)] backdrop-blur-2xl lg:flex-col lg:overflow-visible"
+                        aria-label="Project settings sections"
+                    >
                         {([
                             ["details", "Details", Globe2, "Identity and visibility"],
                             ["documents", "Documents", Paperclip, `${documents.length} shared item${documents.length === 1 ? "" : "s"}`],
@@ -240,21 +249,24 @@ function ProjectSettingsPageContent({ params }: { params: Promise<{ teamSlug: st
                                 type="button"
                                 onClick={() => setActiveTab(tab)}
                                 className={cn(
-                                    "flex min-h-12 w-full items-center gap-2.5 rounded-[1rem] px-3 py-2.5 text-left transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900/15",
+                                    "flex min-w-[11rem] items-center gap-3 rounded-[1.05rem] px-3 py-3 text-left transition-[background-color,color,box-shadow] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15 lg:min-w-0",
                                     activeTab === tab
-                                        ? "border border-black/5 bg-white text-slate-950 shadow-sm"
-                                        : "border border-transparent text-slate-500 hover:bg-white/70 hover:text-slate-900",
+                                        ? "bg-slate-950 text-white shadow-[0_18px_36px_-28px_rgba(15,23,42,0.7)]"
+                                        : "text-slate-600 hover:bg-white hover:text-slate-950",
                                 )}
+                                aria-current={activeTab === tab ? "page" : undefined}
                             >
                                 <span className={cn(
-                                    "flex h-8 w-8 shrink-0 items-center justify-center rounded-full",
-                                    activeTab === tab ? "bg-slate-950 text-white" : "bg-slate-100 text-slate-500",
+                                    "flex h-9 w-9 shrink-0 items-center justify-center rounded-full border",
+                                    activeTab === tab ? "border-white/15 bg-white/10 text-white" : "border-black/5 bg-slate-50 text-primary",
                                 )}>
                                     <Icon className="h-4 w-4" aria-hidden="true" />
                                 </span>
                                 <span className="min-w-0">
                                     <span className="block text-sm font-semibold">{label}</span>
-                                    <span className="hidden truncate text-xs text-slate-500 sm:block">{description}</span>
+                                    <span className={cn("hidden truncate text-xs leading-5 lg:block", activeTab === tab ? "text-white/62" : "text-slate-500")}>
+                                        {description}
+                                    </span>
                                 </span>
                             </button>
                         ))}
@@ -315,7 +327,7 @@ function ProjectSettingsPageContent({ params }: { params: Promise<{ teamSlug: st
                                         event.preventDefault();
                                         setIsPrivate((current) => !current);
                                     }}
-                                    className="md:col-span-2 w-full cursor-pointer rounded-[1.5rem] border border-black/5 bg-white/80 p-4 text-left shadow-[0_16px_36px_-30px_rgba(15,23,42,0.4)] transition-[border-color,background-color,box-shadow] hover:border-slate-200 hover:bg-white aria-disabled:cursor-not-allowed aria-disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900/15"
+                                    className="md:col-span-2 w-full cursor-pointer rounded-[1.35rem] border border-black/5 bg-slate-50/70 p-4 text-left shadow-[inset_0_1px_0_rgba(255,255,255,0.75)] transition-[border-color,background-color,box-shadow] hover:border-slate-200 hover:bg-white aria-disabled:cursor-not-allowed aria-disabled:opacity-60 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15"
                                 >
                                     <div className="flex items-center justify-between gap-4">
                                         <span>
@@ -350,7 +362,7 @@ function ProjectSettingsPageContent({ params }: { params: Promise<{ teamSlug: st
                             }
                         >
                             {canManageProject ? (
-                                <form onSubmit={handleAttachLink} className="mb-6 grid gap-3 rounded-[1.35rem] border border-black/5 bg-slate-50/70 p-4 md:grid-cols-[minmax(0,0.75fr)_minmax(0,1fr)_auto] md:items-end">
+                                <form onSubmit={handleAttachLink} className="mb-6 grid gap-3 rounded-[1.35rem] border border-black/5 bg-slate-50/70 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.75)] md:grid-cols-[minmax(0,0.75fr)_minmax(0,1fr)_auto] md:items-end">
                                     <SettingsField label="Link Name">
                                         <Input value={linkName} onChange={(event) => setLinkName(event.target.value)} placeholder="Product brief" />
                                     </SettingsField>
@@ -375,7 +387,7 @@ function ProjectSettingsPageContent({ params }: { params: Promise<{ teamSlug: st
                                         const Icon = fileInfo.icon;
 
                                         return (
-                                            <div key={document.id} className="flex items-center gap-3 rounded-[1.25rem] border border-black/5 bg-white/82 p-3 shadow-sm">
+                                            <div key={document.id} className="flex items-center gap-3 rounded-[1.25rem] border border-black/5 bg-white/82 p-3 shadow-[0_16px_36px_-32px_rgba(15,23,42,0.38)]">
                                                 <div className={cn("flex h-12 w-12 shrink-0 items-center justify-center rounded-[1rem]", fileInfo.color)}>
                                                     <Icon className="h-5 w-5" aria-hidden="true" />
                                                 </div>

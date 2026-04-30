@@ -104,51 +104,53 @@ export function BrainSidebar({ isOpen, onClose, projectId, onOpenTaskGenerator }
     return (
         <div
             className={cn(
-                "fixed inset-y-0 right-0 bg-card border-l border-border shadow-2xl transform transition-all duration-300 ease-in-out z-50 flex flex-col",
+                "fixed inset-y-0 right-0 z-50 flex flex-col border-l border-slate-200 bg-white shadow-[0_26px_90px_rgba(15,23,42,0.18)] transform transition-all duration-300 ease-in-out",
                 isOpen ? "translate-x-0" : "translate-x-full",
-                isExpanded ? "w-[800px]" : "w-96"
+                isExpanded ? "w-[760px]" : "w-[380px]"
             )}
         >
             {/* Header */}
-            <div className="p-4 border-b border-border flex justify-between items-center">
-                <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-400 to-purple-500 flex items-center justify-center">
-                        <Sparkles className="w-4 h-4 text-white" />
+            <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
+                <div className="flex min-w-0 items-center gap-3">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[1rem] bg-primary/10 text-primary">
+                        <Sparkles className="h-5 w-5" aria-hidden="true" />
                     </div>
-                    <div>
-                        <h2 className="font-medium text-foreground">Project Brain</h2>
-                        <p className="text-xs text-muted-foreground">AI Assistant</p>
+                    <div className="min-w-0">
+                        <h2 className="truncate text-base font-semibold tracking-tight text-slate-950">Project Brain</h2>
+                        <p className="text-xs font-medium text-slate-500">AI Assistant</p>
                     </div>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1">
                     <button
                         onClick={() => setIsExpanded(!isExpanded)}
-                        className="text-muted-foreground hover:text-foreground transition-colors hover:cursor-pointer"
+                        className="flex h-9 w-9 items-center justify-center rounded-full text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-950 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15"
                         title={isExpanded ? "Minimize sidebar" : "Maximize sidebar"}
+                        aria-label={isExpanded ? "Minimize Project Brain" : "Expand Project Brain"}
                     >
-                        {isExpanded ? <Minimize2 className="w-5 h-5" /> : <Maximize2 className="w-5 h-5" />}
+                        {isExpanded ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
                     </button>
                     <button
                         onClick={onClose}
-                        className="text-muted-foreground hover:text-foreground transition-colors hover:cursor-pointer"
+                        className="flex h-9 w-9 items-center justify-center rounded-full text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-950 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15"
+                        aria-label="Close Project Brain"
                     >
-                        <X className="w-5 h-5" />
+                        <X className="h-4 w-4" />
                     </button>
                 </div>
             </div>
 
             {/* Chat Area */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+            <div className="flex-1 space-y-4 overflow-y-auto bg-slate-50/70 p-5">
                 {error && (
-                    <div className="flex items-center gap-2 p-3 bg-destructive/10 border border-destructive/20 rounded-lg text-sm text-destructive">
-                        <AlertCircle className="w-4 h-4 shrink-0" />
+                    <div className="flex items-center gap-2 rounded-[1rem] border border-[var(--danger-border)] bg-[var(--danger-bg)] p-3 text-sm text-[var(--danger-fg)]">
+                        <AlertCircle className="h-4 w-4 shrink-0" />
                         <span>{error}</span>
                     </div>
                 )}
 
                 {!projectId && (
-                    <div className="flex items-center gap-2 p-3 bg-muted border border-border rounded-lg text-sm text-muted-foreground">
-                        <AlertCircle className="w-4 h-4 shrink-0" />
+                    <div className="flex items-center gap-2 rounded-[1rem] border border-slate-200 bg-white p-3 text-sm text-slate-600">
+                        <AlertCircle className="h-4 w-4 shrink-0" />
                         <span>Please select a project to enable AI assistance</span>
                     </div>
                 )}
@@ -159,16 +161,16 @@ export function BrainSidebar({ isOpen, onClose, projectId, onOpenTaskGenerator }
                         className={cn("flex w-full", msg.role === "user" ? "justify-end" : "justify-start")}
                     >
                         {msg.role === "assistant" && (
-                            <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center mr-2 shrink-0">
-                                <Bot className="w-4 h-4 text-primary" />
+                            <div className="mr-2 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                                <Bot className="h-4 w-4" />
                             </div>
                         )}
                         <div
                             className={cn(
-                                "max-w-[80%] p-3 rounded-xl text-sm",
+                                "max-w-[82%] rounded-[1.1rem] px-3.5 py-3 text-sm leading-6 shadow-sm",
                                 msg.role === "user"
                                     ? "bg-primary text-primary-foreground"
-                                    : "bg-muted text-foreground"
+                                    : "border border-slate-200 bg-white text-slate-800"
                             )}
                         >
                             {msg.role === "assistant" ? (
@@ -179,9 +181,9 @@ export function BrainSidebar({ isOpen, onClose, projectId, onOpenTaskGenerator }
                                         ul: ({ children }) => <ul className="my-1 list-disc list-inside">{children}</ul>,
                                         ol: ({ children }) => <ol className="my-1 list-decimal list-inside">{children}</ol>,
                                         li: ({ children }) => <li className="my-0">{children}</li>,
-                                        strong: ({ children }) => <strong className="font-semibold text-foreground">{children}</strong>,
+                                        strong: ({ children }) => <strong className="font-semibold text-slate-950">{children}</strong>,
                                         em: ({ children }) => <em className="italic">{children}</em>,
-                                        code: ({ children }) => <code className="bg-muted px-1 py-0.5 rounded text-xs">{children}</code>,
+                                        code: ({ children }) => <code className="rounded bg-slate-100 px-1 py-0.5 text-xs">{children}</code>,
                                     }}
                                 >
                                     {msg.content}
@@ -194,13 +196,13 @@ export function BrainSidebar({ isOpen, onClose, projectId, onOpenTaskGenerator }
                 ))}
                 {isTyping && (
                     <div className="flex items-center gap-2">
-                        <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center">
-                            <Bot className="w-4 h-4 text-primary" />
+                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary">
+                            <Bot className="h-4 w-4" />
                         </div>
-                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                            <span className="w-2 h-2 bg-primary/50 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
-                            <span className="w-2 h-2 bg-primary/50 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
-                            <span className="w-2 h-2 bg-primary/50 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+                        <div className="flex items-center gap-1 rounded-full border border-slate-200 bg-white px-3 py-2">
+                            <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-primary/60" style={{ animationDelay: "0ms" }} />
+                            <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-primary/60" style={{ animationDelay: "150ms" }} />
+                            <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-primary/60" style={{ animationDelay: "300ms" }} />
                         </div>
                     </div>
                 )}
@@ -208,11 +210,11 @@ export function BrainSidebar({ isOpen, onClose, projectId, onOpenTaskGenerator }
             </div>
 
             {/* Input */}
-            <div className="p-4 border-t border-border space-y-3">
+            <div className="space-y-3 border-t border-slate-200 bg-white px-5 py-4">
                 {/* Quick Action Prompts */}
                 {projectId && messages.length <= 1 && (
                     <div className="space-y-2">
-                        <p className="text-xs text-muted-foreground font-medium">Try asking:</p>
+                        <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-400">Try asking</p>
                         <div className="flex flex-wrap gap-2">
                             {[
                                 "Show me overdue tasks",
@@ -224,7 +226,7 @@ export function BrainSidebar({ isOpen, onClose, projectId, onOpenTaskGenerator }
                                 <button
                                     key={prompt}
                                     onClick={() => setInput(prompt)}
-                                    className="text-xs px-3 py-1.5 bg-muted hover:bg-muted/80 text-foreground rounded-lg transition-colors border border-border hover:cursor-pointer"
+                                    className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-medium text-slate-600 transition-colors hover:bg-white hover:text-slate-950"
                                 >
                                     {prompt}
                                 </button>
@@ -236,9 +238,9 @@ export function BrainSidebar({ isOpen, onClose, projectId, onOpenTaskGenerator }
                 {projectId && onOpenTaskGenerator && (
                     <button
                         onClick={onOpenTaskGenerator}
-                        className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-indigo-500 text-white rounded-lg hover:opacity-90 transition-opacity font-medium text-sm hover:cursor-pointer"
+                        className="flex h-11 w-full items-center justify-center gap-2 rounded-[1rem] bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-[0_12px_28px_rgba(109,93,252,0.20)] transition-opacity hover:opacity-95 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15"
                     >
-                        <Wand2 className="w-4 h-4" />
+                        <Wand2 className="h-4 w-4" />
                         Generate Tasks with AI
                     </button>
                 )}
@@ -248,14 +250,15 @@ export function BrainSidebar({ isOpen, onClose, projectId, onOpenTaskGenerator }
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
                         placeholder="Ask about your project..."
-                        className="w-full px-4 py-3 pr-12 rounded-xl border border-border bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                        className="h-12 w-full rounded-[1rem] border border-slate-300 bg-white px-4 pr-12 text-sm text-slate-950 outline-none transition-[border-color,box-shadow] placeholder:text-slate-400 focus:border-primary focus:ring-4 focus:ring-primary/15"
                     />
                     <button
                         type="submit"
                         disabled={!input.trim()}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-primary hover:text-primary/80 transition-colors disabled:opacity-50 hover:cursor-pointer"
+                        className="absolute right-2 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full text-primary transition-colors hover:bg-primary/10 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15"
+                        aria-label="Send message"
                     >
-                        <Send className="w-5 h-5" />
+                        <Send className="h-4 w-4" />
                     </button>
                 </form>
             </div>

@@ -10,9 +10,11 @@ const api = axios.create({
 
 const OFFLINE_ACTION_EVENT = "colabo:offline-action-blocked";
 const OFFLINE_ACTION_MESSAGE = "This action needs an internet connection. Viewing cached dashboard and task data still works offline.";
+export const AUTH_EXPIRED_EVENT = "colabo:auth-expired";
 
 let accessToken: string | null = null;
 let refreshTokensPromise: Promise<AuthResponse["tokens"] | null> | null = null;
+let hasDispatchedAuthExpired = false;
 
 export const setAccessToken = (token: string | null) => {
     accessToken = token;
@@ -69,11 +71,17 @@ function persistStoredTokens(tokens: AuthResponse["tokens"]) {
 
 function clearStoredAuth() {
     accessToken = null;
+    hasDispatchedAuthExpired = true;
 
     if (typeof window !== "undefined") {
         localStorage.removeItem("colabo-store");
+        window.dispatchEvent(new CustomEvent(AUTH_EXPIRED_EVENT));
     }
 }
+
+export const resetAuthExpiredDispatch = () => {
+    hasDispatchedAuthExpired = false;
+};
 
 async function refreshAuthTokens(refreshToken: string): Promise<AuthResponse["tokens"]> {
     const { data } = await axios.post(`${API_BASE_URL}/auth/refresh-tokens`, {
@@ -166,14 +174,8 @@ api.interceptors.response.use(
                 }
             }
 
-            if (hadToken || isRefreshRequest) {
+            if ((hadToken || isRefreshRequest) && !hasDispatchedAuthExpired) {
                 clearStoredAuth();
-                if (typeof window !== "undefined") {
-                    if (!window.location.pathname.startsWith("/login") &&
-                        !window.location.pathname.startsWith("/register")) {
-                        window.location.href = "/login";
-                    }
-                }
             }
         }
 

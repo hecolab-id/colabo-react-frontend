@@ -2,13 +2,14 @@
 
 import { useEffect, useState } from "react";
 import { FolderPlus, X, CheckCircle2, Check, ChevronDown } from "lucide-react";
-import { Project, TaskStatus, User } from "@/lib/types";
+import { Column, Project, TaskStatus, User } from "@/lib/types";
 import { Listbox, ListboxButton, ListboxOption, ListboxOptions } from "@headlessui/react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ModalShell } from "@/components/ui/modal-shell";
 import { SettingsField } from "@/components/ui/settings-field";
+import { getProjectColumns } from "@/lib/api";
 
 export type CreateTaskFormValues = {
     title: string;
@@ -27,6 +28,19 @@ const statusOptions: Array<{ value: TaskStatus; label: string }> = [
     { value: "DONE", label: "Done" },
     { value: "BACKLOG", label: "Backlog" },
 ];
+
+function getStatusFromColumn(column: Column | undefined, fallback: TaskStatus): TaskStatus {
+    if (!column) return fallback;
+    if (column.type === "done") return "DONE";
+    if (column.type === "in_progress") return "IN_PROGRESS";
+
+    const normalizedName = column.name.trim().toUpperCase().replace(/\s+/g, "_");
+    if (normalizedName === "IN_PROGRESS" || normalizedName === "DONE" || normalizedName === "BACKLOG" || normalizedName === "TODO") {
+        return normalizedName;
+    }
+
+    return "TODO";
+}
 
 function CustomListbox({
     value,
@@ -57,7 +71,7 @@ function CustomListbox({
                 
                 <ListboxOptions 
                     transition 
-                    className="absolute z-10 mt-2 max-h-60 w-full overflow-auto rounded-[1.4rem] border border-white/80 bg-white/92 p-1.5 text-[15px] shadow-[0_24px_60px_-24px_rgba(15,23,42,0.28)] backdrop-blur-2xl focus:outline-none origin-top transition duration-200 ease-out data-[closed]:scale-95 data-[closed]:opacity-0"
+                    className="absolute z-[90] mt-2 max-h-60 w-full overflow-auto rounded-[1.4rem] border border-slate-200 bg-white p-1.5 text-[15px] shadow-[0_30px_80px_-28px_rgba(15,23,42,0.55)] focus:outline-none origin-top transition duration-200 ease-out data-[closed]:scale-95 data-[closed]:opacity-0"
                 >
                     {options.map((option) => (
                         <ListboxOption
@@ -98,6 +112,7 @@ interface CreateTaskModalProps {
     initialProjectId?: string;
     initialStatus?: TaskStatus;
     seededColumnId?: string;
+    projectColumns?: Column[];
     lockProjectSelection?: boolean;
     isSubmitting?: boolean;
     onCreateProject?: () => void;
@@ -115,6 +130,7 @@ export function CreateTaskModal({
     initialProjectId = "",
     initialStatus = "TODO",
     seededColumnId,
+    projectColumns,
     lockProjectSelection = false,
     isSubmitting = false,
     onCreateProject,
@@ -126,6 +142,9 @@ export function CreateTaskModal({
     const [title, setTitle] = useState("");
     const [projectId, setProjectId] = useState(initialProjectId);
     const [status, setStatus] = useState<TaskStatus>(initialStatus);
+    const [selectedColumnId, setSelectedColumnId] = useState(seededColumnId || "");
+    const [availableColumns, setAvailableColumns] = useState<Column[]>(projectColumns || []);
+    const [isColumnsLoading, setIsColumnsLoading] = useState(false);
     const [assigneeId, setAssigneeId] = useState(initialAssigneeId);
 
     // Track input focus for mobile keyboard adjustments if needed
@@ -137,6 +156,8 @@ export function CreateTaskModal({
         setTitle("");
         setProjectId(initialProjectId);
         setStatus(initialStatus);
+        setSelectedColumnId(seededColumnId || "");
+        setAvailableColumns(projectColumns || []);
         setAssigneeId(initialAssigneeId);
         
         // Prevent body scroll when modal is open
@@ -144,9 +165,57 @@ export function CreateTaskModal({
         return () => {
             document.body.style.overflow = "unset";
         };
-    }, [initialAssigneeId, initialProjectId, initialStatus, isOpen]);
+    }, [initialAssigneeId, initialProjectId, initialStatus, isOpen, projectColumns, seededColumnId]);
 
-    const canSubmit = title.trim().length > 0 && projectId.length > 0 && !isSubmitting;
+    useEffect(() => {
+        if (!isOpen || !projectId) {
+            return;
+        }
+
+        const canUseProvidedColumns = projectColumns && projectId === initialProjectId;
+        if (canUseProvidedColumns) {
+            const sortedColumns = [...projectColumns].sort((left, right) => left.order - right.order);
+            setAvailableColumns(sortedColumns);
+            setSelectedColumnId((current) => current || seededColumnId || sortedColumns[0]?.id || "");
+            return;
+        }
+
+        let isActive = true;
+        setIsColumnsLoading(true);
+
+        getProjectColumns(projectId)
+            .then((columns) => {
+                if (!isActive) return;
+                const sortedColumns = [...columns].sort((left, right) => left.order - right.order);
+                setAvailableColumns(sortedColumns);
+                setSelectedColumnId((current) => {
+                    if (sortedColumns.some((column) => column.id === current)) {
+                        return current;
+                    }
+
+                    return sortedColumns[0]?.id || "";
+                });
+            })
+            .catch((error) => {
+                if (!isActive) return;
+                console.error("Failed to load project columns", error);
+                setAvailableColumns([]);
+                setSelectedColumnId("");
+            })
+            .finally(() => {
+                if (isActive) {
+                    setIsColumnsLoading(false);
+                }
+            });
+
+        return () => {
+            isActive = false;
+        };
+    }, [initialProjectId, isOpen, projectColumns, projectId, seededColumnId]);
+
+    const columnOptions = availableColumns.map((column) => ({ value: column.id, label: column.name }));
+    const selectedColumn = availableColumns.find((column) => column.id === selectedColumnId);
+    const canSubmit = title.trim().length > 0 && projectId.length > 0 && !isSubmitting && !isColumnsLoading;
 
     if (!isOpen) return null;
 
@@ -156,11 +225,13 @@ export function CreateTaskModal({
             return;
         }
 
+        const nextStatus = getStatusFromColumn(selectedColumn, status);
+
         await onSubmit({
             title: title.trim(),
             projectId,
-            status,
-            columnId: seededColumnId,
+            status: nextStatus,
+            columnId: selectedColumnId || seededColumnId,
             assigneeId: assigneeId || undefined,
         });
 
@@ -168,6 +239,7 @@ export function CreateTaskModal({
             setTitle("");
             setProjectId(initialProjectId);
             setStatus(initialStatus);
+            setSelectedColumnId(seededColumnId || availableColumns[0]?.id || "");
             setAssigneeId(initialAssigneeId);
         }
     };
@@ -233,18 +305,21 @@ export function CreateTaskModal({
                             />
                         </SettingsField>
 
-                        <SettingsField label="Parent Project" className="relative z-30">
+                        <SettingsField label="Parent Project" className="relative z-[70]">
                             <CustomListbox
                                 value={projectId}
-                                onChange={setProjectId}
+                                onChange={(value) => {
+                                    setProjectId(value);
+                                    setSelectedColumnId("");
+                                }}
                                 disabled={lockProjectSelection || projects.length === 0}
                                 placeholder="Select a project directory"
                                 options={projects.map((p) => ({ value: p.id, label: p.name }))}
                             />
                         </SettingsField>
 
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-4 relative z-20">
-                            <SettingsField label="Delegate To">
+                        <div className="relative z-20 grid grid-cols-1 gap-5 sm:grid-cols-2 sm:gap-4">
+                            <SettingsField label="Delegate To" className="relative z-30">
                                 <CustomListbox
                                     value={assigneeId}
                                     onChange={setAssigneeId}
@@ -253,17 +328,25 @@ export function CreateTaskModal({
                                 />
                             </SettingsField>
 
-                            <SettingsField label="Status">
+                            <SettingsField label="Status" className="relative z-20">
                                 <CustomListbox
-                                    value={status}
-                                    onChange={(v) => setStatus(v as TaskStatus)}
-                                    placeholder="Select status"
-                                    options={statusOptions}
+                                    value={selectedColumnId || status}
+                                    onChange={(value) => {
+                                        if (columnOptions.length > 0) {
+                                            setSelectedColumnId(value);
+                                            setStatus(getStatusFromColumn(availableColumns.find((column) => column.id === value), status));
+                                        } else {
+                                            setStatus(value as TaskStatus);
+                                        }
+                                    }}
+                                    disabled={isColumnsLoading}
+                                    placeholder={isColumnsLoading ? "Loading columns..." : "Select column"}
+                                    options={columnOptions.length > 0 ? columnOptions : statusOptions}
                                 />
                             </SettingsField>
                         </div>
 
-                        <div className="pt-4 flex flex-col-reverse sm:flex-row gap-3">
+                        <div className="relative z-0 pt-4 flex flex-col-reverse sm:flex-row gap-3">
                             <Button
                                 type="button"
                                 onClick={onClose}

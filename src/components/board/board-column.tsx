@@ -79,12 +79,15 @@ const BoardColumnBase = forwardRef<HTMLDivElement, BoardColumnProps>(({
     return (
         <div
             ref={ref}
-            className={`flex h-full w-[min(17.5rem,calc(100vw-5.75rem))] shrink-0 snap-start snap-always flex-col rounded-[1.35rem] md:w-80 md:max-w-none md:snap-center ${isDragging ? "ring-2 ring-primary/20" : ""}`}
+            className={cn(
+                "flex h-full w-[min(17.5rem,calc(100vw-5.75rem))] shrink-0 snap-start snap-always flex-col rounded-[1.45rem] border border-slate-200/70 bg-slate-100/45 p-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.86),0_18px_46px_-40px_rgba(15,23,42,0.36)] md:w-80 md:max-w-none md:snap-center",
+                isDragging && "ring-2 ring-primary/20"
+            )}
         >
             {/* Header with Drag Handle */}
             <div
                 className={cn(
-                    "kanban-column-header group mb-2.5 flex items-center justify-between rounded-[1.1rem] border border-white/80 bg-white/82 px-3 py-2.5 shadow-[0_12px_30px_-28px_rgba(15,23,42,0.32)] backdrop-blur-xl md:mb-3 md:py-3",
+                    "kanban-column-header group mb-2.5 flex items-center justify-between rounded-[1rem] border border-white/90 bg-white/86 px-3 py-2.5 shadow-[0_10px_26px_-24px_rgba(15,23,42,0.32)] backdrop-blur-xl md:py-3",
                 )}
                 {...dragHandleProps}
             >
@@ -162,7 +165,7 @@ const BoardColumnBase = forwardRef<HTMLDivElement, BoardColumnProps>(({
                     setNodeRef(node);
                     virtual.containerRef.current = node;
                 }}
-                className="flex-1 overflow-y-auto overscroll-y-contain rounded-[1.15rem] border border-white/55 bg-[linear-gradient(180deg,rgba(255,255,255,0.6),rgba(248,250,252,0.52))] p-2 touch-pan-y shadow-[inset_0_1px_0_rgba(255,255,255,0.75)] [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+                className="flex-1 overflow-y-auto overscroll-y-contain rounded-[1.05rem] border border-slate-200/65 bg-[linear-gradient(180deg,rgba(248,250,252,0.78),rgba(241,245,249,0.66))] p-2 touch-pan-y shadow-[inset_0_1px_0_rgba(255,255,255,0.78)] [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
             >
                 <SortableContext items={sortableItems} strategy={verticalListSortingStrategy}>
                     {shouldVirtualize ? (

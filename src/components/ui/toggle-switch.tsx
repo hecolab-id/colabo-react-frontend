@@ -14,8 +14,8 @@ export function ToggleSwitch({
     interactive?: boolean;
 }) {
     const switchClassName = cn(
-        "relative inline-flex h-8 w-14 items-center rounded-full border border-black/5 bg-slate-200/90 p-1 transition-[background-color,box-shadow] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15 disabled:cursor-not-allowed disabled:opacity-50",
-        checked && "bg-slate-950 shadow-[0_12px_30px_-18px_rgba(15,23,42,0.8)]",
+        "relative inline-flex h-7 w-12 shrink-0 rounded-full border border-slate-200 bg-slate-200 transition-[background-color,border-color,box-shadow] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15 disabled:cursor-not-allowed disabled:opacity-50",
+        checked && "border-primary bg-primary shadow-[0_10px_24px_-18px_rgba(109,93,252,0.9)]",
         !interactive && disabled && "cursor-not-allowed opacity-50",
         className,
     );
@@ -23,8 +23,8 @@ export function ToggleSwitch({
     const knob = (
         <span
             className={cn(
-                "inline-block h-6 w-6 rounded-full bg-white shadow-[0_8px_18px_-10px_rgba(15,23,42,0.42)] transition-transform",
-                checked ? "translate-x-6" : "translate-x-0",
+                "absolute left-0.5 top-0.5 h-6 w-6 rounded-full bg-white shadow-[0_6px_14px_-8px_rgba(15,23,42,0.7)] transition-transform duration-200",
+                checked ? "translate-x-5" : "translate-x-0",
             )}
         />
     );

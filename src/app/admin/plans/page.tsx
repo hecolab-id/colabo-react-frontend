@@ -15,6 +15,7 @@ import {
     formatCurrencyIdr,
     formatNumber,
 } from "@/components/admin/admin-ui";
+import { ToggleSwitch } from "@/components/ui/toggle-switch";
 
 type PlanDraft = Omit<AdminPlan, "id" | "created_at">;
 
@@ -133,14 +134,12 @@ export default function AdminPlansPage() {
                             <NumberField label="AI generations / month" value={planDraft.ai_generations_per_month} onChange={(value) => setPlanDraft((current) => ({ ...current, ai_generations_per_month: value }))} />
                             <NumberField label="AI tokens / month" value={planDraft.ai_tokens_per_month} onChange={(value) => setPlanDraft((current) => ({ ...current, ai_tokens_per_month: value }))} />
                         </div>
-                        <label className="flex items-center gap-3 rounded-[22px] border border-white/10 bg-white/[0.035] px-4 py-3 text-sm text-slate-200">
-                            <input
-                                type="checkbox"
+                        <label className="flex items-center justify-between gap-3 rounded-[22px] border border-white/10 bg-white/[0.035] px-4 py-3 text-sm text-slate-200">
+                            <span>Price this plan per seat</span>
+                            <ToggleSwitch
                                 checked={planDraft.is_per_seat}
-                                onChange={(event) => setPlanDraft((current) => ({ ...current, is_per_seat: event.target.checked }))}
-                                className="h-4 w-4 rounded border-white/20 bg-[#0a1120]"
+                                onClick={() => setPlanDraft((current) => ({ ...current, is_per_seat: !current.is_per_seat }))}
                             />
-                            Price this plan per seat
                         </label>
                         <div className="flex flex-col gap-3 sm:flex-row">
                             <button type="submit" className="rounded-full bg-[#b8adff] px-5 py-3 text-sm font-semibold text-[#111827] transition hover:bg-[#c8c1ff]">

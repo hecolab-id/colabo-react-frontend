@@ -30,6 +30,7 @@ interface KanbanBoardProps {
     initialTaskId?: string;
     onAddTask?: (columnId: string) => void;
     onTaskMove?: (taskId: string, columnId: string, newPosition: number) => void;
+    onTaskDelete?: (taskId: string) => void | Promise<unknown>;
     onAddColumn?: () => void;
     onEditColumn?: (column: Column) => void;
     onColumnReorder?: (columnIds: string[]) => void;
@@ -102,7 +103,7 @@ function createTaskLookup(tasks: TaskLite[], getTaskColumnId: (task: TaskLite) =
     return { taskById, indexById, columnIdByTaskId };
 }
 
-export function KanbanBoard({ initialTasks, columns, initialTaskId, onAddTask, onTaskMove, onAddColumn, onEditColumn, onColumnReorder }: KanbanBoardProps) {
+export function KanbanBoard({ initialTasks, columns, initialTaskId, onAddTask, onTaskMove, onTaskDelete, onAddColumn, onEditColumn, onColumnReorder }: KanbanBoardProps) {
     const [tasks, setTasks] = useState<TaskLite[]>(initialTasks);
     const [activeTask, setActiveTask] = useState<TaskLite | null>(null);
     const [activeColumn, setActiveColumn] = useState<Column | null>(null);
@@ -595,7 +596,10 @@ export function KanbanBoard({ initialTasks, columns, initialTaskId, onAddTask, o
                         setTasks((prev) => prev.map(t => t.id === updatedTask.id ? { ...t, ...updatedTask } : t));
                         setActiveDetailTask(updatedTask);
                     }}
-                    onDelete={(taskId) => {
+                    onDelete={async (taskId) => {
+                        if (onTaskDelete) {
+                            await onTaskDelete(taskId);
+                        }
                         setTasks((prev) => prev.filter(t => t.id !== taskId));
                         setActiveDetailTask(null);
                     }}

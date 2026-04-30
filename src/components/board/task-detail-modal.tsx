@@ -70,7 +70,7 @@ interface TaskDetailModalProps {
     task: Task;
     projectColumns?: Column[];
     onClose: () => void;
-    onDelete?: (taskId: string) => void;
+    onDelete?: (taskId: string) => void | Promise<unknown>;
     onUpdate?: (task: Task) => void;
 }
 
@@ -570,8 +570,11 @@ export function TaskDetailModal({ task, projectColumns: initialProjectColumns, o
     const confirmDelete = async () => {
         setIsDeleting(true);
         try {
-            await deleteTask(task.id);
-            onDelete?.(task.id);
+            if (onDelete) {
+                await onDelete(task.id);
+            } else {
+                await deleteTask(task.id);
+            }
             onClose();
         } catch (error) {
             console.error("Failed to delete task:", error);

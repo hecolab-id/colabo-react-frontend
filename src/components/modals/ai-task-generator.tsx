@@ -1,33 +1,121 @@
 "use client";
 
-import { useState } from "react";
-import { X, Sparkles, Plus, Check, Loader2 } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { generateTasksWithAI, GeneratedTask, createTask } from "@/lib/api";
+import { useMemo, useState } from "react";
+import { Check, FileText, Loader2, Plus, Sparkles, X } from "lucide-react";
+import { createTask, GeneratedTask, generateTasksWithAI } from "@/lib/api";
 import { useEscapeKey } from "@/lib/hooks/use-escape-key";
+import { cn } from "@/lib/utils";
+
+type PlannerMode = "quick" | "prd";
+type DetailLevel = "lean" | "balanced" | "detailed";
 
 interface AITaskGeneratorProps {
     isOpen: boolean;
     onClose: () => void;
     projectId: string;
+    projectName?: string;
+    projectDescription?: string;
     onTasksCreated?: () => void;
 }
 
-export function AITaskGenerator({ isOpen, onClose, projectId, onTasksCreated }: AITaskGeneratorProps) {
+const detailOptions: Array<{ value: DetailLevel; label: string; count: number }> = [
+    { value: "lean", label: "Lean", count: 8 },
+    { value: "balanced", label: "Balanced", count: 15 },
+    { value: "detailed", label: "Detailed", count: 20 },
+];
+
+const priorityColors = {
+    HIGH: "border-[var(--priority-high-border)] bg-[var(--priority-high-bg)] text-[var(--priority-high-fg)]",
+    MEDIUM: "border-[var(--priority-medium-border)] bg-[var(--priority-medium-bg)] text-[var(--priority-medium-fg)]",
+    LOW: "border-[var(--priority-low-border)] bg-[var(--priority-low-bg)] text-[var(--priority-low-fg)]",
+};
+
+function buildPlannerPrompt({
+    mode,
+    prompt,
+    detailLevel,
+    projectName,
+    projectDescription,
+}: {
+    mode: PlannerMode;
+    prompt: string;
+    detailLevel: DetailLevel;
+    projectName?: string;
+    projectDescription?: string;
+}) {
+    const projectContext = [
+        projectName ? `Project name: ${projectName}` : null,
+        projectDescription?.trim() ? `Project description: ${projectDescription.trim()}` : null,
+    ].filter(Boolean).join("\n");
+
+    if (mode === "prd") {
+        return [
+            "Mode: PRD to Tasks.",
+            "Create a safe draft execution plan from the PRD below.",
+            "Rules:",
+            "- Treat the PRD as the source of truth.",
+            "- Use the project context only as guardrails for product scope and terminology.",
+            "- Do not invent major features outside the PRD.",
+            "- Keep tasks concise, actionable, and implementation-ready.",
+            "- Prefer clear descriptions with acceptance criteria or checklist-style details inside the description.",
+            "- Do not assign users, create labels, create dependencies, or assume estimates.",
+            `- Detail level: ${detailLevel}.`,
+            projectContext ? `\nProject context:\n${projectContext}` : null,
+            `\nPRD:\n${prompt.trim()}`,
+        ].filter(Boolean).join("\n");
+    }
+
+    return [
+        "Mode: Quick task generation.",
+        "Generate a small, practical set of task drafts from the request below.",
+        "Rules:",
+        "- Keep task titles short.",
+        "- Use descriptions that explain the expected outcome.",
+        "- Avoid dependencies, assignees, labels, and estimates.",
+        projectContext ? `\nProject context:\n${projectContext}` : null,
+        `\nRequest:\n${prompt.trim()}`,
+    ].filter(Boolean).join("\n");
+}
+
+export function AITaskGenerator({
+    isOpen,
+    onClose,
+    projectId,
+    projectName,
+    projectDescription,
+    onTasksCreated,
+}: AITaskGeneratorProps) {
+    const [mode, setMode] = useState<PlannerMode>("quick");
     const [prompt, setPrompt] = useState("");
-    const [count, setCount] = useState(5);
+    const [detailLevel, setDetailLevel] = useState<DetailLevel>("balanced");
+    const [quickCount, setQuickCount] = useState(5);
     const [isGenerating, setIsGenerating] = useState(false);
     const [isCreating, setIsCreating] = useState(false);
     const [generatedTasks, setGeneratedTasks] = useState<GeneratedTask[]>([]);
     const [selectedTasks, setSelectedTasks] = useState<Set<number>>(new Set());
     const [aiMessage, setAiMessage] = useState("");
     const [error, setError] = useState<string | null>(null);
+
+    const generatedCount = useMemo(() => {
+        if (mode === "prd") {
+            return detailOptions.find((option) => option.value === detailLevel)?.count || 15;
+        }
+        return Math.min(Math.max(quickCount, 1), 20);
+    }, [detailLevel, mode, quickCount]);
+
     useEscapeKey(isOpen && !isGenerating && !isCreating, () => {
         handleClose();
     });
 
-    const handleGenerate = async (e: React.FormEvent) => {
-        e.preventDefault();
+    const resetDraft = () => {
+        setGeneratedTasks([]);
+        setSelectedTasks(new Set());
+        setAiMessage("");
+        setError(null);
+    };
+
+    const handleGenerate = async (event: React.FormEvent) => {
+        event.preventDefault();
         if (!prompt.trim() || isGenerating) return;
 
         setIsGenerating(true);
@@ -36,27 +124,23 @@ export function AITaskGenerator({ isOpen, onClose, projectId, onTasksCreated }: 
         setAiMessage("");
 
         try {
-            const response = await generateTasksWithAI(projectId, prompt, count);
+            const plannerPrompt = buildPlannerPrompt({
+                mode,
+                prompt,
+                detailLevel,
+                projectName,
+                projectDescription,
+            });
+            const response = await generateTasksWithAI(projectId, plannerPrompt, generatedCount);
             setGeneratedTasks(response.tasks);
             setAiMessage(response.message);
-            // Select all tasks by default
-            setSelectedTasks(new Set(response.tasks.map((_, idx) => idx)));
+            setSelectedTasks(new Set(response.tasks.map((_, index) => index)));
         } catch (err) {
             console.error("Failed to generate tasks:", err);
             setError(err instanceof Error ? err.message : "Failed to generate tasks");
         } finally {
             setIsGenerating(false);
         }
-    };
-
-    const toggleTask = (index: number) => {
-        const newSelected = new Set(selectedTasks);
-        if (newSelected.has(index)) {
-            newSelected.delete(index);
-        } else {
-            newSelected.add(index);
-        }
-        setSelectedTasks(newSelected);
     };
 
     const handleCreateTasks = async () => {
@@ -66,18 +150,10 @@ export function AITaskGenerator({ isOpen, onClose, projectId, onTasksCreated }: 
         setError(null);
 
         try {
-            const tasksToCreate = generatedTasks.filter((_, idx) => selectedTasks.has(idx));
-            
-            // Create tasks sequentially to avoid race conditions with position calculation
+            const tasksToCreate = generatedTasks.filter((_, index) => selectedTasks.has(index));
+
             for (const task of tasksToCreate) {
-                await createTask(
-                    projectId,
-                    task.title,
-                    "TODO",
-                    undefined,
-                    task.description,
-                    task.priority
-                );
+                await createTask(projectId, task.title, "TODO", undefined, task.description, task.priority);
             }
 
             onTasksCreated?.();
@@ -91,7 +167,10 @@ export function AITaskGenerator({ isOpen, onClose, projectId, onTasksCreated }: 
     };
 
     const handleClose = () => {
+        setMode("quick");
         setPrompt("");
+        setDetailLevel("balanced");
+        setQuickCount(5);
         setGeneratedTasks([]);
         setSelectedTasks(new Set());
         setAiMessage("");
@@ -99,217 +178,279 @@ export function AITaskGenerator({ isOpen, onClose, projectId, onTasksCreated }: 
         onClose();
     };
 
-    const priorityColors = {
-        HIGH: "text-red-600 bg-red-50 border-red-200",
-        MEDIUM: "text-orange-600 bg-orange-50 border-orange-200",
-        LOW: "text-green-600 bg-green-50 border-green-200",
+    const toggleTask = (index: number) => {
+        const nextSelected = new Set(selectedTasks);
+        if (nextSelected.has(index)) {
+            nextSelected.delete(index);
+        } else {
+            nextSelected.add(index);
+        }
+        setSelectedTasks(nextSelected);
     };
 
     if (!isOpen) return null;
 
+    const modeLabel = mode === "prd" ? "PRD to Tasks" : "Quick Prompt";
+
     return (
         <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+            className="fixed inset-0 z-50 flex items-end justify-center bg-slate-950/36 p-0 backdrop-blur-sm sm:items-center sm:p-4"
             onClick={handleClose}
         >
             <div
-                className="w-full max-w-4xl bg-card border border-border rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
-                onClick={(e) => e.stopPropagation()}
+                className="flex max-h-[88dvh] w-full max-w-2xl flex-col overflow-hidden rounded-t-[1.5rem] border border-slate-200 bg-white shadow-[0_28px_90px_rgba(15,23,42,0.24)] sm:rounded-[1.5rem]"
+                onClick={(event) => event.stopPropagation()}
             >
-                {/* Header */}
-                <div className="p-6 border-b border-border">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-indigo-400 to-purple-500 flex items-center justify-center">
-                                <Sparkles className="w-5 h-5 text-white" />
-                            </div>
-                            <div>
-                                <h2 className="text-xl font-semibold text-foreground">AI Task Generator</h2>
-                                <p className="text-sm text-muted-foreground">
-                                    Describe what you need, and AI will create tasks for you
-                                </p>
-                            </div>
+                <header className="flex items-start justify-between gap-4 border-b border-slate-200 px-5 py-4">
+                    <div className="min-w-0">
+                        <div className="mb-2 inline-flex items-center gap-2 rounded-full bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary">
+                            <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
+                            AI Planner
                         </div>
-                        <button
-                            onClick={handleClose}
-                            className="text-muted-foreground hover:text-foreground transition-colors"
-                        >
-                            <X className="w-5 h-5" />
-                        </button>
+                        <h2 className="text-xl font-semibold tracking-tight text-slate-950">Generate draft tasks</h2>
+                        <p className="mt-1 text-sm leading-5 text-slate-600">
+                            {projectName ? `For ${projectName}` : "For this project"}
+                        </p>
                     </div>
-                </div>
+                    <button
+                        type="button"
+                        onClick={handleClose}
+                        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 shadow-sm transition-colors hover:bg-slate-50 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15"
+                        aria-label="Close AI planner"
+                    >
+                        <X className="h-4 w-4" aria-hidden="true" />
+                    </button>
+                </header>
 
-                <div className="flex-1 overflow-y-auto p-6">
-                    {/* Generation Form */}
-                    {generatedTasks.length === 0 && (
+                <div className="min-h-0 flex-1 overflow-y-auto px-5 py-5">
+                    {generatedTasks.length === 0 ? (
                         <form onSubmit={handleGenerate} className="space-y-4">
+                            <div className="grid grid-cols-2 rounded-[1rem] border border-slate-200 bg-slate-50 p-1">
+                                {([
+                                    { value: "quick", label: "Quick Prompt", icon: Sparkles },
+                                    { value: "prd", label: "PRD to Tasks", icon: FileText },
+                                ] as const).map((item) => {
+                                    const Icon = item.icon;
+                                    const isActive = mode === item.value;
+                                    return (
+                                        <button
+                                            key={item.value}
+                                            type="button"
+                                            onClick={() => {
+                                                setMode(item.value);
+                                                resetDraft();
+                                            }}
+                                            className={cn(
+                                                "flex h-10 items-center justify-center gap-2 rounded-[0.8rem] text-sm font-semibold transition-all focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15",
+                                                isActive ? "bg-white text-slate-950 shadow-sm" : "text-slate-600 hover:text-slate-950"
+                                            )}
+                                        >
+                                            <Icon className="h-4 w-4" aria-hidden="true" />
+                                            {item.label}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+
+                            <div className="rounded-[1rem] border border-slate-200 bg-slate-50 px-4 py-3">
+                                <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                                    <div className="min-w-0">
+                                        <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">Project context</p>
+                                        <p className="mt-1 truncate text-sm font-semibold text-slate-950">{projectName || "Current project"}</p>
+                                    </div>
+                                    <span className="w-fit rounded-full border border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-600">
+                                        {modeLabel} · max {generatedCount}
+                                    </span>
+                                </div>
+                                {projectDescription?.trim() ? (
+                                    <p className="mt-2 line-clamp-2 text-sm leading-5 text-slate-600">{projectDescription}</p>
+                                ) : null}
+                            </div>
+
                             <div>
-                                <label className="text-sm font-medium text-foreground mb-2 block">
-                                    What would you like to accomplish?
+                                <label htmlFor="ai-planner-input" className="mb-2 block text-sm font-semibold text-slate-900">
+                                    {mode === "prd" ? "PRD or product brief" : "Prompt"}
                                 </label>
                                 <textarea
+                                    id="ai-planner-input"
                                     value={prompt}
-                                    onChange={(e) => setPrompt(e.target.value)}
-                                    placeholder="Example: Create tasks for implementing user authentication with social login, password reset, and email verification"
-                                    rows={4}
-                                    className="w-full px-4 py-3 rounded-lg border border-border bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary resize-none"
+                                    onChange={(event) => setPrompt(event.target.value)}
+                                    placeholder={
+                                        mode === "prd"
+                                            ? "Paste the PRD or feature brief here."
+                                            : "Example: Create tasks for user authentication with password reset and email verification."
+                                    }
+                                    rows={mode === "prd" ? 9 : 5}
+                                    className="w-full resize-none rounded-[1rem] border border-slate-300 bg-white px-4 py-3 text-sm leading-6 text-slate-950 outline-none transition-[border-color,box-shadow] placeholder:text-slate-400 focus:border-primary focus:ring-4 focus:ring-primary/15"
                                 />
                             </div>
 
-                            <div>
-                                <label className="text-sm font-medium text-foreground mb-2 block">
-                                    Number of tasks to generate
-                                </label>
-                                <input
-                                    type="number"
-                                    min={1}
-                                    max={20}
-                                    value={count}
-                                    onChange={(e) => setCount(parseInt(e.target.value) || 5)}
-                                    className="w-32 px-4 py-2 rounded-lg border border-border bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
-                                />
-                            </div>
-
-                            {error && (
-                                <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-lg text-sm text-destructive">
-                                    {error}
+                            {mode === "prd" ? (
+                                <div className="grid gap-2 sm:grid-cols-3">
+                                    {detailOptions.map((option) => (
+                                        <button
+                                            key={option.value}
+                                            type="button"
+                                            onClick={() => setDetailLevel(option.value)}
+                                            className={cn(
+                                                "rounded-[0.9rem] border px-4 py-2 text-sm font-semibold transition-all focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15",
+                                                detailLevel === option.value
+                                                    ? "border-primary/35 bg-primary/10 text-primary"
+                                                    : "border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:text-slate-950"
+                                            )}
+                                        >
+                                            {option.label}
+                                            <span className="ml-1 text-xs font-medium opacity-70">{option.count}</span>
+                                        </button>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="flex items-center justify-between gap-4 rounded-[1rem] border border-slate-200 bg-white px-4 py-3">
+                                    <label htmlFor="ai-planner-count" className="text-sm font-semibold text-slate-900">
+                                        Number of tasks
+                                    </label>
+                                    <input
+                                        id="ai-planner-count"
+                                        type="number"
+                                        min={1}
+                                        max={20}
+                                        value={quickCount}
+                                        onChange={(event) => setQuickCount(parseInt(event.target.value, 10) || 5)}
+                                        className="h-10 w-24 rounded-[0.9rem] border border-slate-300 bg-white px-3 text-center text-sm font-semibold text-slate-950 outline-none focus:border-primary focus:ring-4 focus:ring-primary/15"
+                                    />
                                 </div>
                             )}
+
+                            {error ? (
+                                <div className="rounded-[1rem] border border-[var(--danger-border)] bg-[var(--danger-bg)] px-4 py-3 text-sm text-[var(--danger-fg)]">
+                                    {error}
+                                </div>
+                            ) : null}
 
                             <button
                                 type="submit"
                                 disabled={!prompt.trim() || isGenerating}
-                                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 font-medium"
+                                className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-[1rem] bg-primary px-5 text-sm font-semibold text-primary-foreground shadow-[0_12px_28px_rgba(109,93,252,0.20)] transition-opacity hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15"
                             >
                                 {isGenerating ? (
                                     <>
-                                        <Loader2 className="w-4 h-4 animate-spin" />
-                                        Generating tasks...
+                                        <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+                                        Generating draft...
                                     </>
                                 ) : (
                                     <>
-                                        <Sparkles className="w-4 h-4" />
-                                        Generate Tasks
+                                        <Sparkles className="h-4 w-4" aria-hidden="true" />
+                                        Generate Draft
                                     </>
                                 )}
                             </button>
                         </form>
-                    )}
-
-                    {/* Generated Tasks Preview */}
-                    {generatedTasks.length > 0 && (
+                    ) : (
                         <div className="space-y-4">
-                            {aiMessage && (
-                                <div className="p-4 bg-muted/50 rounded-lg">
-                                    <p className="text-sm text-muted-foreground">{aiMessage}</p>
+                            {aiMessage ? (
+                                <div className="rounded-[1.15rem] border border-primary/15 bg-primary/10 px-4 py-3 text-sm leading-6 text-slate-700">
+                                    {aiMessage}
                                 </div>
-                            )}
+                            ) : null}
 
-                            <div className="flex items-center justify-between">
-                                <p className="text-sm text-muted-foreground">
-                                    {selectedTasks.size} of {generatedTasks.length} tasks selected
+                            <div className="flex items-center justify-between gap-3">
+                                <p className="text-sm font-medium text-slate-600">
+                                    {selectedTasks.size} of {generatedTasks.length} selected
                                 </p>
                                 <button
+                                    type="button"
                                     onClick={() => {
-                                        if (selectedTasks.size === generatedTasks.length) {
-                                            setSelectedTasks(new Set());
-                                        } else {
-                                            setSelectedTasks(new Set(generatedTasks.map((_, idx) => idx)));
-                                        }
+                                        setSelectedTasks(
+                                            selectedTasks.size === generatedTasks.length
+                                                ? new Set()
+                                                : new Set(generatedTasks.map((_, index) => index))
+                                        );
                                     }}
-                                    className="text-sm text-primary hover:underline"
+                                    className="text-sm font-semibold text-primary hover:text-primary/80 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15"
                                 >
-                                    {selectedTasks.size === generatedTasks.length ? "Deselect All" : "Select All"}
+                                    {selectedTasks.size === generatedTasks.length ? "Deselect all" : "Select all"}
                                 </button>
                             </div>
 
-                            <div className="space-y-3">
-                                {generatedTasks.map((task, idx) => (
-                                    <div
-                                        key={idx}
-                                        onClick={() => toggleTask(idx)}
-                                        className={cn(
-                                            "p-4 border rounded-lg cursor-pointer transition-all",
-                                            selectedTasks.has(idx)
-                                                ? "border-primary bg-primary/5"
-                                                : "border-border hover:border-primary/50"
-                                        )}
-                                    >
-                                        <div className="flex items-start gap-3">
-                                            <div
-                                                className={cn(
-                                                    "w-5 h-5 rounded border flex items-center justify-center mt-0.5 flex-shrink-0",
-                                                    selectedTasks.has(idx)
-                                                        ? "bg-primary border-primary"
-                                                        : "border-muted-foreground"
-                                                )}
-                                            >
-                                                {selectedTasks.has(idx) && (
-                                                    <Check className="w-3 h-3 text-primary-foreground" />
-                                                )}
-                                            </div>
-                                            <div className="flex-1 min-w-0">
-                                                <div className="flex items-center gap-2 mb-2">
-                                                    <h3 className="font-medium text-foreground">{task.title}</h3>
-                                                    <span
-                                                        className={cn(
-                                                            "px-2 py-0.5 text-xs font-medium rounded border",
-                                                            priorityColors[task.priority]
-                                                        )}
-                                                    >
-                                                        {task.priority}
-                                                    </span>
-                                                    {task.column_name && (
-                                                        <span className="px-2 py-0.5 text-xs text-muted-foreground bg-muted rounded">
-                                                            {task.column_name}
-                                                        </span>
+                            <div className="space-y-2.5">
+                                {generatedTasks.map((task, index) => {
+                                    const isSelected = selectedTasks.has(index);
+
+                                    return (
+                                        <button
+                                            key={`${task.title}-${index}`}
+                                            type="button"
+                                            onClick={() => toggleTask(index)}
+                                            className={cn(
+                                                "w-full rounded-[1.15rem] border p-4 text-left transition-[border-color,background-color,box-shadow] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15",
+                                                isSelected
+                                                    ? "border-primary/30 bg-primary/5"
+                                                    : "border-slate-200 bg-white hover:border-primary/25"
+                                            )}
+                                        >
+                                            <div className="flex items-start gap-3">
+                                                <span
+                                                    className={cn(
+                                                        "mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md border",
+                                                        isSelected ? "border-primary bg-primary text-primary-foreground" : "border-slate-300 bg-white"
                                                     )}
+                                                    aria-hidden="true"
+                                                >
+                                                    {isSelected ? <Check className="h-3.5 w-3.5" /> : null}
+                                                </span>
+                                                <div className="min-w-0 flex-1">
+                                                    <div className="flex flex-wrap items-center gap-2">
+                                                        <h3 className="text-sm font-semibold text-slate-950">{task.title}</h3>
+                                                        <span className={cn("rounded-full border px-2 py-0.5 text-[11px] font-semibold", priorityColors[task.priority])}>
+                                                            {task.priority}
+                                                        </span>
+                                                    </div>
+                                                    <p className="mt-2 text-sm leading-6 text-slate-600">{task.description}</p>
                                                 </div>
-                                                <p className="text-sm text-muted-foreground">{task.description}</p>
                                             </div>
-                                        </div>
-                                    </div>
-                                ))}
+                                        </button>
+                                    );
+                                })}
                             </div>
 
-                            {error && (
-                                <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-lg text-sm text-destructive">
+                            {error ? (
+                                <div className="rounded-[1rem] border border-[var(--danger-border)] bg-[var(--danger-bg)] px-4 py-3 text-sm text-[var(--danger-fg)]">
                                     {error}
                                 </div>
-                            )}
-
-                            <div className="flex gap-3">
-                                <button
-                                    onClick={() => {
-                                        setGeneratedTasks([]);
-                                        setSelectedTasks(new Set());
-                                        setAiMessage("");
-                                    }}
-                                    className="flex-1 px-4 py-3 border border-border rounded-lg hover:bg-muted transition-colors font-medium"
-                                >
-                                    Start Over
-                                </button>
-                                <button
-                                    onClick={handleCreateTasks}
-                                    disabled={selectedTasks.size === 0 || isCreating}
-                                    className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 font-medium"
-                                >
-                                    {isCreating ? (
-                                        <>
-                                            <Loader2 className="w-4 h-4 animate-spin" />
-                                            Creating {selectedTasks.size} tasks...
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Plus className="w-4 h-4" />
-                                            Create {selectedTasks.size} Tasks
-                                        </>
-                                    )}
-                                </button>
-                            </div>
+                            ) : null}
                         </div>
                     )}
                 </div>
+
+                {generatedTasks.length > 0 ? (
+                    <footer className="flex flex-col gap-3 border-t border-slate-200/70 bg-white/90 px-5 py-4 backdrop-blur-xl sm:flex-row sm:px-6">
+                        <button
+                            type="button"
+                            onClick={resetDraft}
+                            className="h-11 flex-1 rounded-full border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15"
+                        >
+                            Back
+                        </button>
+                        <button
+                            type="button"
+                            onClick={handleCreateTasks}
+                            disabled={selectedTasks.size === 0 || isCreating}
+                            className="inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-full bg-primary px-4 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15"
+                        >
+                            {isCreating ? (
+                                <>
+                                    <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+                                    Creating...
+                                </>
+                            ) : (
+                                <>
+                                    <Plus className="h-4 w-4" aria-hidden="true" />
+                                    Create {selectedTasks.size} Tasks
+                                </>
+                            )}
+                        </button>
+                    </footer>
+                ) : null}
             </div>
         </div>
     );

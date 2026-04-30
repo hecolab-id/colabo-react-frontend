@@ -32,7 +32,6 @@ import { useStore } from "@/lib/store";
 
 const KanbanBoard = lazy(() => import("@/components/board/kanban-board").then((module) => ({ default: module.KanbanBoard })));
 const TaskCalendarView = lazy(() => import("@/components/board/task-calendar-view").then((module) => ({ default: module.TaskCalendarView })));
-const TaskGridView = lazy(() => import("@/components/board/task-grid-view").then((module) => ({ default: module.TaskGridView })));
 const TaskListView = lazy(() => import("@/components/board/task-list-view").then((module) => ({ default: module.TaskListView })));
 const CreateTaskModal = lazy(() => import("@/components/modals/create-task-modal").then((module) => ({ default: module.CreateTaskModal })));
 const CreateColumnModal = lazy(() => import("@/components/modals/create-column-modal").then((module) => ({ default: module.CreateColumnModal })));
@@ -303,7 +302,7 @@ function ProjectSlugPageContent({ params }: { params: Promise<{ teamSlug: string
         if (window.matchMedia("(max-width: 767px)").matches) {
             const savedViewMode = window.localStorage.getItem(mobileViewStorageKey) as ProjectViewMode | null;
             frameId = window.requestAnimationFrame(() => {
-                setViewMode(savedViewMode ?? "list");
+                setViewMode(savedViewMode === "board" || savedViewMode === "list" || savedViewMode === "calendar" ? savedViewMode : "list");
             });
         } else {
             frameId = window.requestAnimationFrame(() => {
@@ -346,7 +345,7 @@ function ProjectSlugPageContent({ params }: { params: Promise<{ teamSlug: string
                         hasActiveControls={hasVisibleFilters || sortOption !== "default"}
                         count={activeFilterCount + (sortOption === "default" ? 0 : 1)}
                         onClick={() => setIsMobileControlsOpen((prev) => !prev)}
-                        className="fixed bottom-24 left-4 z-30 h-12 w-12 rounded-full px-0 md:hidden"
+                        className="fixed bottom-[86px] left-4 z-30 h-[52px] w-[52px] rounded-full border-slate-200 bg-white px-0 text-slate-600 shadow-[0_16px_34px_rgba(15,23,42,0.14)] md:hidden"
                         showLabel={false}
                     />
 
@@ -468,6 +467,7 @@ function ProjectSlugPageContent({ params }: { params: Promise<{ teamSlug: string
                             initialTaskId={initialTaskId}
                             onAddTask={openCreateTask}
                             onTaskMove={handleTaskMove}
+                            onTaskDelete={handleTaskDelete}
                             onAddColumn={() => setIsColumnModalOpen(true)}
                             onEditColumn={(column) => setEditingColumn(column)}
                             onColumnReorder={handleColumnReorder}
@@ -492,17 +492,7 @@ function ProjectSlugPageContent({ params }: { params: Promise<{ teamSlug: string
                                 onDelete={handleTaskDelete}
                             />
                         </div>
-                    ) : (
-                        <div className="h-full overflow-y-auto overflow-x-hidden">
-                            <TaskGridView
-                                tasks={visibleTasks}
-                                columns={columns}
-                                initialTaskId={initialTaskId}
-                                onUpdate={handleTaskUpdateWrapper}
-                                onDelete={handleTaskDelete}
-                            />
-                        </div>
-                    )}
+                    ) : null}
                 </Suspense>
             </div>
 
@@ -524,6 +514,7 @@ function ProjectSlugPageContent({ params }: { params: Promise<{ teamSlug: string
                     initialProjectId={projectId}
                     initialStatus={getStatusFromColumn(defaultColumnId, columns)}
                     seededColumnId={defaultColumnId || undefined}
+                    projectColumns={columns}
                     lockProjectSelection
                     isSubmitting={createTaskMutation.isPending}
                     assignees={availableAssignees}

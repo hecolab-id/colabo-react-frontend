@@ -18,6 +18,10 @@ import {
 } from "lucide-react";
 import { PlanPackageDialog } from "@/components/billing/plan-package-dialog";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { SettingsField } from "@/components/ui/settings-field";
+import { SettingsSection } from "@/components/ui/settings-section";
 import { isPaidSubscription } from "@/lib/billing";
 import { deleteTeam } from "@/lib/api";
 import {
@@ -31,6 +35,8 @@ import { useBillingPlans, useCancelSubscription, useSubscribe, useUsage } from "
 import { useTeamMessengerPolicy, useUpdateTeamMessengerPolicy } from "@/lib/hooks/use-messenger";
 import { useStore } from "@/lib/store";
 import { Plan } from "@/lib/types";
+import { ToggleSwitch } from "@/components/ui/toggle-switch";
+import { cn } from "@/lib/utils";
 
 type SettingsTab = "general" | "billing" | "danger";
 
@@ -49,6 +55,7 @@ const storageFormatter = new Intl.NumberFormat(undefined, {
     maximumFractionDigits: 1,
     minimumFractionDigits: 0,
 });
+const selectClassName = "flex h-12 w-full appearance-none rounded-[1.15rem] border border-black/6 bg-white/75 px-4 py-3 pr-10 text-[15px] text-slate-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.75)] backdrop-blur-xl transition-[border-color,box-shadow,background-color] focus-visible:border-slate-300 focus-visible:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20";
 
 function formatStorage(bytes: number) {
     return `${storageFormatter.format(bytes / 1024 / 1024)} MB`;
@@ -70,12 +77,12 @@ function UsageMeter({
     return (
         <div className="space-y-2">
             <div className="flex items-center justify-between text-sm">
-                <span className="font-medium text-foreground">{label}</span>
-                <span className="font-mono text-xs text-muted-foreground">
+                <span className="font-semibold text-slate-900">{label}</span>
+                <span className="font-mono text-xs text-slate-500">
                     {value} / {maxLabel}
                 </span>
             </div>
-            <div className="h-2 overflow-hidden rounded-full bg-muted">
+            <div className="h-2 overflow-hidden rounded-full bg-slate-100">
                 <div
                     className={`h-full rounded-full ${tone}`}
                     style={{ width: `${Math.min(percentage, 100)}%` }}
@@ -360,29 +367,29 @@ function TeamSettingsPageContent({ params }: { params: Promise<{ teamSlug: strin
     }
 
     return (
-        <div className="space-y-8 pb-10">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Link href="/dashboard" className="transition hover:text-foreground">
+        <div className="max-w-6xl space-y-6 pb-10">
+            <div className="inline-flex items-center gap-2 rounded-full border border-black/5 bg-white px-4 py-2 text-[13px] font-semibold text-slate-500 shadow-sm">
+                <Link href="/dashboard" className="transition-colors hover:text-slate-900">
                     Dashboard
                 </Link>
-                <ChevronRight className="h-4 w-4" aria-hidden="true" />
-                <Link href={`/${team.slug}`} className="transition hover:text-foreground">
+                <ChevronRight className="h-4 w-4 text-slate-400" aria-hidden="true" />
+                <Link href={`/${team.slug}`} className="max-w-[11rem] truncate transition-colors hover:text-slate-900 sm:max-w-xs">
                     {team.name}
                 </Link>
-                <ChevronRight className="h-4 w-4" aria-hidden="true" />
-                <span className="font-medium text-foreground">Settings</span>
+                <ChevronRight className="h-4 w-4 text-slate-400" aria-hidden="true" />
+                <span className="text-slate-900">Settings</span>
             </div>
 
-            <section className="relative overflow-hidden rounded-[32px] border border-black/5 bg-slate-50 p-6 shadow-sm md:p-8">
-                <div className="relative grid gap-8 xl:grid-cols-[minmax(0,1.5fr)_360px]">
+            <section className="rounded-[2rem] border border-white/70 bg-white/82 p-6 shadow-[0_24px_70px_-40px_rgba(15,23,42,0.25)] backdrop-blur-2xl sm:p-8">
+                <div className="grid gap-8 xl:grid-cols-[minmax(0,1.5fr)_360px]">
                     <div className="space-y-6">
-                        <div className="inline-flex items-center gap-2 rounded-full border border-black/5 bg-white px-3 py-1.5 text-[12px] font-bold uppercase tracking-wide text-slate-500 shadow-sm">
-                            <ShieldAlert className="h-3.5 w-3.5 text-slate-900" aria-hidden="true" />
+                        <div className="inline-flex items-center gap-2 rounded-full border border-black/5 bg-slate-50 px-3 py-1.5 text-[12px] font-bold uppercase tracking-wide text-slate-500 shadow-sm">
+                            <ShieldAlert className="h-3.5 w-3.5 text-primary" aria-hidden="true" />
                             Team Control Center
                         </div>
 
                         <div className="space-y-3">
-                            <h1 className="max-w-3xl text-balance font-space-grotesk text-[32px] font-semibold tracking-tight text-slate-900 md:text-[40px]">
+                            <h1 className="max-w-3xl text-balance font-space-grotesk text-[32px] font-semibold tracking-tight text-slate-950 md:text-[40px]">
                                 Settings for {team.name}
                             </h1>
                             <p className="max-w-2xl text-[15px] leading-relaxed text-slate-500 md:text-base">
@@ -390,26 +397,26 @@ function TeamSettingsPageContent({ params }: { params: Promise<{ teamSlug: strin
                             </p>
                         </div>
 
-                        <div className="grid gap-4 sm:grid-cols-3 pt-2">
-                            <div className="rounded-[24px] border border-black/5 bg-white p-5 shadow-sm">
-                                <div className="mb-3 text-[12px] font-medium uppercase tracking-wide text-slate-400">Members</div>
-                                <div className="text-3xl font-semibold tracking-tight text-slate-900">
+                        <div className="grid gap-4 pt-2 sm:grid-cols-3">
+                            <div className="rounded-[1.15rem] border border-black/5 bg-slate-50/80 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.75)]">
+                                <div className="mb-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400">Members</div>
+                                <div className="text-2xl font-semibold tracking-tight text-slate-950">
                                     {numberFormatter.format(team.members?.length || 0)}
                                 </div>
                                 <p className="mt-1 text-[13px] text-slate-500">People with access to this workspace</p>
                             </div>
 
-                            <div className="rounded-[24px] border border-black/5 bg-white p-5 shadow-sm">
-                                <div className="mb-3 text-[12px] font-medium uppercase tracking-wide text-slate-400">Plan</div>
-                                <div className="text-3xl font-semibold tracking-tight text-slate-900">
+                            <div className="rounded-[1.15rem] border border-black/5 bg-slate-50/80 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.75)]">
+                                <div className="mb-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400">Plan</div>
+                                <div className="text-2xl font-semibold tracking-tight text-slate-950">
                                     {currentPlan?.name || (currentPlanIsActive ? "Paid" : "Free")}
                                 </div>
                                 <p className="mt-1 text-[13px] text-slate-500">Current billing tier for this team</p>
                             </div>
 
-                            <div className="rounded-[24px] border border-black/5 bg-white p-5 shadow-sm">
-                                <div className="mb-3 text-[12px] font-medium uppercase tracking-wide text-slate-400">Role</div>
-                                <div className="text-3xl font-semibold tracking-tight text-slate-900">
+                            <div className="rounded-[1.15rem] border border-black/5 bg-slate-50/80 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.75)]">
+                                <div className="mb-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400">Role</div>
+                                <div className="text-2xl font-semibold tracking-tight text-slate-950">
                                     {isOwner ? "Owner" : "Member"}
                                 </div>
                                 <p className="mt-1 text-[13px] text-slate-500">Your current access level in {team.name}</p>
@@ -454,42 +461,61 @@ function TeamSettingsPageContent({ params }: { params: Promise<{ teamSlug: strin
                 </div>
             </section>
 
-            <div className="flex w-full items-center justify-center mb-8">
-                <div className="inline-flex gap-1 p-1 bg-slate-100 border border-black/5 rounded-full shadow-sm" aria-label="Team settings sections">
+            <div className="grid gap-5 lg:grid-cols-[280px_minmax(0,1fr)] lg:items-start">
+                <aside className="lg:sticky lg:top-24">
+                    <nav
+                        className="flex gap-2 overflow-x-auto rounded-[1.4rem] border border-white/70 bg-white/80 p-2 shadow-[0_20px_60px_-42px_rgba(15,23,42,0.38)] backdrop-blur-2xl lg:flex-col lg:overflow-visible"
+                        aria-label="Team settings sections"
+                    >
                     {[
-                        { key: "general", label: "General" },
-                        { key: "billing", label: "Billing & Usage" },
-                        { key: "danger", label: "Danger Zone" },
+                        { key: "general", label: "General", description: "Identity and messenger policy", icon: ShieldAlert },
+                        { key: "billing", label: "Billing", description: "Plan and usage limits", icon: CreditCard },
+                        { key: "danger", label: "Danger Zone", description: "Ownership and destructive actions", icon: Trash2 },
                     ].map((tab) => (
                         <button
                             key={tab.key}
                             type="button"
                             onClick={() => setActiveTab(tab.key as SettingsTab)}
-                            className={`rounded-full px-5 py-2 text-[14px] font-semibold transition-all focus-visible:outline-none ${
+                            className={cn(
+                                "flex min-w-[13rem] items-center gap-3 rounded-[1.05rem] px-3 py-3 text-left transition-[background-color,color,box-shadow] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15 lg:min-w-0",
                                 activeTab === tab.key
                                     ? tab.key === "danger"
-                                        ? "bg-red-50 text-red-600 shadow-sm border border-red-100"
-                                        : "bg-white text-slate-900 shadow-sm border border-black/5"
-                                    : "text-slate-500 hover:text-slate-900 border border-transparent"
-                            }`}
+                                        ? "bg-[var(--danger-fg)] text-white shadow-[0_18px_36px_-28px_rgba(179,66,66,0.6)]"
+                                        : "bg-slate-950 text-white shadow-[0_18px_36px_-28px_rgba(15,23,42,0.7)]"
+                                    : "text-slate-600 hover:bg-white hover:text-slate-950",
+                            )}
+                            aria-current={activeTab === tab.key ? "page" : undefined}
                         >
-                            {tab.label}
+                            <span
+                                className={cn(
+                                    "flex h-9 w-9 shrink-0 items-center justify-center rounded-full border",
+                                    activeTab === tab.key ? "border-white/15 bg-white/10 text-white" : "border-black/5 bg-slate-50 text-primary",
+                                )}
+                            >
+                                <tab.icon className="h-4 w-4" aria-hidden="true" />
+                            </span>
+                            <span className="min-w-0">
+                                <span className="block text-sm font-semibold">{tab.label}</span>
+                                <span className={cn("hidden truncate text-xs leading-5 lg:block", activeTab === tab.key ? "text-white/62" : "text-slate-500")}>
+                                    {tab.description}
+                                </span>
+                            </span>
                         </button>
                     ))}
-                </div>
-            </div>
+                    </nav>
+                </aside>
+
+                <div className="min-w-0">
 
             {activeTab === "general" && (
                 <section className="space-y-6">
                     <div className="grid gap-6 xl:grid-cols-[380px_minmax(0,1fr)]">
-                        <div className="rounded-[32px] border border-black/5 bg-white p-8 shadow-sm">
-                            <p className="text-[12px] font-medium uppercase tracking-wide text-slate-400">Workspace Identity</p>
-                            <h2 className="mt-2 text-[20px] font-semibold tracking-tight text-slate-900">Logo & presentation</h2>
-                            <p className="mt-1.5 text-[14px] text-slate-500">
-                                Keep your team instantly recognizable in navigation, settings, and future collaboration surfaces.
-                            </p>
-
-                            <div className="mt-8 flex items-start gap-5">
+                    <SettingsSection
+                        eyebrow="Workspace Identity"
+                        title="Logo & presentation"
+                        description="Keep your team instantly recognizable in navigation, settings, and future collaboration surfaces."
+                    >
+                            <div className="flex items-start gap-5">
                                 <div className="relative flex h-[88px] w-[88px] items-center justify-center overflow-hidden rounded-[24px] border border-black/5 bg-slate-100">
                                     {team.logo_url ? (
                                         <Image
@@ -523,31 +549,27 @@ function TeamSettingsPageContent({ params }: { params: Promise<{ teamSlug: strin
                                         onChange={handleLogoUpload}
                                     />
 
-                                    <button
+                                    <Button
                                         type="button"
                                         onClick={() => fileInputRef.current?.click()}
-                                        className="inline-flex h-10 items-center justify-center gap-2 rounded-full border border-black/5 bg-slate-50 px-4 text-[13px] font-semibold text-slate-600 transition-all hover:bg-slate-100 hover:text-slate-900 shadow-sm"
+                                        variant="secondary"
+                                        size="sm"
                                     >
                                         <Upload className="h-4 w-4" aria-hidden="true" />
                                         {uploadLogoMutation.isPending ? "Uploading…" : "Upload New Logo"}
-                                    </button>
+                                    </Button>
                                 </div>
                             </div>
-                        </div>
+                    </SettingsSection>
 
-                        <div className="rounded-[32px] border border-black/5 bg-white p-8 shadow-sm">
-                            <p className="text-[12px] font-medium uppercase tracking-wide text-slate-400">General Settings</p>
-                            <h2 className="mt-2 text-[20px] font-semibold tracking-tight text-slate-900">Workspace details</h2>
-                            <p className="mt-1.5 text-[14px] text-slate-500">
-                                Update the team name and description used across the workspace experience.
-                            </p>
-
-                            <form onSubmit={handleUpdate} className="mt-8 space-y-5">
-                                <div className="space-y-2.5">
-                                    <label htmlFor="team-name" className="text-[13px] font-bold uppercase tracking-wide text-slate-400">
-                                        Team Name
-                                    </label>
-                                    <input
+                        <SettingsSection
+                            eyebrow="General Settings"
+                            title="Workspace details"
+                            description="Update the team name and description used across the workspace experience."
+                        >
+                            <form onSubmit={handleUpdate} className="space-y-5">
+                                <SettingsField label="Team Name">
+                                    <Input
                                         id="team-name"
                                         name="team_name"
                                         type="text"
@@ -556,14 +578,10 @@ function TeamSettingsPageContent({ params }: { params: Promise<{ teamSlug: strin
                                         value={name}
                                         onChange={(event) => setName(event.target.value)}
                                         placeholder="Enter the team name…"
-                                        className="w-full rounded-2xl border-none bg-slate-50 px-4 py-3.5 text-[14px] font-medium text-slate-900 transition-all focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-200 placeholder:text-slate-400"
                                     />
-                                </div>
+                                </SettingsField>
 
-                                <div className="space-y-2.5">
-                                    <label htmlFor="team-description" className="text-[13px] font-bold uppercase tracking-wide text-slate-400">
-                                        Description
-                                    </label>
+                                <SettingsField label="Description">
                                     <textarea
                                         id="team-description"
                                         name="team_description"
@@ -572,9 +590,9 @@ function TeamSettingsPageContent({ params }: { params: Promise<{ teamSlug: strin
                                         onChange={(event) => setDescription(event.target.value)}
                                         rows={4}
                                         placeholder="Describe what this workspace is used for…"
-                                        className="w-full rounded-2xl border-none bg-slate-50 px-4 py-3.5 text-[14px] font-medium text-slate-900 transition-all focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-200 placeholder:text-slate-400"
+                                        className="w-full resize-none rounded-[1.15rem] border border-black/6 bg-white/75 px-4 py-3 text-[15px] text-slate-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.75)] backdrop-blur-xl transition-[border-color,box-shadow,background-color] placeholder:text-slate-400 focus-visible:border-slate-300 focus-visible:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20"
                                     />
-                                </div>
+                                </SettingsField>
 
                                 <div aria-live="polite" className="min-h-6">
                                     {successMessage && (
@@ -589,29 +607,26 @@ function TeamSettingsPageContent({ params }: { params: Promise<{ teamSlug: strin
                                     <p className="text-[13px] text-slate-500">
                                         Changes stay local until you save them.
                                     </p>
-                                    <button
+                                    <Button
                                         type="submit"
                                         disabled={updateTeamMutation.isPending || !isDirty}
-                                        className="inline-flex items-center gap-2 rounded-full bg-slate-900 px-5 py-2.5 text-[14px] font-semibold text-white shadow-sm transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50"
                                     >
                                         <Save className="h-4 w-4" aria-hidden="true" />
                                         {updateTeamMutation.isPending ? "Saving…" : "Save Team Settings"}
-                                    </button>
+                                    </Button>
                                 </div>
                             </form>
-                        </div>
+                        </SettingsSection>
                     </div>
 
                     {canManageMessengerPolicy ? (
-                    <div className="rounded-[32px] border border-black/5 bg-white p-8 shadow-sm">
-                        <p className="text-[12px] font-medium uppercase tracking-wide text-slate-400">Messenger Policy</p>
-                        <h2 className="mt-2 text-[20px] font-semibold tracking-tight text-slate-900">Team Messenger Alerts</h2>
-                        <p className="mt-1.5 text-[14px] text-slate-500">
-                            Atur ringkasan alert terjadwal untuk workspace ini. Section ini mengontrol inactivity summary untuk admin/owner, project risk summary untuk owner/admin, dan apakah alert terjadwal boleh terkirim saat weekend.
-                        </p>
-
+                    <SettingsSection
+                        eyebrow="Messenger Policy"
+                        title="Team Messenger Alerts"
+                        description="Atur ringkasan alert terjadwal untuk workspace ini, termasuk inactivity summary, project risk summary, dan weekend delivery."
+                    >
                         <form
-                            className="mt-6 space-y-4"
+                            className="space-y-4"
                             onSubmit={async (event) => {
                                 event.preventDefault();
                                 await updateMessengerPolicyMutation.mutateAsync({
@@ -627,28 +642,26 @@ function TeamSettingsPageContent({ params }: { params: Promise<{ teamSlug: strin
                             }}
                         >
                             <div className="grid gap-3 md:grid-cols-3">
-                                <label className="space-y-2 text-sm">
-                                    <span className="font-semibold text-slate-700">Frequency</span>
+                                <SettingsField label="Frequency">
                                     <div className="relative">
                                         <select
                                             value={messengerScheduleFrequency}
                                             onChange={(event) => setMessengerScheduleFrequency(event.target.value as "DAILY" | "WEEKLY")}
-                                            className="w-full appearance-none rounded-full border-none bg-slate-50 px-4 py-2.5 pr-10 text-[14px] font-medium text-slate-900 transition-all focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-200"
+                                            className={selectClassName}
                                         >
                                             <option value="DAILY">Daily</option>
                                             <option value="WEEKLY">Weekly</option>
                                         </select>
                                         <ChevronRight className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 rotate-90 text-slate-400" />
                                     </div>
-                                </label>
+                                </SettingsField>
                                 {messengerScheduleFrequency === "WEEKLY" ? (
-                                    <label className="space-y-2 text-sm">
-                                        <span className="font-semibold text-slate-700">Weekday</span>
+                                    <SettingsField label="Weekday">
                                         <div className="relative">
                                             <select
                                                 value={messengerScheduledWeekday}
                                                 onChange={(event) => setMessengerScheduledWeekday(event.target.value as typeof messengerScheduledWeekday)}
-                                                className="w-full appearance-none rounded-full border-none bg-slate-50 px-4 py-2.5 pr-10 text-[14px] font-medium text-slate-900 transition-all focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-200"
+                                                className={selectClassName}
                                             >
                                                 {weekdayOptions.map((option) => (
                                                     <option key={option.value} value={option.value}>
@@ -658,84 +671,62 @@ function TeamSettingsPageContent({ params }: { params: Promise<{ teamSlug: strin
                                             </select>
                                             <ChevronRight className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 rotate-90 text-slate-400" />
                                         </div>
-                                    </label>
+                                    </SettingsField>
                                 ) : null}
-                                <label className="space-y-2 text-sm">
-                                    <span className="font-semibold text-slate-700">Send time</span>
-                                    <input
+                                <SettingsField label="Send time">
+                                    <Input
                                         type="time"
                                         value={messengerScheduledTimeLocal}
                                         onChange={(event) => setMessengerScheduledTimeLocal(event.target.value)}
-                                        className="w-full rounded-full border-none bg-slate-50 px-4 py-2.5 text-[14px] font-medium text-slate-900 transition-all focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-200"
                                     />
-                                </label>
+                                </SettingsField>
                             </div>
 
-                            <label className="block space-y-2 text-sm">
-                                <span className="font-semibold text-slate-700">Timezone</span>
-                                <input
+                            <SettingsField label="Timezone">
+                                <Input
                                     type="text"
                                     value={messengerTimezone}
                                     onChange={(event) => setMessengerTimezone(event.target.value)}
-                                    className="w-full rounded-full border-none bg-slate-50 px-4 py-2.5 text-[14px] font-medium text-slate-900 transition-all focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-200"
                                     placeholder="Asia/Jakarta"
                                 />
-                            </label>
+                            </SettingsField>
 
-                            <label className="flex items-center justify-between rounded-xl border border-black/5 bg-slate-50 px-5 py-4 text-[14px] font-medium text-slate-700">
+                            <label className="flex items-center justify-between gap-4 rounded-xl border border-black/5 bg-slate-50 px-5 py-4 text-[14px] font-medium text-slate-700">
                                 <span>Weekend notifications aktif</span>
-                                <input
-                                    type="checkbox"
-                                    checked={messengerWeekendEnabled}
-                                    onChange={(event) => setMessengerWeekendEnabled(event.target.checked)}
-                                    className="h-5 w-5 rounded border-gray-300 text-slate-900 focus:ring-slate-900"
-                                />
+                                <ToggleSwitch checked={messengerWeekendEnabled} onClick={() => setMessengerWeekendEnabled((current) => !current)} />
                             </label>
-                            <label className="flex items-center justify-between rounded-xl border border-black/5 bg-slate-50 px-5 py-4 text-[14px] font-medium text-slate-700">
+                            <label className="flex items-center justify-between gap-4 rounded-xl border border-black/5 bg-slate-50 px-5 py-4 text-[14px] font-medium text-slate-700">
                                 <span>Inactivity alert untuk admin/owner</span>
-                                <input
-                                    type="checkbox"
-                                    checked={messengerInactivityAlertEnabled}
-                                    onChange={(event) => setMessengerInactivityAlertEnabled(event.target.checked)}
-                                    className="h-5 w-5 rounded border-gray-300 text-slate-900 focus:ring-slate-900"
-                                />
+                                <ToggleSwitch checked={messengerInactivityAlertEnabled} onClick={() => setMessengerInactivityAlertEnabled((current) => !current)} />
                             </label>
-                            <label className="flex items-center justify-between rounded-xl border border-black/5 bg-slate-50 px-5 py-4 text-[14px] font-medium text-slate-700">
+                            <label className="flex items-center justify-between gap-4 rounded-xl border border-black/5 bg-slate-50 px-5 py-4 text-[14px] font-medium text-slate-700">
                                 <span>Project risk alert untuk owner</span>
-                                <input
-                                    type="checkbox"
-                                    checked={messengerProjectRiskEnabled}
-                                    onChange={(event) => setMessengerProjectRiskEnabled(event.target.checked)}
-                                    className="h-5 w-5 rounded border-gray-300 text-slate-900 focus:ring-slate-900"
-                                />
+                                <ToggleSwitch checked={messengerProjectRiskEnabled} onClick={() => setMessengerProjectRiskEnabled((current) => !current)} />
                             </label>
 
                             <div className="flex justify-end">
-                                <button
+                                <Button
                                     type="submit"
                                     disabled={updateMessengerPolicyMutation.isPending}
-                                    className="inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                                 >
                                     <Save className="h-4 w-4" aria-hidden="true" />
                                     {updateMessengerPolicyMutation.isPending ? "Saving…" : "Save Messenger Policy"}
-                                </button>
+                                </Button>
                             </div>
                         </form>
-                    </div>
+                    </SettingsSection>
                     ) : null}
                 </section>
             )}
 
             {activeTab === "billing" && (
                 <section className="grid gap-6 xl:grid-cols-[380px_minmax(0,1fr)]">
-                    <div className="rounded-[32px] border border-black/5 bg-white p-8 shadow-sm">
-                        <p className="text-[12px] font-medium uppercase tracking-wide text-slate-400">Plan Status</p>
-                        <h2 className="mt-2 text-[20px] font-semibold tracking-tight text-slate-900">Current subscription</h2>
-                        <p className="mt-1.5 text-[14px] text-slate-500">
-                            Review your current billing tier and decide whether this workspace needs more capacity.
-                        </p>
-
-                        <div className="mt-6 rounded-[24px] border border-black/5 bg-slate-50 p-6">
+                    <SettingsSection
+                        eyebrow="Plan Status"
+                        title="Current subscription"
+                        description="Review your current billing tier and decide whether this workspace needs more capacity."
+                    >
+                        <div className="rounded-[1.35rem] border border-black/5 bg-slate-50/80 p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.75)]">
                             <div className="flex items-start justify-between gap-4">
                                 <div>
                                     <div className="flex items-center gap-2">
@@ -761,7 +752,7 @@ function TeamSettingsPageContent({ params }: { params: Promise<{ teamSlug: strin
                             </div>
                         </div>
 
-                        <button
+                        <Button
                             type="button"
                             onClick={() => {
                                 if (currentPlanIsActive) {
@@ -771,7 +762,7 @@ function TeamSettingsPageContent({ params }: { params: Promise<{ teamSlug: strin
                                 setShowPlanDialog(true);
                             }}
                             disabled={billingLoading}
-                            className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-full bg-slate-900 px-5 py-3 text-[14px] font-semibold text-white transition-all hover:bg-slate-800 hover:scale-[1.02] active:scale-[0.98] shadow-sm disabled:opacity-50"
+                            className="mt-6 w-full"
                         >
                             <CreditCard className="h-[18px] w-[18px]" aria-hidden="true" />
                             {billingLoading
@@ -779,21 +770,17 @@ function TeamSettingsPageContent({ params }: { params: Promise<{ teamSlug: strin
                                 : currentPlanIsActive
                                     ? "Cancel Subscription"
                                     : "Upgrade Plan"}
-                        </button>
-                    </div>
+                        </Button>
+                    </SettingsSection>
 
-                    <div className="rounded-[32px] border border-black/5 bg-white p-8 shadow-sm">
-                        <p className="text-[12px] font-medium uppercase tracking-wide text-slate-400">Usage Overview</p>
-                        <h2 className="mt-2 flex items-center gap-2 text-[20px] font-semibold tracking-tight text-slate-900">
-                            <BarChart3 className="h-5 w-5 text-slate-400" aria-hidden="true" />
-                            Workspace usage
-                        </h2>
-                        <p className="mt-1.5 text-[14px] text-slate-500">
-                            Track how close this team is to its current limits.
-                        </p>
-
+                    <SettingsSection
+                        eyebrow="Usage Overview"
+                        title="Workspace usage"
+                        description="Track how close this team is to its current limits."
+                        action={<BarChart3 className="h-5 w-5 text-slate-400" aria-hidden="true" />}
+                    >
                         {usageMetrics ? (
-                            <div className="mt-8 space-y-6">
+                            <div className="space-y-6">
                                 {usageMetrics.map((metric) => (
                                     <UsageMeter
                                         key={metric.label}
@@ -813,7 +800,7 @@ function TeamSettingsPageContent({ params }: { params: Promise<{ teamSlug: strin
                                 </p>
                             </div>
                         )}
-                    </div>
+                    </SettingsSection>
                 </section>
             )}
 
@@ -836,16 +823,16 @@ function TeamSettingsPageContent({ params }: { params: Promise<{ teamSlug: strin
 
             {activeTab === "danger" && (
                 <section className="space-y-6">
-                    <div className="rounded-[32px] border border-red-200 bg-red-50 p-8 shadow-sm">
-                        <p className="text-[12px] font-medium uppercase tracking-wide text-red-500">Danger Zone</p>
-                        <h2 className="mt-2 text-[20px] font-semibold tracking-tight text-red-700">High-impact team actions</h2>
-                        <p className="mt-1.5 max-w-2xl text-[14px] leading-relaxed text-red-600/90">
+                    <div className="rounded-[2rem] border border-[var(--danger-border)] bg-[var(--danger-bg)] p-6 text-[var(--danger-fg)] shadow-[0_24px_70px_-40px_rgba(179,66,66,0.18)] sm:p-8">
+                        <p className="text-[11px] font-semibold uppercase tracking-[0.22em]">Danger Zone</p>
+                        <h2 className="mt-2 text-[22px] font-semibold tracking-tight text-slate-950">High-impact team actions</h2>
+                        <p className="mt-1.5 max-w-2xl text-sm leading-6">
                             These actions affect access, ownership, or the existence of the workspace itself. Use them carefully and only when you are certain.
                         </p>
                     </div>
 
                     <div className="grid gap-6 lg:grid-cols-3">
-                        <div className="rounded-[32px] border border-black/5 bg-white p-8 shadow-sm">
+                        <div className="rounded-[2rem] border border-white/70 bg-white/82 p-6 shadow-[0_24px_70px_-40px_rgba(15,23,42,0.25)] backdrop-blur-2xl sm:p-8">
                             <div className="mb-4 flex items-center gap-2 text-red-600">
                                 <LogOut className="h-5 w-5" aria-hidden="true" />
                                 <h3 className="text-[18px] font-semibold tracking-tight">Leave Team</h3>
@@ -853,16 +840,17 @@ function TeamSettingsPageContent({ params }: { params: Promise<{ teamSlug: strin
                             <p className="text-[14px] leading-relaxed text-slate-500">
                                 Remove your own access to this workspace. You will need a new invite to return.
                             </p>
-                            <button
+                            <Button
                                 type="button"
                                 onClick={() => setShowLeaveModal(true)}
-                                className="mt-6 inline-flex items-center justify-center gap-2 rounded-full border border-red-200 px-5 py-2.5 text-[14px] font-semibold text-red-600 transition-all hover:bg-red-50 hover:scale-[1.02] active:scale-[0.98] shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-300"
+                                variant="outline"
+                                className="mt-6 border-red-200 text-red-600 hover:bg-red-50"
                             >
                                 Leave Team
-                            </button>
+                            </Button>
                         </div>
 
-                        <div className="rounded-[32px] border border-black/5 bg-white p-8 shadow-sm">
+                        <div className="rounded-[2rem] border border-white/70 bg-white/82 p-6 shadow-[0_24px_70px_-40px_rgba(15,23,42,0.25)] backdrop-blur-2xl sm:p-8">
                             <div className="mb-4 flex items-center gap-2 text-red-600">
                                 <ArrowRightLeft className="h-5 w-5" aria-hidden="true" />
                                 <h3 className="text-[18px] font-semibold tracking-tight">Transfer Ownership</h3>
@@ -870,17 +858,18 @@ function TeamSettingsPageContent({ params }: { params: Promise<{ teamSlug: strin
                             <p className="text-[14px] leading-relaxed text-slate-500">
                                 Move workspace ownership to another member, then continue as a regular member.
                             </p>
-                            <button
+                            <Button
                                 type="button"
                                 onClick={() => setShowTransferModal(true)}
                                 disabled={!isOwner}
-                                className="mt-6 inline-flex items-center justify-center gap-2 rounded-full border border-red-200 px-5 py-2.5 text-[14px] font-semibold text-red-600 transition-all hover:bg-red-50 hover:scale-[1.02] active:scale-[0.98] shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-300 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
+                                variant="outline"
+                                className="mt-6 border-red-200 text-red-600 hover:bg-red-50"
                             >
                                 Transfer Ownership
-                            </button>
+                            </Button>
                         </div>
 
-                        <div className="rounded-[32px] border border-black/5 bg-white p-8 shadow-sm">
+                        <div className="rounded-[2rem] border border-white/70 bg-white/82 p-6 shadow-[0_24px_70px_-40px_rgba(15,23,42,0.25)] backdrop-blur-2xl sm:p-8">
                             <div className="mb-4 flex items-center gap-2 text-red-600">
                                 <Trash2 className="h-5 w-5" aria-hidden="true" />
                                 <h3 className="text-[18px] font-semibold tracking-tight">Delete Team</h3>
@@ -888,17 +877,21 @@ function TeamSettingsPageContent({ params }: { params: Promise<{ teamSlug: strin
                             <p className="text-[14px] leading-relaxed text-slate-500">
                                 Permanently remove this workspace and all of its projects, tasks, comments, and files.
                             </p>
-                            <button
+                            <Button
                                 type="button"
                                 onClick={() => setShowDeleteModal(true)}
-                                className="mt-6 inline-flex items-center justify-center gap-2 rounded-full bg-red-600 px-5 py-2.5 text-[14px] font-semibold text-white transition-all hover:bg-red-700 hover:scale-[1.02] active:scale-[0.98] shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-300"
+                                variant="danger"
+                                className="mt-6"
                             >
                                 Delete Team
-                            </button>
+                            </Button>
                         </div>
                     </div>
                 </section>
             )}
+
+                </div>
+            </div>
 
             <ConfirmationDialog
                 isOpen={showLeaveModal}
