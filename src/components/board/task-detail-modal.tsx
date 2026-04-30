@@ -19,8 +19,8 @@ import {
     Check,
     CheckSquare,
     ChevronDown,
-    Download,
     Edit2,
+    Eye,
     ExternalLink,
     File,
     FileCode,
@@ -268,6 +268,7 @@ export function TaskDetailModal({ task, projectColumns: initialProjectColumns, o
     const [attachments, setAttachments] = useState<string[]>(task.attachments || []);
     const [isUploading, setIsUploading] = useState(false);
     const [showAllAttachments, setShowAllAttachments] = useState(false);
+    const [activePdfPreview, setActivePdfPreview] = useState<{ url: string; name: string } | null>(null);
 
     useEffect(() => {
         setTaskState(task);
@@ -282,6 +283,7 @@ export function TaskDetailModal({ task, projectColumns: initialProjectColumns, o
         setChecklists(task.checklists || []);
         setLabels(task.labels || []);
         setAttachments(task.attachments || []);
+        setActivePdfPreview(null);
         setIsEditingTitle(false);
         setIsEditingDesc(false);
         setIsAssigning(false);
@@ -661,7 +663,8 @@ export function TaskDetailModal({ task, projectColumns: initialProjectColumns, o
 
     const getFileName = (url: string) => {
         try {
-            const urlParts = url.split("/");
+            const path = new URL(url, window.location.origin).pathname;
+            const urlParts = path.split("/");
             const fullFileName = urlParts[urlParts.length - 1] || "attachment";
             const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}-(.+)$/i;
             const match = fullFileName.match(uuidRegex);
@@ -678,13 +681,30 @@ export function TaskDetailModal({ task, projectColumns: initialProjectColumns, o
         }
     };
 
+    const getAttachmentPath = (url: string) => {
+        try {
+            return new URL(url, window.location.origin).pathname.toLowerCase();
+        } catch {
+            return url.split("?")[0].split("#")[0].toLowerCase();
+        }
+    };
+
     const isImageFile = (url: string) => {
         const imageExtensions = [".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp", ".svg"];
-        return imageExtensions.some((extension) => url.toLowerCase().endsWith(extension));
+        const path = getAttachmentPath(url);
+        return imageExtensions.some((extension) => path.endsWith(extension));
+    };
+
+    const isPdfFile = (url: string) => {
+        return getAttachmentPath(url).endsWith(".pdf");
+    };
+
+    const getPdfPreviewUrl = (url: string) => {
+        return `${url.split("#")[0]}#toolbar=1&navpanes=0&view=FitH`;
     };
 
     const getFileIcon = (url: string) => {
-        const fileName = url.toLowerCase();
+        const fileName = getAttachmentPath(url);
 
         if (fileName.endsWith(".pdf")) {
             return { icon: File, color: "border border-[var(--danger-border)] bg-[var(--danger-bg)] text-[var(--danger-fg)]" };
@@ -914,54 +934,56 @@ export function TaskDetailModal({ task, projectColumns: initialProjectColumns, o
                         <div className="flex items-start justify-between gap-4">
                             <div className="min-w-0 flex-1 space-y-2 md:space-y-3">
                                 <div className="flex flex-wrap items-center gap-2">
-                                    <span className={cn("rounded-full px-3 py-1 text-xs font-medium tracking-normal", status.className)}>
-                                        {status.label}
-                                    </span>
-                                    <span className={cn("rounded-full px-3 py-1 text-xs font-medium tracking-normal", priority.badgeClassName)}>
-                                        {priority.label}
-                                    </span>
-                                    {taskState.due_date && (
-                                        <span className={cn("rounded-full px-3 py-1 text-xs font-medium tracking-normal", dueDateTone.className)}>
-                                            {dueDateTone.label || `Due ${formatTaskDate(taskState.due_date)}`}
+                                    <div className="flex flex-wrap items-center gap-2">
+                                        <span className={cn("rounded-full px-3 py-1 text-xs font-medium tracking-normal", status.className)}>
+                                            {status.label}
                                         </span>
-                                    )}
-                                </div>
+                                        <span className={cn("rounded-full px-3 py-1 text-xs font-medium tracking-normal", priority.badgeClassName)}>
+                                            {priority.label}
+                                        </span>
+                                        {taskState.due_date && (
+                                            <span className={cn("rounded-full px-3 py-1 text-xs font-medium tracking-normal", dueDateTone.className)}>
+                                                {dueDateTone.label || `Due ${formatTaskDate(taskState.due_date)}`}
+                                            </span>
+                                        )}
+                                    </div>
 
-                                <div className="flex flex-wrap items-center gap-2">
-                                    <button
-                                        type="button"
-                                        onClick={handleMarkAsDone}
-                                        disabled={isMarkingDone || isProjectColumnsLoading || isTaskDone || !doneColumn}
-                                        className={cn(
-                                            "inline-flex touch-manipulation items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-4",
-                                            isTaskDone
-                                                ? "border border-emerald-200 bg-emerald-50 text-emerald-700 focus-visible:ring-emerald-100"
-                                                : "bg-slate-950 text-white hover:bg-slate-800 focus-visible:ring-slate-300",
-                                            (isMarkingDone || isProjectColumnsLoading || (!doneColumn && !isTaskDone)) && "cursor-not-allowed opacity-60"
-                                        )}
-                                    >
-                                        {isMarkingDone ? (
-                                            <>
-                                                <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
-                                                Moving to Done...
-                                            </>
-                                        ) : isProjectColumnsLoading ? (
-                                            <>
-                                                <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
-                                                Checking...
-                                            </>
-                                        ) : (
-                                            <>
-                                                <Check className="h-4 w-4" aria-hidden="true" />
-                                                {isTaskDone ? "Done" : "Mark as Done"}
-                                            </>
-                                        )}
-                                    </button>
-                                    {canShowMissingDoneColumnMessage ? (
-                                        <span className="text-xs text-slate-500">
-                                            Tambahkan kolom bertipe done untuk memakai aksi ini.
-                                        </span>
-                                    ) : null}
+                                    <div className="flex flex-wrap items-center gap-2">
+                                        <button
+                                            type="button"
+                                            onClick={handleMarkAsDone}
+                                            disabled={isMarkingDone || isProjectColumnsLoading || isTaskDone || !doneColumn}
+                                            className={cn(
+                                                "inline-flex touch-manipulation items-center gap-2 rounded-full px-4 py-1.5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-4",
+                                                isTaskDone
+                                                    ? "border border-emerald-200 bg-emerald-50 text-emerald-700 focus-visible:ring-emerald-100"
+                                                    : "bg-primary text-primary-foreground hover:opacity-95 focus-visible:ring-primary/15",
+                                                (isMarkingDone || isProjectColumnsLoading || (!doneColumn && !isTaskDone)) && "cursor-not-allowed opacity-60"
+                                            )}
+                                        >
+                                            {isMarkingDone ? (
+                                                <>
+                                                    <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+                                                    Moving to Done...
+                                                </>
+                                            ) : isProjectColumnsLoading ? (
+                                                <>
+                                                    <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+                                                    Checking...
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <Check className="h-4 w-4" aria-hidden="true" />
+                                                    {isTaskDone ? "Done" : "Mark as Done"}
+                                                </>
+                                            )}
+                                        </button>
+                                        {canShowMissingDoneColumnMessage ? (
+                                            <span className="text-xs text-slate-500">
+                                                Tambahkan kolom bertipe done untuk memakai aksi ini.
+                                            </span>
+                                        ) : null}
+                                    </div>
                                 </div>
 
                                 {doneActionError ? (
@@ -1089,7 +1111,7 @@ export function TaskDetailModal({ task, projectColumns: initialProjectColumns, o
                                                 <button
                                                     type="button"
                                                     onClick={handleDescSave}
-                                                    className="touch-manipulation rounded-full bg-slate-950 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-slate-300"
+                                                    className="touch-manipulation rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-95 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15"
                                                 >
                                                     Save Description
                                                 </button>
@@ -1174,7 +1196,7 @@ export function TaskDetailModal({ task, projectColumns: initialProjectColumns, o
                                                     <button
                                                         type="submit"
                                                         disabled={!newChecklistTitle.trim()}
-                                                        className="touch-manipulation rounded-full bg-slate-950 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-slate-300"
+                                                        className="touch-manipulation rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15"
                                                     >
                                                         Create
                                                     </button>
@@ -1200,7 +1222,7 @@ export function TaskDetailModal({ task, projectColumns: initialProjectColumns, o
                                                 type="button"
                                                 onClick={() => fileInputRef.current?.click()}
                                                 disabled={isUploading}
-                                                className="touch-manipulation inline-flex items-center gap-2 rounded-full bg-slate-950 px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-slate-300"
+                                                className="touch-manipulation inline-flex items-center gap-2 rounded-full bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground transition-opacity hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15"
                                             >
                                                 {isUploading ? (
                                                     <>
@@ -1230,6 +1252,7 @@ export function TaskDetailModal({ task, projectColumns: initialProjectColumns, o
                                         <div className="space-y-3">
                                             {visibleAttachments.map((url, index) => {
                                                 const isImage = isImageFile(url);
+                                                const isPdf = isPdfFile(url);
                                                 const fileInfo = getFileIcon(url);
                                                 const FileIcon = fileInfo.icon;
                                                 const fileName = getFileName(url);
@@ -1263,14 +1286,24 @@ export function TaskDetailModal({ task, projectColumns: initialProjectColumns, o
                                                         </div>
 
                                                         <div className="flex items-center gap-1.5">
+                                                            {isPdf ? (
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => setActivePdfPreview({ url, name: fileName })}
+                                                                    aria-label={`Preview ${fileName}`}
+                                                                    className="touch-manipulation rounded-full p-2 text-slate-500 transition-colors hover:bg-primary/10 hover:text-primary focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15"
+                                                                >
+                                                                    <Eye className="h-4 w-4" aria-hidden="true" />
+                                                                </button>
+                                                            ) : null}
                                                             <a
                                                                 href={url}
                                                                 target="_blank"
                                                                 rel="noopener noreferrer"
-                                                                aria-label={`Download ${fileName}`}
+                                                                aria-label={`Open ${fileName} in a new tab`}
                                                                 className="touch-manipulation rounded-full p-2 text-slate-500 transition-colors hover:bg-slate-100 hover:text-primary focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15"
                                                             >
-                                                                <Download className="h-4 w-4" aria-hidden="true" />
+                                                                <ExternalLink className="h-4 w-4" aria-hidden="true" />
                                                             </a>
                                                             <button
                                                                 type="button"
@@ -1393,7 +1426,7 @@ export function TaskDetailModal({ task, projectColumns: initialProjectColumns, o
                                                             type="submit"
                                                             disabled={!comment.trim()}
                                                             aria-label="Send comment"
-                                                            className="touch-manipulation self-end rounded-[1rem] bg-slate-950 p-2.5 text-white transition-colors hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-slate-300"
+                                                            className="touch-manipulation self-end rounded-[1rem] bg-primary p-2.5 text-primary-foreground transition-opacity hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15"
                                                         >
                                                             <Send className="h-4 w-4" aria-hidden="true" />
                                                         </button>
@@ -1727,7 +1760,7 @@ export function TaskDetailModal({ task, projectColumns: initialProjectColumns, o
                                     type="submit"
                                     disabled={!comment.trim()}
                                     aria-label="Send comment"
-                                    className="touch-manipulation rounded-2xl bg-slate-950 p-3 text-white transition-colors hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-slate-300"
+                                    className="touch-manipulation rounded-2xl bg-primary p-3 text-primary-foreground transition-opacity hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15"
                                 >
                                     <Send className="h-4 w-4" aria-hidden="true" />
                                 </button>
@@ -1779,6 +1812,52 @@ export function TaskDetailModal({ task, projectColumns: initialProjectColumns, o
                     onConfirm={confirmDelete}
                     onCancel={() => setShowDeleteDialog(false)}
                 />
+
+                {activePdfPreview ? (
+                    <div
+                        className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-950/56 p-3 backdrop-blur-md md:p-6"
+                        onClick={(event) => {
+                            event.stopPropagation();
+                            setActivePdfPreview(null);
+                        }}
+                    >
+                        <div
+                            className="flex h-[88dvh] w-full max-w-5xl flex-col overflow-hidden rounded-[1.5rem] border border-white/70 bg-white shadow-[0_34px_100px_-42px_rgba(15,23,42,0.86)] md:h-[86vh] md:rounded-[2rem]"
+                            onClick={(event) => event.stopPropagation()}
+                        >
+                            <div className="flex items-center justify-between gap-3 border-b border-slate-200/80 bg-white/92 px-4 py-3 backdrop-blur-xl md:px-5">
+                                <div className="min-w-0">
+                                    <p className="truncate text-sm font-semibold text-slate-950">{activePdfPreview.name}</p>
+                                    <p className="text-xs text-slate-500">PDF preview</p>
+                                </div>
+                                <div className="flex items-center gap-1.5">
+                                    <a
+                                        href={activePdfPreview.url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="touch-manipulation rounded-full p-2 text-slate-500 transition-colors hover:bg-slate-100 hover:text-primary focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15"
+                                        aria-label={`Open ${activePdfPreview.name} in a new tab`}
+                                    >
+                                        <ExternalLink className="h-4 w-4" aria-hidden="true" />
+                                    </a>
+                                    <button
+                                        type="button"
+                                        onClick={() => setActivePdfPreview(null)}
+                                        className="touch-manipulation rounded-full p-2 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-950 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15"
+                                        aria-label="Close PDF preview"
+                                    >
+                                        <X className="h-4 w-4" aria-hidden="true" />
+                                    </button>
+                                </div>
+                            </div>
+                            <iframe
+                                src={getPdfPreviewUrl(activePdfPreview.url)}
+                                title={`Preview ${activePdfPreview.name}`}
+                                className="min-h-0 flex-1 bg-slate-100"
+                            />
+                        </div>
+                    </div>
+                ) : null}
             </div>
         </div>
     );

@@ -73,7 +73,7 @@ export default function AdminPaymentsPage() {
                             }}
                             className={`rounded-full px-4 py-2 text-xs font-semibold transition ${
                                 paymentFilter === status
-                                    ? "bg-[#d3a574] text-[#111827]"
+                                    ? "bg-[#b8adff] text-[#111827]"
                                     : "border border-white/10 bg-white/[0.03] text-slate-300 hover:bg-white/[0.06]"
                             }`}
                         >

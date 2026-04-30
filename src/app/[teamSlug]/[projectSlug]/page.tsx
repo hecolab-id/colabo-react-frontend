@@ -4,8 +4,6 @@ import { lazy, Suspense, use, useEffect, useMemo, useRef, useState } from "react
 import { useQueryClient } from "@tanstack/react-query";
 import type { CreateTaskFormValues } from "@/components/modals/create-task-modal";
 import { ManageProjectMembersModal } from "@/components/modals/manage-project-members-modal";
-import { ChevronRight } from "lucide-react";
-import Link from "@/components/app-link";
 import { useRouter, useSearchParams } from "@/lib/navigation";
 import { Column, Project, Task, TaskStatus } from "@/lib/types";
 import { DueDateFilter, TaskSortOption, getTaskColumnId, matchesDueDateFilter, sortTasks } from "@/lib/task-ui";
@@ -338,15 +336,6 @@ function ProjectSlugPageContent({ params }: { params: Promise<{ teamSlug: string
 
     return (
         <div className="flex h-full flex-col overflow-x-hidden">
-            {/* Breadcrumb */}
-            <div className="mb-4 hidden min-w-0 flex-wrap items-center gap-1.5 text-xs text-muted-foreground md:flex md:gap-2 md:text-sm">
-                <Link href="/dashboard" className="rounded-sm px-1 py-0.5 transition-colors hover:text-foreground">Dashboard</Link>
-                <ChevronRight className="h-3.5 w-3.5 shrink-0 md:h-4 md:w-4" />
-                <Link href={`/dashboard`} className="rounded-sm px-1 py-0.5 transition-colors hover:text-foreground">{teamSlug}</Link>
-                <ChevronRight className="h-3.5 w-3.5 shrink-0 md:h-4 md:w-4" />
-                <span className="min-w-0 truncate font-medium text-foreground">{project.name}</span>
-            </div>
-
             {/* Toolbar */}
             <div className="mb-4 flex flex-col gap-3 md:mb-6 md:flex-row md:items-center md:justify-between">
                 <ProjectViewModeSwitcher viewMode={viewMode} onChange={setViewMode} />

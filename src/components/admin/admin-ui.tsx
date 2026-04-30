@@ -40,7 +40,7 @@ export function HeroStat({
     tone: "revenue" | "neutral" | "alert" | "calm";
 }) {
     const toneMap = {
-        revenue: "border-[#d3a574]/18 bg-[linear-gradient(180deg,rgba(211,165,116,0.18),rgba(255,255,255,0.82))]",
+        revenue: "border-[#b8adff]/18 bg-[linear-gradient(180deg,rgba(184,173,255,0.18),rgba(255,255,255,0.82))]",
         neutral: "border-white/75 bg-white/72",
         alert: "border-[#d56f6f]/18 bg-[linear-gradient(180deg,rgba(213,111,111,0.16),rgba(255,255,255,0.84))]",
         calm: "border-[#6eb6c7]/18 bg-[linear-gradient(180deg,rgba(110,182,199,0.16),rgba(255,255,255,0.84))]",
@@ -67,7 +67,7 @@ export function SummaryCard({
     tone: "revenue" | "cool" | "neutral" | "calm";
 }) {
     const toneMap = {
-        revenue: "border-[#d3a574]/18 bg-[linear-gradient(180deg,rgba(211,165,116,0.14),rgba(255,255,255,0.88))]",
+        revenue: "border-[#b8adff]/18 bg-[linear-gradient(180deg,rgba(184,173,255,0.14),rgba(255,255,255,0.88))]",
         cool: "border-[#6eb6c7]/18 bg-[linear-gradient(180deg,rgba(110,182,199,0.14),rgba(255,255,255,0.88))]",
         neutral: "border-white/75 bg-[linear-gradient(180deg,rgba(255,255,255,0.88),rgba(248,250,252,0.94))]",
         calm: "border-[#7db8a7]/18 bg-[linear-gradient(180deg,rgba(125,184,167,0.14),rgba(255,255,255,0.88))]",
@@ -92,7 +92,7 @@ export function StatusPill({
     const tones = {
         calm: "border-[#7db8a7]/20 bg-[#7db8a7]/10 text-[#2f7a63]",
         alert: "border-[#d56f6f]/20 bg-[#d56f6f]/10 text-[#b34242]",
-        revenue: "border-[#d3a574]/20 bg-[#d3a574]/10 text-[#8b5a2b]",
+        revenue: "border-[#b8adff]/20 bg-[#b8adff]/10 text-[#5947d6]",
         slate: "border-white/80 bg-white/72 text-slate-700",
     };
 
@@ -306,7 +306,7 @@ export function StackedTrend({
         <div>
             <div className="overflow-hidden rounded-[24px] border border-white/8 bg-[#0d1423] p-4">
                 <svg viewBox="0 0 100 100" className="h-64 w-full overflow-visible">
-                    <path d={buildPath(primary)} fill="none" stroke="#d3a574" strokeWidth="2.6" />
+                    <path d={buildPath(primary)} fill="none" stroke="#b8adff" strokeWidth="2.6" />
                     <path d={buildPath(secondary)} fill="none" stroke="#6eb6c7" strokeWidth="2.6" />
                 </svg>
             </div>
@@ -319,7 +319,7 @@ export function StackedTrend({
             </div>
             <div className="mt-4 flex gap-4 text-xs text-slate-300">
                 <span className="flex items-center gap-2">
-                    <span className="h-2.5 w-2.5 rounded-full bg-[#d3a574]" />
+                    <span className="h-2.5 w-2.5 rounded-full bg-[#b8adff]" />
                     {primaryLabel}
                 </span>
                 <span className="flex items-center gap-2">
@@ -341,7 +341,7 @@ export function DonutSplit({ free, paid }: { free: number; paid: number }) {
             <div
                 className="grid h-48 w-48 place-items-center rounded-full"
                 style={{
-                    background: `conic-gradient(#d3a574 0 ${paidPercentage}%, #6eb6c7 ${paidPercentage}% 100%)`,
+                    background: `conic-gradient(#b8adff 0 ${paidPercentage}%, #6eb6c7 ${paidPercentage}% 100%)`,
                 }}
             >
                 <div className="grid h-[136px] w-[136px] place-items-center rounded-full bg-[#0d1423] text-center">
@@ -401,7 +401,7 @@ export function BarList({ items }: { items: { label: string; value: number }[] }
                             <span className="[font-variant-numeric:tabular-nums]">{item.value}</span>
                         </div>
                         <div className="h-3 overflow-hidden rounded-full bg-white/[0.05]">
-                            <div className="h-full rounded-full bg-gradient-to-r from-[#6eb6c7] to-[#d3a574]" style={{ width: `${(item.value / max) * 100}%` }} />
+                            <div className="h-full rounded-full bg-gradient-to-r from-[#6eb6c7] to-[#b8adff]" style={{ width: `${(item.value / max) * 100}%` }} />
                         </div>
                     </div>
                 ))

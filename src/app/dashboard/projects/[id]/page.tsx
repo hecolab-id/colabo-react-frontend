@@ -8,8 +8,7 @@ import { TaskListView } from "@/components/board/task-list-view";
 import { CreateTaskFormValues, CreateTaskModal } from "@/components/modals/create-task-modal";
 import { CreateColumnModal } from "@/components/modals/create-column-modal";
 import { EditColumnModal } from "@/components/modals/edit-column-modal";
-import { ChevronRight, Plus, Filter, ArrowUpDown, LayoutGrid, Columns, List } from "lucide-react";
-import Link from "@/components/app-link";
+import { Plus, Filter, ArrowUpDown, LayoutGrid, Columns, List } from "lucide-react";
 import { Column, Task, TaskStatus } from "@/lib/types";
 import {
     useProject,
@@ -146,15 +145,6 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
 
     return (
         <div className="h-full flex flex-col">
-            {/* Breadcrumb */}
-            <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
-                <Link href="/dashboard" className="hover:text-foreground">Dashboard</Link>
-                <ChevronRight className="w-4 h-4" />
-                <Link href="/dashboard" className="hover:text-foreground">Projects</Link>
-                <ChevronRight className="w-4 h-4" />
-                <span className="text-foreground font-medium">{project.name}</span>
-            </div>
-
             {/* Header */}
             <div className="flex items-center justify-between mb-8">
                 <div>

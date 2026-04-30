@@ -143,7 +143,7 @@ export default function AdminPlansPage() {
                             Price this plan per seat
                         </label>
                         <div className="flex flex-col gap-3 sm:flex-row">
-                            <button type="submit" className="rounded-full bg-[#d3a574] px-5 py-3 text-sm font-semibold text-[#111827] transition hover:bg-[#e0b88d]">
+                            <button type="submit" className="rounded-full bg-[#b8adff] px-5 py-3 text-sm font-semibold text-[#111827] transition hover:bg-[#c8c1ff]">
                                 {editingPlanId ? "Update plan" : "Create plan"}
                             </button>
                             {editingPlanId && (

@@ -7,16 +7,15 @@ import { BrainSidebar } from "./brain-sidebar";
 import { Header } from "./header";
 import { Plus, Sparkles } from "lucide-react";
 import { MobileBottomNav, MobileNavSheet } from "./mobile-nav";
-import { useProject, useProjectBySlugs } from "@/lib/hooks/use-project";
+import { useProject, useProjectBySlugs, useProjects } from "@/lib/hooks/use-project";
 import { AITaskGenerator } from "@/components/modals/ai-task-generator";
 import { KeyboardShortcutsModal } from "@/components/modals/keyboard-shortcuts-modal";
 import { CreateProjectModal } from "@/components/modals/create-project-modal";
 import { CreateTaskFormValues, CreateTaskModal } from "@/components/modals/create-task-modal";
 import { ManageProjectMembersModal } from "@/components/modals/manage-project-members-modal";
-import { createProject, createTask, getProjects } from "@/lib/api";
+import { createProject, createTask } from "@/lib/api";
 import { useStore } from "@/lib/store";
 import { useUsage } from "@/lib/hooks/use-billing";
-import { Project } from "@/lib/types";
 import { useQueryClient } from "@tanstack/react-query";
 
 export function DashboardShell({ children }: { children: React.ReactNode }) {
@@ -30,7 +29,6 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
     const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
     const [isProjectMembersOpen, setIsProjectMembersOpen] = useState(false);
     const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
-    const [teamProjects, setTeamProjects] = useState<Project[]>([]);
     const params = useParams();
     const router = useRouter();
     const queryClient = useQueryClient();
@@ -46,6 +44,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
     const legacyProjectId = params?.id as string | undefined;
     const { data: projectBySlug, refetch: refetchProjectBySlug } = useProjectBySlugs(teamSlug || "", projectSlug || "");
     const { data: projectById, refetch: refetchProjectById } = useProject(legacyProjectId || "");
+    const { data: teamProjects = [] } = useProjects(currentTeam?.slug || "");
     const activeProject = projectBySlug ?? projectById;
     const projectId = activeProject?.id;
     const availableGlobalAssignees = currentTeam?.members || [];
@@ -62,22 +61,6 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
         }
         await queryClient.invalidateQueries({ queryKey: ["projects", "detail"] });
     };
-
-    useEffect(() => {
-        if (!currentTeam) {
-            setTeamProjects([]);
-            return;
-        }
-
-        getProjects(currentTeam.slug)
-            .then((projects) => {
-                setTeamProjects(projects || []);
-            })
-            .catch((error) => {
-                console.error("Failed to load projects for quick create", error);
-                setTeamProjects([]);
-            });
-    }, [currentTeam]);
 
     // Global keyboard shortcut for "?"
     useEffect(() => {
@@ -105,6 +88,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
             // Generate a simple key from name
             const key = name.trim().substring(0, 3).toUpperCase();
             const newProject = await createProject(currentTeam.id, name, key, description);
+            await queryClient.invalidateQueries({ queryKey: ["projects", "list", currentTeam.slug] });
             setIsProjectModalOpen(false);
             router.push(`/${currentTeam.slug}/${newProject.slug}`);
         } catch (error) {
@@ -124,6 +108,9 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
             await createTask(projectId, title, status, columnId, undefined, undefined, assigneeId);
 
             await queryClient.invalidateQueries({ queryKey: ["projects", "detail"] });
+            if (currentTeam?.slug) {
+                await queryClient.invalidateQueries({ queryKey: ["projects", "list", currentTeam.slug] });
+            }
 
             if (activeProject?.id === projectId) {
                 router.refresh();
@@ -138,7 +125,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
     };
 
     return (
-        <div className="flex h-screen overflow-hidden bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.82),transparent_18%),radial-gradient(circle_at_top_right,rgba(47,111,237,0.08),transparent_24%),linear-gradient(180deg,#fdfefe_0%,#eef3fb_100%)]">
+        <div className="flex h-screen overflow-hidden bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.82),transparent_18%),radial-gradient(circle_at_top_right,rgba(109,93,252,0.07),transparent_24%),linear-gradient(180deg,#fdfefe_0%,#eef3fb_100%)]">
             <div className="relative z-40 hidden overflow-visible md:block">
                 <Sidebar
                     isCollapsed={isSidebarCollapsed}

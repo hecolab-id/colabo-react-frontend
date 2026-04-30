@@ -180,7 +180,7 @@ export function LabelSelector({ taskId, teamSlug, currentLabels, onUpdate, canMa
                                     type="button"
                                     onClick={() => void handleCreateLabel()}
                                     disabled={!newLabelName.trim() || isCreating}
-                                    className="inline-flex w-full touch-manipulation items-center justify-center gap-2 rounded-full bg-slate-950 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-slate-300"
+                                    className="inline-flex w-full touch-manipulation items-center justify-center gap-2 rounded-full bg-primary px-3 py-2 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15"
                                 >
                                     {isCreating ? (
                                         <>

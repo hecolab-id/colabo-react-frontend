@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
+    getProjects,
     getProjectDetails,
     getProjectBySlugs,
     getProjectDocuments,
@@ -87,6 +88,7 @@ function applyColumnOrder(columns: Column[], orderedIds: string[]) {
 // Keys
 export const projectKeys = {
     all: ["projects"] as const,
+    list: (teamSlug: string) => [...projectKeys.all, "list", teamSlug] as const,
     detail: (id: string) => [...projectKeys.all, "detail", id] as const,
     detailBySlugs: (teamSlug: string, projectSlug: string) => [...projectKeys.all, "detail", teamSlug, projectSlug] as const,
     columns: (id: string) => [...projectKeys.all, "columns", id] as const,
@@ -94,6 +96,15 @@ export const projectKeys = {
 };
 
 // Hooks
+export function useProjects(teamSlug: string) {
+    return useQuery({
+        queryKey: projectKeys.list(teamSlug),
+        queryFn: () => getProjects(teamSlug),
+        enabled: !!teamSlug,
+        staleTime: 5 * 60 * 1000,
+    });
+}
+
 export function useProject(id: string) {
     // If ID looks like a UUID, use ID fetch. If not, this hook shouldn't be used or we need robust check.
     // For now, keeping legacy ID support.

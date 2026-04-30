@@ -80,7 +80,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
     };
 
     return (
-        <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.78),transparent_18%),radial-gradient(circle_at_top_right,rgba(211,165,116,0.16),transparent_26%),linear-gradient(180deg,#fdfefe_0%,#eef4fb_100%)] text-slate-950">
+        <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.78),transparent_18%),radial-gradient(circle_at_top_right,rgba(184,173,255,0.14),transparent_26%),linear-gradient(180deg,#fdfefe_0%,#eef4fb_100%)] text-slate-950">
             <aside
                 className={`fixed inset-y-0 left-0 z-40 hidden border-r border-white/75 bg-white/72 shadow-[20px_0_60px_rgba(15,23,42,0.06)] backdrop-blur-2xl lg:block ${
                     isCollapsed ? "w-[92px]" : "w-[284px]"

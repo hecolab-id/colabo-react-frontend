@@ -6,11 +6,11 @@
   --background: #f4f7fb;
   --foreground: #172033;
 
-  --primary: #2f6fed;
-  --primary-foreground: #f8fbff;
+  --primary: #6d5dfc;
+  --primary-foreground: #ffffff;
   --secondary: #ffffff;
   --secondary-foreground: #172033;
-  --accent: #eef4ff;
+  --accent: #f2f0ff;
   --accent-foreground: #172033;
 
   --muted: #e8eef7;
@@ -21,28 +21,28 @@
 
   --border: #d7e0ec;
   --input: #d7e0ec;
-  --ring: rgba(47, 111, 237, 0.35);
+  --ring: rgba(109, 93, 252, 0.30);
 
   --surface-raised: #fcfdff;
   --surface-overlay: #edf3fb;
   --shadow-color: 15 23 42;
 
   /* Tag colors */
-  --tag-important: #315bb8;
+  --tag-important: #6657f0;
   --tag-meh: #7a879c;
   --tag-ok: #2f7a63;
   --tag-high: #c14e4e;
 
   /* Progress colors */
-  --progress-orange: linear-gradient(90deg, #78a7ff, #2f6fed);
+  --progress-orange: linear-gradient(90deg, #b8adff, #6d5dfc);
   --progress-green: linear-gradient(90deg, #64c7a3, #2f7a63);
 
   --status-todo-bg: #eff4fb;
   --status-todo-fg: #4c5c74;
   --status-todo-border: #d2ddea;
-  --status-in-progress-bg: #e8f0ff;
-  --status-in-progress-fg: #2f5fc2;
-  --status-in-progress-border: #bfd0f5;
+  --status-in-progress-bg: #f2f0ff;
+  --status-in-progress-fg: #5947d6;
+  --status-in-progress-border: #d9d4ff;
   --status-done-bg: #e7f6f1;
   --status-done-fg: #2c6b58;
   --status-done-border: #b9e0d2;
@@ -53,9 +53,9 @@
   --priority-high-bg: #fdeced;
   --priority-high-fg: #b34242;
   --priority-high-border: #f3c4c7;
-  --priority-medium-bg: #edf3ff;
-  --priority-medium-fg: #315bb8;
-  --priority-medium-border: #cad8f7;
+  --priority-medium-bg: #f2f0ff;
+  --priority-medium-fg: #5947d6;
+  --priority-medium-border: #d9d4ff;
   --priority-low-bg: #e8f6f1;
   --priority-low-fg: #2f7a63;
   --priority-low-border: #bce2d6;
@@ -63,9 +63,9 @@
   --danger-bg: #fdeced;
   --danger-fg: #b34242;
   --danger-border: #f1c1c5;
-  --warning-bg: #edf3ff;
-  --warning-fg: #315bb8;
-  --warning-border: #cad8f7;
+  --warning-bg: #fff7e8;
+  --warning-fg: #9a5b12;
+  --warning-border: #f4d5a4;
 }
 
 .dark,
@@ -73,11 +73,11 @@
   --background: #0d1422;
   --foreground: #edf2fb;
 
-  --primary: #d3a574;
+  --primary: #b8adff;
   --primary-foreground: #101828;
   --secondary: #162033;
   --secondary-foreground: #edf2fb;
-  --accent: #1b2840;
+  --accent: #211f3a;
   --accent-foreground: #edf2fb;
 
   --muted: #182133;
@@ -88,7 +88,7 @@
 
   --border: #273247;
   --input: #273247;
-  --ring: rgba(211, 165, 116, 0.35);
+  --ring: rgba(184, 173, 255, 0.34);
 
   --surface-raised: #162033;
   --surface-overlay: #1e2940;
@@ -97,9 +97,9 @@
   --status-todo-bg: #1d2740;
   --status-todo-fg: #c8d3e4;
   --status-todo-border: #34415a;
-  --status-in-progress-bg: #2a2632;
-  --status-in-progress-fg: #f1d2ad;
-  --status-in-progress-border: #7b6246;
+  --status-in-progress-bg: #292746;
+  --status-in-progress-fg: #d8d1ff;
+  --status-in-progress-border: #62599e;
   --status-done-bg: #173028;
   --status-done-fg: #bce2d5;
   --status-done-border: #3d6f62;
@@ -110,9 +110,9 @@
   --priority-high-bg: #40262a;
   --priority-high-fg: #ffbec0;
   --priority-high-border: #8b4b52;
-  --priority-medium-bg: #2b2a34;
-  --priority-medium-fg: #f1d2ad;
-  --priority-medium-border: #7b6246;
+  --priority-medium-bg: #292746;
+  --priority-medium-fg: #d8d1ff;
+  --priority-medium-border: #62599e;
   --priority-low-bg: #173028;
   --priority-low-fg: #bce2d5;
   --priority-low-border: #3d6f62;
@@ -120,9 +120,9 @@
   --danger-bg: #40262a;
   --danger-fg: #ffbec0;
   --danger-border: #8b4b52;
-  --warning-bg: #2b2a34;
-  --warning-fg: #f1d2ad;
-  --warning-border: #7b6246;
+  --warning-bg: #3a2c19;
+  --warning-fg: #f4d5a4;
+  --warning-border: #7f5b2b;
 }
 
 @layer base {
@@ -139,13 +139,13 @@
     @apply bg-background text-foreground font-sans antialiased;
     background-image:
       radial-gradient(circle at top left, rgba(255, 255, 255, 0.72), transparent 24%),
-      radial-gradient(circle at top right, rgba(47, 111, 237, 0.08), transparent 28%),
+      radial-gradient(circle at top right, rgba(109, 93, 252, 0.07), transparent 28%),
       linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(244, 247, 251, 0.98));
   }
 
   html.admin-dark body {
     background-image:
-      radial-gradient(circle at top left, rgba(211, 165, 116, 0.14), transparent 30%),
+      radial-gradient(circle at top left, rgba(184, 173, 255, 0.13), transparent 30%),
       radial-gradient(circle at top right, rgba(110, 182, 199, 0.10), transparent 26%),
       linear-gradient(180deg, rgba(12, 18, 31, 0.98), rgba(6, 10, 19, 1));
   }

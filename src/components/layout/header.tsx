@@ -60,7 +60,7 @@ export function Header({
                         {projectSettingsHref ? (
                             <Link
                                 href={projectSettingsHref}
-                                className="inline-flex h-9 items-center gap-2 rounded-full border border-black/5 bg-slate-950 px-3 text-[13px] font-semibold text-white shadow-sm transition-all hover:bg-slate-800 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900"
+                                className="inline-flex h-9 items-center gap-1.5 rounded-full px-2.5 text-[13px] font-medium text-slate-500 transition-colors hover:bg-slate-100/70 hover:text-primary active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
                             >
                                 <FolderCog className="h-4 w-4" aria-hidden="true" />
                                 View Project
@@ -81,11 +81,11 @@ export function Header({
             </div>
 
             <div className="ml-auto flex items-center gap-1.5 md:gap-3">
-                {team && onOpenCreateTask && !projectTitle && (
+                {team && onOpenCreateTask && (
                     <button
                         type="button"
                         onClick={onOpenCreateTask}
-                        className="hidden items-center justify-center gap-2 rounded-full bg-slate-950 px-5 py-2.5 text-[14px] font-semibold text-white shadow-[0_14px_32px_rgba(15,23,42,0.16)] transition-all hover:scale-[1.02] active:scale-[0.98] hover:shadow-[0_18px_36px_rgba(15,23,42,0.2)] md:inline-flex focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 focus-visible:ring-offset-2"
+                        className="hidden items-center justify-center gap-2 rounded-full bg-primary px-5 py-2.5 text-[14px] font-semibold text-primary-foreground shadow-[0_14px_32px_rgba(109,93,252,0.20)] transition-all hover:scale-[1.02] hover:opacity-95 active:scale-[0.98] hover:shadow-[0_18px_36px_rgba(109,93,252,0.24)] md:inline-flex focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                     >
                         <Plus className="h-4 w-4" aria-hidden="true" />
                         Create Task

@@ -162,7 +162,7 @@ export default function AdminOverviewPage() {
                                         {team.reasons.map((reason) => (
                                             <span
                                                 key={`${team.id}-${reason}`}
-                                                className="rounded-full border border-[#d3a574]/20 bg-[#d3a574]/10 px-3 py-1 text-xs font-medium text-[#f1d2ad]"
+                                                className="rounded-full border border-[#b8adff]/20 bg-[#b8adff]/10 px-3 py-1 text-xs font-medium text-[#d8d1ff]"
                                             >
                                                 {reason}
                                             </span>

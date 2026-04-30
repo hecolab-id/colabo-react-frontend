@@ -15,10 +15,10 @@ import {
     Users,
     X,
 } from "lucide-react";
-import { getProjects } from "@/lib/api";
 import { isPaidSubscription } from "@/lib/billing";
+import { useProjects } from "@/lib/hooks/use-project";
 import { useStore } from "@/lib/store";
-import { Project, Team } from "@/lib/types";
+import { Team } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { SidebarUsageIndicator } from "./sidebar-usage";
 
@@ -211,22 +211,7 @@ export function MobileNavSheet({
     const currentTeam = useStore((state) => state.currentTeam);
     const currentUser = useStore((state) => state.user);
     const setTeam = useStore((state) => state.setTeam);
-    const [projects, setProjects] = useState<Project[]>([]);
-
-    useEffect(() => {
-        if (!isOpen || !currentTeam) {
-            if (!currentTeam) {
-                setProjects([]);
-            }
-            return;
-        }
-
-        getProjects(currentTeam.slug)
-            .then((fetchedProjects) => {
-                setProjects(fetchedProjects || []);
-            })
-            .catch(console.error);
-    }, [currentTeam, isOpen]);
+    const { data: projects = [] } = useProjects(currentTeam?.slug || "");
 
     useEffect(() => {
         if (!isOpen) return;
@@ -327,26 +312,7 @@ export function MobileNavSheet({
 
                         {currentTeam && (
                             <div className="space-y-3">
-                                <MobileSectionLabel>Current Team</MobileSectionLabel>
-                                <div className="space-y-2">
-                                    {teamNav.map((item) => {
-                                        const isActive =
-                                            item.name === "Projects"
-                                                ? pathname === `/${currentTeam.slug}` || pathname.startsWith(`/${currentTeam.slug}/`)
-                                                : pathname === item.href || pathname.startsWith(`${item.href}/`);
-
-                                        return (
-                                            <MobileSheetNavLink
-                                                key={item.name}
-                                                item={item}
-                                                isActive={isActive}
-                                                onNavigate={handleNavigate}
-                                            />
-                                        );
-                                    })}
-                                </div>
-
-                                <div className="rounded-[28px] border border-black/5 bg-slate-50 p-5 mt-2">
+                                <div className="rounded-[28px] border border-black/5 bg-slate-50 p-5">
                                     <div className="mb-4 flex items-center justify-between gap-3">
                                         <div>
                                             <p className="text-[12px] font-medium uppercase tracking-wide text-slate-500">Recent Projects</p>
@@ -408,6 +374,25 @@ export function MobileNavSheet({
                                             </div>
                                         )}
                                     </div>
+                                </div>
+
+                                <MobileSectionLabel>Current Team</MobileSectionLabel>
+                                <div className="space-y-2">
+                                    {teamNav.map((item) => {
+                                        const isActive =
+                                            item.name === "Projects"
+                                                ? pathname === `/${currentTeam.slug}` || pathname.startsWith(`/${currentTeam.slug}/`)
+                                                : pathname === item.href || pathname.startsWith(`${item.href}/`);
+
+                                        return (
+                                            <MobileSheetNavLink
+                                                key={item.name}
+                                                item={item}
+                                                isActive={isActive}
+                                                onNavigate={handleNavigate}
+                                            />
+                                        );
+                                    })}
                                 </div>
 
                                 <div className="rounded-[28px] border border-black/5 bg-slate-50 p-5 mt-2">

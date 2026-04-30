@@ -25,8 +25,7 @@ const config: Config = {
       },
       fontFamily: {
         sans: [
-          "SF Pro Display",
-          "SF Pro Text",
+          "\"Plus Jakarta Sans\"",
           "ui-sans-serif",
           "system-ui",
           "-apple-system",

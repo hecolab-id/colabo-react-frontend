@@ -99,7 +99,7 @@ export default function NotificationsPage() {
                                 }}
                                 className={cn(
                                     "block rounded-[1.4rem] border border-white/70 bg-white/76 p-4 shadow-[0_18px_42px_rgba(15,23,42,0.06)] backdrop-blur-xl transition-colors hover:bg-white",
-                                    !notification.read_at && "border-primary/20 bg-[linear-gradient(180deg,rgba(47,111,237,0.09),rgba(255,255,255,0.88))]"
+                                    !notification.read_at && "border-primary/20 bg-[linear-gradient(180deg,rgba(109,93,252,0.08),rgba(255,255,255,0.88))]"
                                 )}
                             >
                                 <div className="flex items-start gap-3">
@@ -132,7 +132,7 @@ export default function NotificationsPage() {
                                 key={notification.id}
                                 className={cn(
                                     "rounded-[1.4rem] border border-white/70 bg-white/76 p-4 shadow-[0_18px_42px_rgba(15,23,42,0.06)] backdrop-blur-xl transition-colors hover:bg-white",
-                                    !notification.read_at && "border-primary/20 bg-[linear-gradient(180deg,rgba(47,111,237,0.09),rgba(255,255,255,0.88))]"
+                                    !notification.read_at && "border-primary/20 bg-[linear-gradient(180deg,rgba(109,93,252,0.08),rgba(255,255,255,0.88))]"
                                 )}
                             >
                                 <div className="flex items-start gap-3">

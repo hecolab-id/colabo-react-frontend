@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Link from "@/components/app-link";
 import { usePathname } from "@/lib/navigation";
 import {
@@ -17,9 +16,8 @@ import {
 import { cn } from "@/lib/utils";
 import { useStore } from "@/lib/store";
 import { TeamSwitcher } from "./team-switcher";
-import { getProjects } from "@/lib/api";
-import { Project } from "@/lib/types";
 import { SidebarUsageIndicator } from "./sidebar-usage";
+import { useProjects } from "@/lib/hooks/use-project";
 
 interface SidebarProps {
     isCollapsed?: boolean;
@@ -105,20 +103,7 @@ export function Sidebar({ isCollapsed = false, toggleSidebar, onOpenProjectModal
     const pathname = usePathname();
     const currentTeam = useStore((state) => state.currentTeam);
     const currentUser = useStore((state) => state.user);
-
-    const [projects, setProjects] = useState<Project[]>([]);
-
-    useEffect(() => {
-        if (!currentTeam) {
-            return;
-        }
-
-        getProjects(currentTeam.slug)
-            .then((fetchedProjects) => {
-                setProjects(fetchedProjects || []);
-            })
-            .catch(console.error);
-    }, [currentTeam]);
+    const { data: projects = [] } = useProjects(currentTeam?.slug || "");
 
     const personalNav: NavItem[] = [
         { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
@@ -167,6 +152,64 @@ export function Sidebar({ isCollapsed = false, toggleSidebar, onOpenProjectModal
                         ))}
                     </div>
 
+                    {currentTeam && !isCollapsed && (
+                        <div className="space-y-1">
+                            <div className="mb-2.5 flex items-center justify-between px-4">
+                                <span className="text-[11px] font-semibold uppercase tracking-widest text-slate-400">
+                                    Recent Projects
+                                </span>
+                                {onOpenProjectModal && (
+                                    <button
+                                        onClick={onOpenProjectModal}
+                                        className="rounded-full p-1 text-slate-400 transition-colors hover:bg-white hover:text-slate-900 hover:cursor-pointer"
+                                        title="New Project"
+                                    >
+                                        <Plus className="h-3.5 w-3.5" />
+                                    </button>
+                                )}
+                            </div>
+
+                            <div className="space-y-0.5">
+                                {recentProjects.map((project) => {
+                                    const projectHref = `/${currentTeam.slug}/${project.slug}`;
+                                    const isActive = pathname.startsWith(projectHref);
+
+                                    return (
+                                        <Link
+                                            key={project.id}
+                                            href={projectHref}
+                                            className={cn(
+                                                "flex h-9 items-center gap-3 rounded-[12px] px-4 text-[13px] transition-all active:scale-[0.98] outline-none focus-visible:ring-2 focus-visible:ring-slate-900/10",
+                                                isActive
+                                                    ? "border border-white bg-white text-slate-950 shadow-[0_10px_24px_rgba(15,23,42,0.08)] font-semibold"
+                                                    : "text-slate-500 hover:bg-white/80 hover:text-slate-900 font-medium"
+                                            )}
+                                        >
+                                            <FolderKanban className={cn("h-4 w-4 flex-shrink-0", isActive ? "text-slate-900" : "text-slate-400")} />
+                                            <span className="truncate">{project.name}</span>
+                                        </Link>
+                                    );
+                                })}
+
+                                {recentProjects.length === 0 && (
+                                    <div className="px-4 py-2 text-xs italic text-slate-500">
+                                        No projects yet
+                                    </div>
+                                )}
+
+                                {projects.length > 5 && (
+                                    <Link
+                                        href={`/${currentTeam.slug}`}
+                                        className="flex items-center px-4 py-3 text-[13px] font-semibold text-slate-900 transition hover:opacity-80"
+                                    >
+                                        View all projects
+                                        <ChevronRight className="ml-1 h-3.5 w-3.5" />
+                                    </Link>
+                                )}
+                            </div>
+                        </div>
+                    )}
+
                     {currentTeam && (
                         <div className="space-y-1">
                             <SectionLabel label="Current Team" isCollapsed={isCollapsed} />
@@ -185,64 +228,6 @@ export function Sidebar({ isCollapsed = false, toggleSidebar, onOpenProjectModal
                                     />
                                 );
                             })}
-
-                            {!isCollapsed && (
-                                <div className="pt-6">
-                                    <div className="mb-2.5 flex items-center justify-between px-4">
-                                        <span className="text-[11px] font-semibold uppercase tracking-widest text-slate-400">
-                                            Recent Projects
-                                        </span>
-                                        {onOpenProjectModal && (
-                                            <button
-                                                onClick={onOpenProjectModal}
-                                                className="rounded-full p-1 text-slate-400 transition-colors hover:bg-white hover:text-slate-900 hover:cursor-pointer"
-                                                title="New Project"
-                                            >
-                                                <Plus className="h-3.5 w-3.5" />
-                                            </button>
-                                        )}
-                                    </div>
-
-                                    <div className="space-y-0.5">
-                                        {recentProjects.map((project) => {
-                                            const projectHref = `/${currentTeam.slug}/${project.slug}`;
-                                            const isActive = pathname.startsWith(projectHref);
-
-                                            return (
-                                                <Link
-                                                    key={project.id}
-                                                    href={projectHref}
-                                                    className={cn(
-                                                        "flex h-9 items-center gap-3 rounded-[12px] px-4 text-[13px] transition-all active:scale-[0.98] outline-none focus-visible:ring-2 focus-visible:ring-slate-900/10",
-                                                        isActive
-                                                            ? "border border-white bg-white text-slate-950 shadow-[0_10px_24px_rgba(15,23,42,0.08)] font-semibold"
-                                                            : "text-slate-500 hover:bg-white/80 hover:text-slate-900 font-medium"
-                                                    )}
-                                                >
-                                                    <FolderKanban className={cn("h-4 w-4 flex-shrink-0", isActive ? "text-slate-900" : "text-slate-400")} />
-                                                    <span className="truncate">{project.name}</span>
-                                                </Link>
-                                            );
-                                        })}
-
-                                        {recentProjects.length === 0 && (
-                                            <div className="px-4 py-2 text-xs italic text-slate-500">
-                                                No projects yet
-                                            </div>
-                                        )}
-
-                                        {projects.length > 5 && (
-                                            <Link
-                                                href={`/${currentTeam.slug}`}
-                                                className="flex items-center px-4 py-3 text-[13px] font-semibold text-slate-900 transition hover:opacity-80"
-                                            >
-                                                View all projects
-                                                <ChevronRight className="ml-1 h-3.5 w-3.5" />
-                                            </Link>
-                                        )}
-                                    </div>
-                                </div>
-                            )}
                         </div>
                     )}
                 </nav>
