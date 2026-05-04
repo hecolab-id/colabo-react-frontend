@@ -4,6 +4,7 @@ import { lazy, Suspense, use, useEffect, useMemo, useRef, useState } from "react
 import { useQueryClient } from "@tanstack/react-query";
 import type { CreateTaskFormValues } from "@/components/modals/create-task-modal";
 import { ManageProjectMembersModal } from "@/components/modals/manage-project-members-modal";
+import { EditColumnModal } from "@/components/modals/edit-column-modal";
 import { useRouter, useSearchParams } from "@/lib/navigation";
 import { Column, Project, Task, TaskStatus } from "@/lib/types";
 import { DueDateFilter, TaskSortOption, getTaskColumnId, matchesDueDateFilter, sortTasks } from "@/lib/task-ui";
@@ -35,7 +36,6 @@ const TaskCalendarView = lazy(() => import("@/components/board/task-calendar-vie
 const TaskListView = lazy(() => import("@/components/board/task-list-view").then((module) => ({ default: module.TaskListView })));
 const CreateTaskModal = lazy(() => import("@/components/modals/create-task-modal").then((module) => ({ default: module.CreateTaskModal })));
 const CreateColumnModal = lazy(() => import("@/components/modals/create-column-modal").then((module) => ({ default: module.CreateColumnModal })));
-const EditColumnModal = lazy(() => import("@/components/modals/edit-column-modal").then((module) => ({ default: module.EditColumnModal })));
 const DeleteProjectModal = lazy(() => import("@/components/modals/delete-project-modal").then((module) => ({ default: module.DeleteProjectModal })));
 
 type ProjectWithTasks = Project & {
@@ -253,8 +253,8 @@ function ProjectSlugPageContent({ params }: { params: Promise<{ teamSlug: string
         await updateColumnMutation.mutateAsync({ columnId, updates: { name, color, type } });
     };
 
-    const handleDeleteColumn = async (columnId: string) => {
-        await deleteColumnMutation.mutateAsync(columnId);
+    const handleDeleteColumn = async (columnId: string, destinationColumnId?: string) => {
+        await deleteColumnMutation.mutateAsync({ columnId, destinationColumnId });
         setEditingColumn(null);
     };
 
@@ -524,12 +524,15 @@ function ProjectSlugPageContent({ params }: { params: Promise<{ teamSlug: string
                     isOpen={isColumnModalOpen}
                     onClose={() => setIsColumnModalOpen(false)}
                     onSubmit={handleAddColumn}
+                    columns={columns}
                 />
 
                 {editingColumn && (
                     <EditColumnModal
                         isOpen={!!editingColumn}
                         column={editingColumn}
+                        columns={columns}
+                        taskCount={tasks.filter((task) => getTaskColumnId(task, columns) === editingColumn.id).length}
                         onClose={() => setEditingColumn(null)}
                         onSubmit={handleUpdateColumn}
                         onDelete={handleDeleteColumn}

@@ -21,6 +21,7 @@ interface CreateColumnModalProps {
     isOpen: boolean;
     onClose: () => void;
     onSubmit: (name: string, color: string, type?: ColumnType) => Promise<void>;
+    columns?: Column[];
 }
 
 const columnSchema = Yup.object().shape({
@@ -36,8 +37,13 @@ const columnSchema = Yup.object().shape({
         .required("Column type is required"),
 });
 
-export function CreateColumnModal({ isOpen, onClose, onSubmit }: CreateColumnModalProps) {
+export function CreateColumnModal({ isOpen, onClose, onSubmit, columns = [] }: CreateColumnModalProps) {
     if (!isOpen) return null;
+
+    const hasDoneColumn = columns.some((column) => column.type === "done");
+    const disabledColumnTypes: Partial<Record<ColumnType, string>> = hasDoneColumn
+        ? { done: "Only one Done column is allowed per board." }
+        : {};
 
     return (
         <ModalShell
@@ -85,6 +91,7 @@ export function CreateColumnModal({ isOpen, onClose, onSubmit }: CreateColumnMod
                             <ColumnTypeListbox
                                 value={values.type}
                                 onChange={(value) => setFieldValue("type", value)}
+                                disabledOptions={disabledColumnTypes}
                             />
                             <ErrorMessage name="type" component="p" className="mt-2 text-sm font-medium text-red-500" />
                         </SettingsField>

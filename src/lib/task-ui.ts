@@ -24,12 +24,21 @@ export function formatTaskDateTime(value?: string | null) {
     return taskDateTimeFormatter.format(new Date(value));
 }
 
-export const priorityToneMap: Record<TaskPriority, { label: string; badgeClassName: string; iconClassName: string; textClassName: string }> = {
+type PriorityTone = {
+    label: string;
+    badgeClassName: string;
+    iconClassName: string;
+    textClassName: string;
+    highAccentClassName?: string;
+};
+
+export const priorityToneMap: Record<TaskPriority, PriorityTone> = {
     HIGH: {
         label: "High Priority",
         badgeClassName: "border border-[var(--priority-high-border)] bg-[var(--priority-high-bg)] text-[var(--priority-high-fg)]",
         iconClassName: "text-[var(--priority-high-fg)]",
         textClassName: "text-[var(--priority-high-fg)]",
+        highAccentClassName: "after:absolute after:inset-x-4 after:top-0 after:h-1 after:rounded-b-full after:bg-gradient-to-r after:from-[#bd2f5f] after:via-[#e5557a] after:to-[#f19ab0]",
     },
     MEDIUM: {
         label: "Medium",
@@ -92,7 +101,7 @@ export function getDueDateTone(date?: string | null) {
 
     if (isOverdue) {
         return {
-            className: "border border-[var(--danger-border)] bg-[var(--danger-bg)] text-[var(--danger-fg)]",
+            className: "kanban-overdue-date border border-[#f0a8b2] bg-[#fff0f3] text-[#b8204f] font-semibold dark:border-[#904965] dark:bg-[#432431] dark:text-[#ffabc6]",
             label: "Overdue",
             isOverdue: true,
         };

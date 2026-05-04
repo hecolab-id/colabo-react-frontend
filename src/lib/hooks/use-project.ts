@@ -409,9 +409,10 @@ export function useDeleteColumn(projectId: string) {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: (columnId: string) => deleteColumn(columnId),
+        mutationFn: ({ columnId, destinationColumnId }: { columnId: string; destinationColumnId?: string }) => deleteColumn(columnId, destinationColumnId),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: projectKeys.columns(projectId) });
+            queryClient.invalidateQueries({ queryKey: ["projects", "detail"], refetchType: "inactive" });
         },
     });
 }

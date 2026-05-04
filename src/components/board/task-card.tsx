@@ -92,6 +92,7 @@ function TaskCardSurface({
         return { value: 0, show: false };
     }, [task.checklists, task.column?.type]);
     const commentCount = task.comments_count ?? task.comments?.length ?? 0;
+    const assigneeFirstName = task.assignee?.name?.trim().split(/\s+/)[0] || "";
 
     // Due date helpers
     const dueDateTone = getDueDateTone(task.due_date);
@@ -101,17 +102,25 @@ function TaskCardSurface({
             ref={setNodeRef}
             style={style}
             className={cn(
-                "kanban-task-card cursor-pointer touch-manipulation select-none rounded-[1.15rem] border border-white/80 bg-white/88 p-3.5 shadow-[0_10px_24px_-22px_rgba(15,23,42,0.32)] md:p-4",
+                "kanban-task-card relative cursor-pointer touch-manipulation select-none overflow-hidden rounded-[1.15rem] border border-white/80 bg-white/88 p-3.5 shadow-[0_10px_24px_-22px_rgba(15,23,42,0.32)] md:p-4",
+                task.priority === "HIGH" && priority.highAccentClassName,
+                dueDateTone.isOverdue && "is-overdue",
                 isBoardDragging
                     ? "will-change-transform transition-none shadow-none"
-                    : "backdrop-blur-xl transition-transform duration-150 hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-[0_16px_34px_-28px_rgba(15,23,42,0.38)]",
+                    : "backdrop-blur-xl transition-[transform,border-color,box-shadow] duration-200 ease-out hover:border-slate-300 hover:shadow-[0_18px_36px_-28px_rgba(15,23,42,0.44)]",
                 isDragging && "opacity-60 ring-2 ring-primary/15"
             )}
             {...dragProps}
         >
             <div className="flex items-start justify-between gap-3">
-                <span className={cn("rounded-full px-2.5 py-1 text-xs font-medium", priority.badgeClassName)}>
-                    {task.priority === "MEDIUM" ? "Medium" : priority.label}
+                <span
+                    className={cn(
+                        "rounded-full px-2.5 py-1 text-[11px] uppercase tracking-[0.14em]",
+                        task.priority === "HIGH" ? "font-bold shadow-[0_10px_24px_-18px_rgba(199,51,99,0.65)]" : "font-semibold",
+                        priority.badgeClassName
+                    )}
+                >
+                    {task.priority === "HIGH" ? "High" : task.priority === "MEDIUM" ? "Medium" : "Low"}
                 </span>
             </div>
 
@@ -135,9 +144,10 @@ function TaskCardSurface({
             {task.due_date && (
                 <div className={cn(
                     "mb-3 flex w-fit items-center gap-1.5 rounded-full px-2.5 py-1 text-xs",
+                    dueDateTone.isOverdue && "px-3 py-1.5",
                     dueDateTone.className
                 )}>
-                    <Calendar className="w-3 h-3" />
+                    <Calendar className={cn("w-3 h-3", dueDateTone.isOverdue && "h-3.5 w-3.5")} />
                     <span>{formatTaskDate(task.due_date)}</span>
                     {dueDateTone.label && <span className="font-medium">{dueDateTone.label}</span>}
                 </div>
@@ -162,9 +172,10 @@ function TaskCardSurface({
             )}
 
             <div className="flex items-center justify-between border-t border-black/5 pt-3">
-                <div className="flex -space-x-2">
+                <div className="flex min-w-0 items-center gap-2">
                     {task.assignee && (
-                        <div className="h-7 w-7 overflow-hidden rounded-full border-2 border-white">
+                        <>
+                        <div className="h-7 w-7 shrink-0 overflow-hidden rounded-full border-2 border-white">
                             <Image
                                 src={task.assignee.avatar_url || "https://ui-avatars.com/api/?background=afb2f6&name=" + encodeURIComponent(task.assignee.name)}
                                 alt={task.assignee.name}
@@ -173,6 +184,12 @@ function TaskCardSurface({
                                 className="w-full h-full object-cover"
                             />
                         </div>
+                        {assigneeFirstName ? (
+                            <span className="hidden max-w-[6.5rem] truncate text-xs font-medium text-slate-600 md:block">
+                                {assigneeFirstName}
+                            </span>
+                        ) : null}
+                        </>
                     )}
                 </div>
 

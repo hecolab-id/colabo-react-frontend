@@ -4,7 +4,7 @@ import { Formik, Form, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import { Trash2 } from "lucide-react";
 import type { Column } from "@/lib/types";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,9 +23,11 @@ interface EditColumnFormValues {
 interface EditColumnModalProps {
     isOpen: boolean;
     column: Column;
+    columns?: Column[];
+    taskCount?: number;
     onClose: () => void;
     onSubmit: (columnId: string, name: string, color: string, type?: ColumnType) => Promise<void>;
-    onDelete: (columnId: string) => Promise<void>;
+    onDelete: (columnId: string, destinationColumnId?: string) => Promise<void>;
 }
 
 const columnSchema = Yup.object().shape({
@@ -41,16 +43,77 @@ const columnSchema = Yup.object().shape({
         .required("Column type is required"),
 });
 
-export function EditColumnModal({ isOpen, column, onClose, onSubmit, onDelete }: EditColumnModalProps) {
+function getColumnTypeCounts(columns: Column[]) {
+    return columns.reduce(
+        (counts, item) => {
+            const type = item.type || "default";
+            counts[type] += 1;
+            return counts;
+        },
+        { default: 0, in_progress: 0, done: 0 } as Record<ColumnType, number>,
+    );
+}
+
+function getDisabledColumnTypes(column: Column, columns: Column[]): Partial<Record<ColumnType, string>> {
+    const currentType = column.type || "default";
+    const counts = getColumnTypeCounts(columns);
+    const disabled: Partial<Record<ColumnType, string>> = {};
+
+    if (currentType !== "done" && counts.done > 0) {
+        disabled.done = "Only one Done column is allowed per board.";
+    }
+
+    if (currentType === "done" && counts.done <= 1) {
+        disabled.default = "Board must keep at least one Done column.";
+        disabled.in_progress = "Board must keep at least one Done column.";
+    }
+
+    if (currentType === "in_progress" && counts.in_progress <= 1) {
+        disabled.default = "Board must keep at least one In Progress column.";
+        disabled.done = "Board must keep at least one In Progress column.";
+    }
+
+    return disabled;
+}
+
+function getDeleteDisabledReason(column: Column, columns: Column[]) {
+    const currentType = column.type || "default";
+    const counts = getColumnTypeCounts(columns);
+
+    if (currentType === "done" && counts.done <= 1) {
+        return "Board must keep at least one Done column.";
+    }
+
+    if (currentType === "in_progress" && counts.in_progress <= 1) {
+        return "Board must keep at least one In Progress column.";
+    }
+
+    return "";
+}
+
+export function EditColumnModal({ isOpen, column, columns = [], taskCount = 0, onClose, onSubmit, onDelete }: EditColumnModalProps) {
     const [showDeleteDialog, setShowDeleteDialog] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
+    const destinationColumns = useMemo(
+        () => columns.filter((item) => item.id !== column.id),
+        [column.id, columns],
+    );
+    const [destinationColumnId, setDestinationColumnId] = useState(destinationColumns[0]?.id || "");
+
+    useEffect(() => {
+        setDestinationColumnId(destinationColumns[0]?.id || "");
+    }, [column.id, destinationColumns]);
 
     if (!isOpen) return null;
+
+    const boardColumns = columns.length > 0 ? columns : [column];
+    const disabledColumnTypes = getDisabledColumnTypes(column, boardColumns);
+    const deleteDisabledReason = getDeleteDisabledReason(column, boardColumns);
 
     const handleDelete = async () => {
         setIsDeleting(true);
         try {
-            await onDelete(column.id);
+            await onDelete(column.id, taskCount > 0 ? destinationColumnId : undefined);
             onClose();
         } catch (error) {
             console.error("Failed to delete column:", error);
@@ -107,6 +170,7 @@ export function EditColumnModal({ isOpen, column, onClose, onSubmit, onDelete }:
                                 <ColumnTypeListbox
                                     value={values.type}
                                     onChange={(value) => setFieldValue("type", value)}
+                                    disabledOptions={disabledColumnTypes}
                                 />
                                 <ErrorMessage name="type" component="p" className="mt-2 text-sm font-medium text-red-500" />
                             </SettingsField>
@@ -115,11 +179,11 @@ export function EditColumnModal({ isOpen, column, onClose, onSubmit, onDelete }:
                                 <Button
                                     type="button"
                                     onClick={() => setShowDeleteDialog(true)}
-                                    disabled={column.is_default}
+                                    disabled={Boolean(deleteDisabledReason)}
                                     variant="ghost"
                                     size="lg"
                                     className="w-full justify-center text-[var(--danger-fg)] hover:bg-[var(--danger-bg)] sm:w-auto"
-                                    title={column.is_default ? "Cannot delete default columns" : "Delete column"}
+                                    title={deleteDisabledReason || "Delete column"}
                                 >
                                     <Trash2 className="h-4 w-4" aria-hidden="true" />
                                     Delete
@@ -145,9 +209,29 @@ export function EditColumnModal({ isOpen, column, onClose, onSubmit, onDelete }:
                 onCancel={() => setShowDeleteDialog(false)}
                 onConfirm={handleDelete}
                 title="Delete Column"
-                description={`Are you sure you want to delete "${column.name}"? All tasks in this column will be moved to the first available column.`}
+                description={taskCount > 0
+                    ? `This column contains ${taskCount} ${taskCount === 1 ? "task" : "tasks"}. Where should we move ${taskCount === 1 ? "it" : "them"}?`
+                    : `Are you sure you want to delete "${column.name}"?`}
                 confirmText={isDeleting ? "Deleting..." : "Delete"}
-            />
+                isLoading={isDeleting}
+            >
+                {taskCount > 0 ? (
+                    <label className="block">
+                        <span className="mb-2 block text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Move tasks to</span>
+                        <select
+                            value={destinationColumnId}
+                            onChange={(event) => setDestinationColumnId(event.target.value)}
+                            className="h-12 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm font-medium text-slate-900 shadow-sm focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15"
+                        >
+                            {destinationColumns.map((item) => (
+                                <option key={item.id} value={item.id}>
+                                    {item.name}
+                                </option>
+                            ))}
+                        </select>
+                    </label>
+                ) : null}
+            </ConfirmationDialog>
         </>
     );
 }

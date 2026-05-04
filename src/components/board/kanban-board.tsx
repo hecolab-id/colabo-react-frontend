@@ -531,9 +531,9 @@ export function KanbanBoard({ initialTasks, columns, initialTaskId, onAddTask, o
                         <div className="w-[min(17.5rem,calc(100vw-5.75rem))] flex-shrink-0 snap-start snap-always md:w-72 md:max-w-none md:snap-center">
                             <button
                                 onClick={onAddColumn}
-                                className="flex h-14 w-full touch-manipulation items-center justify-center gap-2 rounded-[1.2rem] border-2 border-dashed border-slate-200 bg-white/60 text-slate-500 shadow-[0_16px_34px_-30px_rgba(15,23,42,0.28)] backdrop-blur-xl transition-[border-color,background-color,color] hover:border-slate-400 hover:bg-white hover:text-slate-950 md:h-12"
+                                className="kanban-icon-button group flex h-14 w-full touch-manipulation items-center justify-center gap-2 rounded-[1.2rem] border-2 border-dashed border-slate-200 bg-white/60 text-slate-500 shadow-[0_16px_34px_-30px_rgba(15,23,42,0.28)] backdrop-blur-xl hover:border-slate-400 hover:bg-white hover:text-slate-950 hover:shadow-[0_18px_38px_-28px_rgba(15,23,42,0.36)] md:h-12"
                             >
-                                <Plus className="w-4 h-4" />
+                                <Plus className="w-4 h-4 transition-transform group-hover:rotate-90" />
                                 Add Column
                             </button>
                         </div>

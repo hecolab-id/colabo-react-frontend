@@ -80,7 +80,7 @@ const BoardColumnBase = forwardRef<HTMLDivElement, BoardColumnProps>(({
         <div
             ref={ref}
             className={cn(
-                "flex h-full w-[min(17.5rem,calc(100vw-5.75rem))] shrink-0 snap-start snap-always flex-col rounded-[1.45rem] border border-slate-200/70 bg-slate-100/45 p-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.86),0_18px_46px_-40px_rgba(15,23,42,0.36)] md:w-80 md:max-w-none md:snap-center",
+                "kanban-column-shell flex h-full w-[min(17.5rem,calc(100vw-5.75rem))] shrink-0 snap-start snap-always flex-col rounded-[1.45rem] border border-slate-200/70 bg-slate-100/45 p-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.86),0_18px_46px_-40px_rgba(15,23,42,0.36)] md:w-80 md:max-w-none md:snap-center",
                 isDragging && "ring-2 ring-primary/20"
             )}
         >
@@ -114,7 +114,7 @@ const BoardColumnBase = forwardRef<HTMLDivElement, BoardColumnProps>(({
                                     setIsMobileMenuOpen((prev) => !prev);
                                 }}
                                 aria-label={`Open ${title} column options`}
-                                className="flex h-9 w-9 touch-manipulation items-center justify-center rounded-xl text-muted-foreground transition-[background-color,color] hover:bg-slate-100 hover:text-slate-950"
+                                className="kanban-icon-button flex h-9 w-9 touch-manipulation items-center justify-center rounded-xl text-muted-foreground hover:bg-slate-100 hover:text-slate-950"
                                 title="Column options"
                             >
                                 <MoreHorizontal className="h-4 w-4" />
@@ -141,7 +141,7 @@ const BoardColumnBase = forwardRef<HTMLDivElement, BoardColumnProps>(({
                         <button
                             onClick={(e) => { e.stopPropagation(); onEditColumn(column); }}
                             aria-label={`Edit ${title} column`}
-                            className="hidden h-9 w-9 touch-manipulation items-center justify-center rounded-xl text-muted-foreground transition-[background-color,color,opacity] hover:bg-slate-100 hover:text-slate-950 md:flex md:h-8 md:w-8 md:opacity-0 md:group-hover:opacity-100"
+                            className="kanban-icon-button hidden h-9 w-9 touch-manipulation items-center justify-center rounded-xl text-muted-foreground hover:bg-slate-100 hover:text-slate-950 md:flex md:h-8 md:w-8 md:opacity-0 md:group-hover:opacity-100"
                             title="Edit column"
                         >
                             <Settings className="w-3.5 h-3.5" />
@@ -151,7 +151,7 @@ const BoardColumnBase = forwardRef<HTMLDivElement, BoardColumnProps>(({
                     <button
                         onClick={(e) => { e.stopPropagation(); onAddTask?.(); }}
                         aria-label={`Add task to ${title}`}
-                        className="flex h-9 w-9 touch-manipulation items-center justify-center rounded-xl border border-black/5 bg-white/80 text-muted-foreground transition-[background-color,color,border-color] hover:border-slate-300 hover:bg-white hover:text-slate-950 md:h-8 md:w-8"
+                        className="kanban-icon-button flex h-9 w-9 touch-manipulation items-center justify-center rounded-xl border border-black/5 bg-white/80 text-muted-foreground hover:border-slate-300 hover:bg-white hover:text-slate-950 hover:shadow-[0_12px_24px_-20px_rgba(15,23,42,0.45)] md:h-8 md:w-8"
                         title="Add task"
                     >
                         <Plus className="w-4 h-4" />
@@ -196,9 +196,9 @@ const BoardColumnBase = forwardRef<HTMLDivElement, BoardColumnProps>(({
                 {tasks.length === 0 && (
                     <button
                         onClick={onAddTask}
-                        className="group hidden h-24 w-full touch-manipulation items-center justify-center rounded-[1rem] border-2 border-dashed border-slate-200 bg-white/55 transition-[border-color,background-color,color] hover:border-slate-400 hover:bg-white md:flex"
+                        className="group hidden h-24 w-full touch-manipulation items-center justify-center rounded-[1rem] border-2 border-dashed border-slate-200 bg-white/55 transition-[border-color,background-color,color,transform] hover:-translate-y-0.5 hover:border-slate-400 hover:bg-white md:flex"
                     >
-                        <span className="text-sm text-slate-500 group-hover:text-slate-950">+ Add task</span>
+                        <span className="text-sm text-slate-500 transition-transform group-hover:translate-x-0.5 group-hover:text-slate-950">+ Add task</span>
                     </button>
                 )}
             </div>

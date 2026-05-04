@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import type { ReactNode } from "react";
 import { AlertTriangle } from "lucide-react";
 import { useEscapeKey } from "@/lib/hooks/use-escape-key";
 
@@ -14,6 +15,7 @@ interface ConfirmationDialogProps {
     onCancel: () => void;
     isLoading?: boolean;
     variant?: "danger" | "warning" | "info";
+    children?: ReactNode;
 }
 
 export function ConfirmationDialog({
@@ -26,6 +28,7 @@ export function ConfirmationDialog({
     onCancel,
     isLoading = false,
     variant = "danger",
+    children,
 }: ConfirmationDialogProps) {
     const dialogRef = useRef<HTMLDivElement>(null);
     useEscapeKey(isOpen && !isLoading, onCancel);
@@ -64,6 +67,7 @@ export function ConfirmationDialog({
                     <p className="text-muted-foreground text-sm mb-6 leading-relaxed">
                         {description}
                     </p>
+                    {children ? <div className="mb-6">{children}</div> : null}
 
                     <div className="flex items-center justify-end gap-3">
                         <button

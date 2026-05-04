@@ -20,6 +20,7 @@ import {
     useDeleteColumn,
     useReorderColumns
 } from "@/lib/hooks/use-project";
+import { getTaskColumnId } from "@/lib/task-ui";
 
 type ViewMode = "board" | "list";
 
@@ -114,8 +115,8 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
         await updateColumnMutation.mutateAsync({ columnId, updates: { name, color, type } });
     };
 
-    const handleDeleteColumn = async (columnId: string) => {
-        await deleteColumnMutation.mutateAsync(columnId);
+    const handleDeleteColumn = async (columnId: string, destinationColumnId?: string) => {
+        await deleteColumnMutation.mutateAsync({ columnId, destinationColumnId });
         setEditingColumn(null);
     };
 
@@ -243,12 +244,15 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                 isOpen={isColumnModalOpen}
                 onClose={() => setIsColumnModalOpen(false)}
                 onSubmit={handleAddColumn}
+                columns={columns}
             />
 
             {editingColumn && (
                 <EditColumnModal
                     isOpen={!!editingColumn}
                     column={editingColumn}
+                    columns={columns}
+                    taskCount={tasks.filter((task) => getTaskColumnId(task, columns) === editingColumn.id).length}
                     onClose={() => setEditingColumn(null)}
                     onSubmit={handleUpdateColumn}
                     onDelete={handleDeleteColumn}

@@ -9,7 +9,18 @@ export default defineConfig(({ mode }) => {
   return {
     plugins: [react()],
     resolve: {
-      alias: [{ find: "@", replacement: path.resolve(__dirname, "src") }]
+      alias: [
+        { find: "@", replacement: path.resolve(__dirname, "src") },
+        { find: "react/jsx-runtime", replacement: path.resolve(__dirname, "node_modules/react/jsx-runtime.js") },
+        { find: "react-dom/client", replacement: path.resolve(__dirname, "node_modules/react-dom/client.js") },
+        { find: "react", replacement: path.resolve(__dirname, "node_modules/react") },
+        { find: "react-dom", replacement: path.resolve(__dirname, "node_modules/react-dom") }
+      ],
+      dedupe: ["react", "react-dom", "react/jsx-runtime"]
+    },
+    optimizeDeps: {
+      force: true,
+      include: ["react", "react-dom", "react/jsx-runtime", "react-dom/client"]
     },
     server: {
       port: 4001,

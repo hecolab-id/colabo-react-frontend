@@ -917,8 +917,10 @@ export const updateColumn = async (columnId: string, updates: Partial<Column>): 
     return data.data;
 };
 
-export const deleteColumn = async (columnId: string): Promise<void> => {
-    await api.delete(`/columns/${columnId}`);
+export const deleteColumn = async (columnId: string, destinationColumnId?: string): Promise<void> => {
+    await api.delete(`/columns/${columnId}`, {
+        data: destinationColumnId ? { destination_column_id: destinationColumnId } : undefined,
+    });
 };
 
 export const reorderColumns = async (projectId: string, columnIds: string[]): Promise<void> => {
