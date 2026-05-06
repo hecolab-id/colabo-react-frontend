@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import { FolderPlus, X, CheckCircle2, Check, ChevronDown } from "lucide-react";
 import { Column, Project, TaskStatus, User } from "@/lib/types";
 import { Listbox, ListboxButton, ListboxOption, ListboxOptions } from "@headlessui/react";
@@ -20,7 +20,39 @@ export type CreateTaskFormValues = {
 };
 
 type ProjectOption = Pick<Project, "id" | "name" | "slug">;
-type AssigneeOption = Pick<User, "id" | "name" | "email">;
+type AssigneeOption = Pick<User, "id" | "name" | "email" | "avatar_url">;
+
+function getInitials(name: string) {
+    return name
+        .split(" ")
+        .filter(Boolean)
+        .slice(0, 2)
+        .map((part) => part[0]?.toUpperCase() ?? "")
+        .join("") || "?";
+}
+
+function AssigneeAvatar({ user, size = 28 }: { user: Pick<User, "name" | "avatar_url">; size?: number }) {
+    const dimension = { width: size, height: size };
+    if (user.avatar_url) {
+        return (
+            <img
+                src={user.avatar_url}
+                alt=""
+                className="rounded-full object-cover ring-1 ring-black/5"
+                style={dimension}
+            />
+        );
+    }
+    return (
+        <span
+            aria-hidden="true"
+            className="inline-flex items-center justify-center rounded-full bg-slate-900 font-semibold text-white"
+            style={{ ...dimension, fontSize: Math.max(10, Math.round(size * 0.42)) }}
+        >
+            {getInitials(user.name)}
+        </span>
+    );
+}
 
 const statusOptions: Array<{ value: TaskStatus; label: string }> = [
     { value: "TODO", label: "To Do" },
@@ -42,6 +74,8 @@ function getStatusFromColumn(column: Column | undefined, fallback: TaskStatus): 
     return "TODO";
 }
 
+type ListboxOptionItem = { value: string; label: string; leading?: ReactNode };
+
 function CustomListbox({
     value,
     onChange,
@@ -51,7 +85,7 @@ function CustomListbox({
 }: {
     value: string;
     onChange: (value: string) => void;
-    options: { value: string; label: string }[];
+    options: ListboxOptionItem[];
     placeholder: string;
     disabled?: boolean;
 }) {
@@ -61,16 +95,21 @@ function CustomListbox({
         <Listbox value={value} onChange={onChange} disabled={disabled}>
             <div className="relative">
                 <ListboxButton className="relative w-full appearance-none px-4 py-3.5 rounded-2xl border-0 bg-slate-50 text-slate-900 text-left text-[15px] font-medium focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:bg-slate-100 transition-colors disabled:opacity-60 disabled:cursor-not-allowed">
-                    <span className={cn("block truncate", !selectedOption && "text-slate-400")}>
-                        {selectedOption ? selectedOption.label : placeholder}
+                    <span className="flex min-w-0 items-center gap-2.5 pr-6">
+                        {selectedOption?.leading ? (
+                            <span className="flex shrink-0 items-center">{selectedOption.leading}</span>
+                        ) : null}
+                        <span className={cn("block truncate", !selectedOption && "text-slate-400")}>
+                            {selectedOption ? selectedOption.label : placeholder}
+                        </span>
                     </span>
                     <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-4">
                         <ChevronDown className="h-4 w-4 text-slate-400 focus:text-slate-900" aria-hidden="true" />
                     </span>
                 </ListboxButton>
-                
-                <ListboxOptions 
-                    transition 
+
+                <ListboxOptions
+                    transition
                     className="absolute z-[90] mt-2 max-h-60 w-full overflow-auto rounded-[1.4rem] border border-slate-200 bg-white p-1.5 text-[15px] shadow-[0_30px_80px_-28px_rgba(15,23,42,0.55)] focus:outline-none origin-top transition duration-200 ease-out data-[closed]:scale-95 data-[closed]:opacity-0"
                 >
                     {options.map((option) => (
@@ -79,18 +118,29 @@ function CustomListbox({
                             value={option.value}
                             className={({ focus }) =>
                                 cn(
-                                    "relative cursor-pointer select-none rounded-[1rem] py-3 pl-10 pr-4 transition-colors",
+                                    "relative cursor-pointer select-none rounded-[1rem] py-3 transition-colors",
+                                    option.leading ? "pl-3 pr-9" : "pl-10 pr-4",
                                     focus ? "bg-slate-100/90 text-slate-900" : "text-slate-700"
                                 )
                             }
                         >
                             {({ selected }) => (
                                 <>
-                                    <span className={cn("block truncate", selected ? "font-semibold text-slate-900" : "font-medium")}>
-                                        {option.label}
+                                    <span className="flex min-w-0 items-center gap-2.5">
+                                        {option.leading ? (
+                                            <span className="flex shrink-0 items-center">{option.leading}</span>
+                                        ) : null}
+                                        <span className={cn("block truncate", selected ? "font-semibold text-slate-900" : "font-medium")}>
+                                            {option.label}
+                                        </span>
                                     </span>
                                     {selected ? (
-                                        <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-900">
+                                        <span
+                                            className={cn(
+                                                "absolute inset-y-0 flex items-center text-slate-900",
+                                                option.leading ? "right-0 pr-3" : "left-0 pl-3"
+                                            )}
+                                        >
                                             <Check className="h-4 w-4" aria-hidden="true" />
                                         </span>
                                     ) : null}
@@ -324,7 +374,11 @@ export function CreateTaskModal({
                                     value={assigneeId}
                                     onChange={setAssigneeId}
                                     placeholder="Leave Unassigned"
-                                    options={assignees.map((a) => ({ value: a.id, label: a.name }))}
+                                    options={assignees.map((a) => ({
+                                        value: a.id,
+                                        label: a.name,
+                                        leading: <AssigneeAvatar user={a} size={24} />,
+                                    }))}
                                 />
                             </SettingsField>
 
