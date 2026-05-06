@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import Link from "@/components/app-link";
 import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/ui/empty-state";
 import { Input } from "@/components/ui/input";
 import { SettingsField } from "@/components/ui/settings-field";
 import { SettingsSection } from "@/components/ui/settings-section";
@@ -423,11 +424,12 @@ function ProjectSettingsPageContent({ params }: { params: Promise<{ teamSlug: st
                                     })}
                                 </div>
                             ) : (
-                                <div className="rounded-[1.25rem] border border-dashed border-slate-300 bg-slate-50 px-4 py-8 text-center">
-                                    <Paperclip className="mx-auto h-6 w-6 text-slate-400" aria-hidden="true" />
-                                    <p className="mt-3 text-sm font-semibold text-slate-900">No project documents yet</p>
-                                    <p className="mt-1 text-sm text-slate-500">Upload a file or attach a link when this project needs shared references.</p>
-                                </div>
+                                <EmptyState
+                                    size="compact"
+                                    icon={<Paperclip className="h-5 w-5 text-slate-400" aria-hidden="true" />}
+                                    title="No project documents yet"
+                                    description="Upload a file or attach a link when this project needs shared references."
+                                />
                             )}
                         </SettingsSection>
                     )}

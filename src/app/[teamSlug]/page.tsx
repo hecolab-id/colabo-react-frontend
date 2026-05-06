@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import Link from "@/components/app-link";
 import { useParams } from "@/lib/navigation";
+import { EmptyState } from "@/components/ui/empty-state";
 import { CreateProjectModal } from "@/components/modals/create-project-modal";
 import { DeleteProjectModal } from "@/components/modals/delete-project-modal";
 import { ProjectCard } from "@/components/project-card";
@@ -274,23 +275,15 @@ export default function TeamDashboardPage() {
                 </div>
 
                 {filteredProjects.length === 0 && (
-                    <div className="mt-8 rounded-[24px] border border-dashed border-slate-200 bg-slate-50 px-6 py-14 text-center">
-                        {searchQuery ? (
-                            <>
-                                <p className="text-[16px] font-semibold text-slate-900 tracking-tight">No matching projects</p>
-                                <p className="mt-2 text-[14px] text-slate-500">
-                                    Nothing matched “{searchQuery}”. Try a different keyword or create a new project.
-                                </p>
-                            </>
-                        ) : (
-                            <>
-                                <p className="text-[16px] font-semibold text-slate-900 tracking-tight">No projects in this workspace yet</p>
-                                <p className="mt-2 text-[14px] text-slate-500">
-                                    Create the first project and turn {team.name} into an active delivery space.
-                                </p>
-                            </>
-                        )}
-                    </div>
+                    <EmptyState
+                        className="mt-8"
+                        title={searchQuery ? "No matching projects" : "No projects in this workspace yet"}
+                        description={
+                            searchQuery
+                                ? `Nothing matched "${searchQuery}". Try a different keyword or create a new project.`
+                                : `Create the first project and turn ${team.name} into an active delivery space.`
+                        }
+                    />
                 )}
             </section>
 

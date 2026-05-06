@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import Link from "@/components/app-link";
 import { useRouter } from "@/lib/navigation";
+import { EmptyState } from "@/components/ui/empty-state";
 import { CreateProjectModal } from "@/components/modals/create-project-modal";
 import { InstallPrompt } from "@/components/pwa/install-prompt";
 import { MobilePremiumPrompt } from "@/components/layout/mobile-premium-prompt";
@@ -379,15 +380,11 @@ export default function DashboardPage() {
                                 )}
 
                                 {!hasAnyActions ? (
-                                    <div className="rounded-[24px] border border-dashed border-slate-200 bg-slate-50/50 px-6 py-12 text-center flex flex-col items-center">
-                                        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white shadow-sm mb-4">
-                                            <CheckCircle2 className="h-6 w-6 text-emerald-500" />
-                                        </div>
-                                        <h3 className="text-lg font-medium text-slate-900">Your queue is clear</h3>
-                                        <p className="mt-2 text-sm text-slate-500 max-w-sm mx-auto leading-relaxed">
-                                            There's nothing competing for your attention right now. You can safely explore supporting work below.
-                                        </p>
-                                    </div>
+                                    <EmptyState
+                                        icon={<CheckCircle2 className="h-6 w-6 text-emerald-500" />}
+                                        title="Your queue is clear"
+                                        description="There's nothing competing for your attention right now. You can safely explore supporting work below."
+                                    />
                                 ) : (
                                     <div className="space-y-6 md:space-y-8">
                                         {bucketOrder.map((bucket) => {
@@ -473,29 +470,23 @@ export default function DashboardPage() {
                             </section>
                         </>
                     ) : (
-                        <section className="rounded-[32px] border border-dashed border-slate-300 bg-slate-50 px-6 py-16 text-center md:py-24 shadow-sm animate-in fade-in duration-500">
-                            <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-white shadow-sm border border-black/5 mb-6">
-                                <FolderKanban className="h-10 w-10 text-slate-400" />
-                            </div>
-                            <h2 className="text-3xl font-semibold tracking-tight text-slate-900">
-                                No projects yet
-                            </h2>
-                            <p className="mt-4 text-[16px] text-slate-500 max-w-lg mx-auto leading-relaxed">
-                                You don't have any projects in this workspace yet. Create your first project to start organizing work, collaborating with your team, and tracking delivery.
-                            </p>
-                            {currentTeam && (
-                                <div className="mt-10">
-                                    <button
-                                        type="button"
-                                        onClick={() => setIsProjectModalOpen(true)}
-                                        className="inline-flex items-center justify-center gap-2 rounded-full bg-slate-900 px-8 py-4 text-[16px] font-semibold text-white transition hover:bg-slate-800 hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-black/10"
-                                    >
-                                        <Plus className="h-5 w-5" aria-hidden="true" />
-                                        Create your first project
-                                    </button>
-                                </div>
-                            )}
-                        </section>
+                        <EmptyState
+                            size="hero"
+                            className="shadow-sm animate-in fade-in duration-500"
+                            icon={<FolderKanban className="h-10 w-10 text-slate-400" />}
+                            title="No projects yet"
+                            description="You don't have any projects in this workspace yet. Create your first project to start organizing work, collaborating with your team, and tracking delivery."
+                            action={currentTeam ? (
+                                <button
+                                    type="button"
+                                    onClick={() => setIsProjectModalOpen(true)}
+                                    className="inline-flex items-center justify-center gap-2 rounded-full bg-slate-900 px-8 py-4 text-[16px] font-semibold text-white transition hover:bg-slate-800 hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-black/10"
+                                >
+                                    <Plus className="h-5 w-5" aria-hidden="true" />
+                                    Create your first project
+                                </button>
+                            ) : null}
+                        />
                     )}
                 </div>
 

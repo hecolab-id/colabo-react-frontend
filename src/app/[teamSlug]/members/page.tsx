@@ -25,6 +25,7 @@ import { leaveTeam, updateMemberRole, getRoles } from "@/lib/api";
 import { useStore } from "@/lib/store";
 import { Role, User } from "@/lib/types";
 import { Avatar } from "@/components/ui/avatar";
+import { EmptyState } from "@/components/ui/empty-state";
 
 export default function MembersPage({ params }: { params: Promise<{ teamSlug: string }> }) {
     const { teamSlug } = use(params);
@@ -403,12 +404,10 @@ export default function MembersPage({ params }: { params: Promise<{ teamSlug: st
                                 );
                             })
                         ) : (
-                            <div className="rounded-[32px] border border-dashed border-black/10 bg-slate-50 px-6 py-14 text-center">
-                                <h3 className="text-[18px] font-semibold text-slate-900 tracking-tight">No Members Yet</h3>
-                                <p className="mt-2 text-[14px] text-slate-500">
-                                    Start by inviting teammates so roles, access, and ownership stay visible in one place.
-                                </p>
-                            </div>
+                            <EmptyState
+                                title="No Members Yet"
+                                description="Start by inviting teammates so roles, access, and ownership stay visible in one place."
+                            />
                         )}
                     </div>
                 </section>

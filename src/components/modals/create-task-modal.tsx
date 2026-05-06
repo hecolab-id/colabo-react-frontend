@@ -7,6 +7,7 @@ import { Listbox, ListboxButton, ListboxOption, ListboxOptions } from "@headless
 import { cn } from "@/lib/utils";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/ui/empty-state";
 import { Input } from "@/components/ui/input";
 import { ModalShell } from "@/components/ui/modal-shell";
 import { SettingsField } from "@/components/ui/settings-field";
@@ -272,34 +273,22 @@ export function CreateTaskModal({
             contentClassName="max-h-[90dvh] overflow-y-visible scrollbar-hide"
         >
                 {projects.length === 0 ? (
-                    <div className="rounded-[24px] border border-dashed border-slate-200 bg-slate-50/50 px-6 py-10 text-center mb-2">
-                        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-white shadow-sm border border-black/5">
-                            <FolderPlus className="h-8 w-8 text-slate-400" aria-hidden="true" />
-                        </div>
-                        <h3 className="mt-5 text-lg font-semibold text-slate-900">Workspace required</h3>
-                        <p className="mx-auto mt-2 text-sm leading-relaxed text-slate-500 text-balance">
-                            Create your first project block before delegating assignments.
-                        </p>
-                        <div className="mt-8 flex flex-col gap-3">
-                            <Button
-                                type="button"
-                                onClick={onCreateProject}
-                                size="lg"
-                                className="w-full"
-                            >
-                                Setup New Project
-                            </Button>
-                            <Button
-                                type="button"
-                                onClick={onClose}
-                                variant="ghost"
-                                size="lg"
-                                className="w-full"
-                            >
-                                Not Right Now
-                            </Button>
-                        </div>
-                    </div>
+                    <EmptyState
+                        className="mb-2"
+                        icon={<FolderPlus className="h-8 w-8 text-slate-400" aria-hidden="true" />}
+                        title="Workspace required"
+                        description="Create your first project block before delegating assignments."
+                        action={
+                            <div className="flex w-full flex-col gap-3">
+                                <Button type="button" onClick={onCreateProject} size="lg" className="w-full">
+                                    Setup New Project
+                                </Button>
+                                <Button type="button" onClick={onClose} variant="ghost" size="lg" className="w-full">
+                                    Not Right Now
+                                </Button>
+                            </div>
+                        }
+                    />
                 ) : (
                     <form onSubmit={handleSubmit} className="space-y-6 block">
                         {successMessage && (
