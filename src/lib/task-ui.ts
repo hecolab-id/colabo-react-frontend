@@ -101,7 +101,7 @@ export function getDueDateTone(date?: string | null) {
 
     if (isOverdue) {
         return {
-            className: "kanban-overdue-date border border-[#f0a8b2] bg-[#fff0f3] text-[#b8204f] font-semibold dark:border-[#904965] dark:bg-[#432431] dark:text-[#ffabc6]",
+            className: "kanban-overdue-date border border-[#f0a8b2] bg-[#fff0f3] text-[#b8204f] font-semibold",
             label: "Overdue",
             isOverdue: true,
         };
