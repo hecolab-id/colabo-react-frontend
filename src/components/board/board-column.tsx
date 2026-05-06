@@ -178,7 +178,7 @@ const BoardColumnBase = forwardRef<HTMLDivElement, BoardColumnProps>(({
                                     onMeasure={virtual.setSize}
                                     onClick={() => onTaskClick?.(task.id)}
                                 >
-                                    <TaskCard task={task} sortable={!isColumnDragging} />
+                                    <TaskCard task={task} sortable={!isColumnDragging} elevated />
                                 </MeasuredVirtualTask>
                             ))}
                         </div>
@@ -186,7 +186,7 @@ const BoardColumnBase = forwardRef<HTMLDivElement, BoardColumnProps>(({
                         <div className="space-y-3">
                             {visibleTasks.map(({ task }) => (
                                 <div key={task.id} className="min-w-0" onClick={() => onTaskClick?.(task.id)}>
-                                    <TaskCard task={task} sortable={!isColumnDragging} />
+                                    <TaskCard task={task} sortable={!isColumnDragging} elevated />
                                 </div>
                             ))}
                         </div>

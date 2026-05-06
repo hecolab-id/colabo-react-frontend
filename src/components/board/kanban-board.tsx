@@ -546,7 +546,7 @@ export function KanbanBoard({ initialTasks, columns, initialTaskId, onAddTask, o
                     <DragOverlay dropAnimation={null}>
                         {activeTask ? (
                             <div className="pointer-events-none">
-                                <TaskCard task={activeTask} sortable={false} isBoardDragging />
+                                <TaskCard task={activeTask} sortable={false} isBoardDragging elevated />
                             </div>
                         ) : null}
                         {activeColumn ? (

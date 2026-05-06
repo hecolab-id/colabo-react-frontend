@@ -3,19 +3,12 @@
 import { memo, useMemo, type CSSProperties, type HTMLAttributes } from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { Task, TaskStatus } from "@/lib/types";
+import { Task } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { MessageCircle, Calendar } from "lucide-react";
 import { Avatar } from "@/components/ui/avatar";
 import { LabelBadge } from "@/components/ui/label-badge";
-import { formatTaskDate, getDueDateTone, getPriorityTone, getStatusTone } from "@/lib/task-ui";
-
-const STATUS_DOT_CLASS: Record<TaskStatus, string> = {
-    BACKLOG: "bg-slate-300",
-    TODO: "bg-slate-400",
-    IN_PROGRESS: "bg-sky-400",
-    DONE: "bg-emerald-400",
-};
+import { formatTaskDate, getDueDateTone, getPriorityTone, getStatusTone, STATUS_DOT_CLASS } from "@/lib/task-ui";
 
 interface TaskCardProps {
     task: Task;
@@ -23,6 +16,12 @@ interface TaskCardProps {
     isBoardDragging?: boolean;
     showProjectContext?: boolean;
     showStatusBadge?: boolean;
+    /**
+     * When true, the card uses the frosted-glass surface (translucent + backdrop blur) appropriate
+     * for cards laid over the kanban column shell. Defaults to false: opaque white, no blur, suitable
+     * for cards on the page canvas (My Tasks grid, list rows). Per DESIGN.md `Frosted-When-Overlaid` rule.
+     */
+    elevated?: boolean;
 }
 
 type TaskCardSurfaceProps = {
@@ -34,9 +33,10 @@ type TaskCardSurfaceProps = {
     dragProps?: HTMLAttributes<HTMLDivElement>;
     showProjectContext?: boolean;
     showStatusBadge?: boolean;
+    elevated?: boolean;
 };
 
-function SortableTaskCard({ task, isBoardDragging = false, showProjectContext = false, showStatusBadge = false }: TaskCardProps) {
+function SortableTaskCard({ task, isBoardDragging = false, showProjectContext = false, showStatusBadge = false, elevated = false }: TaskCardProps) {
     const sortableState = useSortable({
         id: task.id,
         data: { type: "task", taskId: task.id },
@@ -67,6 +67,7 @@ function SortableTaskCard({ task, isBoardDragging = false, showProjectContext = 
             dragProps={dragProps}
             showProjectContext={showProjectContext}
             showStatusBadge={showStatusBadge}
+            elevated={elevated}
         />
     );
 }
@@ -80,6 +81,7 @@ function TaskCardSurface({
     dragProps,
     showProjectContext = false,
     showStatusBadge = false,
+    elevated = false,
 }: TaskCardSurfaceProps) {
     const priority = getPriorityTone(task.priority);
     const progress = useMemo(() => {
@@ -117,12 +119,18 @@ function TaskCardSurface({
             ref={setNodeRef}
             style={style}
             className={cn(
-                "kanban-task-card relative cursor-pointer touch-manipulation select-none overflow-hidden rounded-[1.15rem] border border-white/80 bg-white/88 p-3.5 shadow-[0_10px_24px_-22px_rgba(15,23,42,0.32)] md:p-4",
+                "kanban-task-card relative cursor-pointer touch-manipulation select-none overflow-hidden rounded-[1.15rem] p-3.5 shadow-[0_10px_24px_-22px_rgba(15,23,42,0.32)] md:p-4",
+                elevated
+                    ? "border border-white/80 bg-white/88"
+                    : "border border-black/5 bg-white",
                 task.priority === "HIGH" && priority.highAccentClassName,
                 dueDateTone.isOverdue && "is-overdue",
                 isBoardDragging
                     ? "will-change-transform transition-none shadow-none"
-                    : "backdrop-blur-xl transition-[transform,border-color,box-shadow] duration-200 ease-out hover:border-slate-300 hover:shadow-[0_18px_36px_-28px_rgba(15,23,42,0.44)]",
+                    : cn(
+                        "transition-[transform,border-color,box-shadow] duration-200 ease-out hover:border-slate-300 hover:shadow-[0_18px_36px_-28px_rgba(15,23,42,0.44)]",
+                        elevated && "backdrop-blur-xl",
+                    ),
                 isDragging && "opacity-60 ring-2 ring-primary/15"
             )}
             {...dragProps}
@@ -191,8 +199,10 @@ function TaskCardSurface({
                     <div className="h-1.5 overflow-hidden rounded-full bg-slate-100">
                         <div
                             className={cn(
-                                "h-full rounded-full transition-[width,background-image]",
-                                progress.value === 100 ? "bg-gradient-to-r from-green-400 to-green-500" : "bg-gradient-to-r from-orange-400 to-orange-500"
+                                "h-full rounded-full transition-[width,background-color]",
+                                progress.value === 100
+                                    ? "bg-[var(--status-done-fg)]"
+                                    : "bg-primary",
                             )}
                             style={{ width: `${progress.value}%` }}
                         />
@@ -237,6 +247,7 @@ function TaskCardBase({ sortable = true, ...props }: TaskCardProps) {
             isBoardDragging={props.isBoardDragging}
             showProjectContext={props.showProjectContext}
             showStatusBadge={props.showStatusBadge}
+            elevated={props.elevated}
         />
     );
 }

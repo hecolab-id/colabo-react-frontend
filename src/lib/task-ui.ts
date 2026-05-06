@@ -85,6 +85,19 @@ export function getStatusTone(status?: TaskStatus | null) {
     return statusToneMap[status as TaskStatus] || statusToneMap.TODO;
 }
 
+// Single source of truth for the small status dot used in cards/columns.
+// Each value is the saturated foreground hue of its status, sourced from
+// CSS vars so a theme override stays consistent.
+//
+// IN_PROGRESS purposely shares Workshop Violet's hue (the brand accent) per
+// DESIGN.md "in-progress IS the moment the user is acting" doctrine.
+export const STATUS_DOT_CLASS: Record<TaskStatus, string> = {
+    TODO: "bg-[var(--status-todo-fg)]",
+    IN_PROGRESS: "bg-[var(--status-in-progress-fg)]",
+    DONE: "bg-[var(--status-done-fg)]",
+    BACKLOG: "bg-[var(--status-backlog-fg)]",
+};
+
 export function getDueDateTone(date?: string | null) {
     if (!date) {
         return {
