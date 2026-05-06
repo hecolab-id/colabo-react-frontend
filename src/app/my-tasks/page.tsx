@@ -9,9 +9,9 @@ import {
     ListTodo,
     AlertTriangle,
 } from "lucide-react";
-import { getMyTasks, updateTask } from "@/lib/api";
+import { getMyTasks } from "@/lib/api";
 import { cn } from "@/lib/utils";
-import { Task, TaskStatus } from "@/lib/types";
+import { Task } from "@/lib/types";
 import {
     formatTaskDate,
     getPriorityTone,
@@ -68,27 +68,6 @@ export default function MyTasksPage() {
 
     useEffect(() => {
         loadTasks();
-    }, [loadTasks]);
-
-    const handleTaskStatusChange = useCallback(async (taskId: string, newStatus: TaskStatus) => {
-        let previousStatus: TaskStatus | undefined;
-        setTasks((prev) => prev.map((task) => {
-            if (task.id !== taskId) return task;
-            previousStatus = task.status;
-            return { ...task, status: newStatus };
-        }));
-
-        try {
-            await updateTask(taskId, { status: newStatus });
-        } catch (error) {
-            console.error("Failed to update task status", error);
-            if (previousStatus) {
-                setTasks((prev) => prev.map((task) => (
-                    task.id === taskId ? { ...task, status: previousStatus as TaskStatus } : task
-                )));
-            }
-            loadTasks();
-        }
     }, [loadTasks]);
 
     useEffect(() => {
@@ -185,11 +164,7 @@ export default function MyTasksPage() {
 
             {viewMode === "board" ? (
                 <section className="animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both">
-                    <MyTasksBoard
-                        tasks={tasks}
-                        getTaskHref={getTaskHref}
-                        onTaskStatusChange={handleTaskStatusChange}
-                    />
+                    <MyTasksBoard tasks={tasks} getTaskHref={getTaskHref} />
                 </section>
             ) : (
                 <>

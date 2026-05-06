@@ -4,17 +4,25 @@ import { memo, useMemo, type CSSProperties, type HTMLAttributes } from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import Image from "@/components/app-image";
-import { Task } from "@/lib/types";
+import { Task, TaskStatus } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { MessageCircle, Calendar } from "lucide-react";
 import { LabelBadge } from "@/components/ui/label-badge";
-import { formatTaskDate, getDueDateTone, getPriorityTone } from "@/lib/task-ui";
+import { formatTaskDate, getDueDateTone, getPriorityTone, getStatusTone } from "@/lib/task-ui";
+
+const STATUS_DOT_CLASS: Record<TaskStatus, string> = {
+    BACKLOG: "bg-slate-300",
+    TODO: "bg-slate-400",
+    IN_PROGRESS: "bg-sky-400",
+    DONE: "bg-emerald-400",
+};
 
 interface TaskCardProps {
     task: Task;
     sortable?: boolean;
     isBoardDragging?: boolean;
     showProjectContext?: boolean;
+    showStatusBadge?: boolean;
 }
 
 type TaskCardSurfaceProps = {
@@ -25,9 +33,10 @@ type TaskCardSurfaceProps = {
     style?: CSSProperties;
     dragProps?: HTMLAttributes<HTMLDivElement>;
     showProjectContext?: boolean;
+    showStatusBadge?: boolean;
 };
 
-function SortableTaskCard({ task, isBoardDragging = false, showProjectContext = false }: TaskCardProps) {
+function SortableTaskCard({ task, isBoardDragging = false, showProjectContext = false, showStatusBadge = false }: TaskCardProps) {
     const sortableState = useSortable({
         id: task.id,
         data: { type: "task", taskId: task.id },
@@ -57,6 +66,7 @@ function SortableTaskCard({ task, isBoardDragging = false, showProjectContext = 
             style={style}
             dragProps={dragProps}
             showProjectContext={showProjectContext}
+            showStatusBadge={showStatusBadge}
         />
     );
 }
@@ -69,6 +79,7 @@ function TaskCardSurface({
     style,
     dragProps,
     showProjectContext = false,
+    showStatusBadge = false,
 }: TaskCardSurfaceProps) {
     const priority = getPriorityTone(task.priority);
     const progress = useMemo(() => {
@@ -134,6 +145,12 @@ function TaskCardSurface({
                 >
                     {task.priority === "HIGH" ? "High" : task.priority === "MEDIUM" ? "Medium" : "Low"}
                 </span>
+                {showStatusBadge && (
+                    <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-slate-50 px-2.5 py-1 text-[11px] font-semibold text-slate-600">
+                        <span aria-hidden="true" className={cn("h-1.5 w-1.5 rounded-full", STATUS_DOT_CLASS[task.status])} />
+                        {getStatusTone(task.status).label}
+                    </span>
+                )}
             </div>
 
             <h4 className="mt-3 line-clamp-2 text-sm font-semibold leading-6 text-slate-950">
@@ -222,7 +239,14 @@ function TaskCardBase({ sortable = true, ...props }: TaskCardProps) {
         return <TaskCardSurface {...props} />;
     }
 
-    return <SortableTaskCard task={props.task} isBoardDragging={props.isBoardDragging} showProjectContext={props.showProjectContext} />;
+    return (
+        <SortableTaskCard
+            task={props.task}
+            isBoardDragging={props.isBoardDragging}
+            showProjectContext={props.showProjectContext}
+            showStatusBadge={props.showStatusBadge}
+        />
+    );
 }
 
 export const TaskCard = memo(TaskCardBase);
