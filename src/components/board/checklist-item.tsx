@@ -83,16 +83,18 @@ export function ChecklistItem({ item, onToggle, onDelete, onUpdate }: ChecklistI
 
             <div className="flex-1 flex items-start gap-2">
                 <button
+                    type="button"
                     onClick={() => onToggle(item.id, !item.is_done)}
+                    onPointerDown={(e) => e.stopPropagation()}
                     aria-label={item.is_done ? "Mark checklist item as incomplete" : "Mark checklist item as complete"}
                     className={cn(
-                        "mt-0.5 w-4 h-4 rounded border flex items-center justify-center transition-colors",
+                        "mt-0.5 flex h-5 w-5 shrink-0 cursor-pointer items-center justify-center rounded-md border-[1.5px] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40",
                         item.is_done
-                            ? "bg-primary border-primary text-primary-foreground"
-                            : "border-muted-foreground hover:border-primary"
+                            ? "border-primary bg-primary text-primary-foreground"
+                            : "border-muted-foreground/60 hover:border-primary hover:bg-primary/10"
                     )}
                 >
-                    {item.is_done && <Check className="w-3 h-3" />}
+                    {item.is_done && <Check className="h-3.5 w-3.5" strokeWidth={3} />}
                 </button>
 
                 {isEditing ? (
