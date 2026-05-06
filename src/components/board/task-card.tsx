@@ -3,10 +3,10 @@
 import { memo, useMemo, type CSSProperties, type HTMLAttributes } from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import Image from "@/components/app-image";
 import { Task, TaskStatus } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { MessageCircle, Calendar } from "lucide-react";
+import { Avatar } from "@/components/ui/avatar";
 import { LabelBadge } from "@/components/ui/label-badge";
 import { formatTaskDate, getDueDateTone, getPriorityTone, getStatusTone } from "@/lib/task-ui";
 
@@ -204,15 +204,7 @@ function TaskCardSurface({
                 <div className="flex min-w-0 items-center gap-2">
                     {task.assignee && (
                         <>
-                        <div className="h-7 w-7 shrink-0 overflow-hidden rounded-full border-2 border-white">
-                            <Image
-                                src={task.assignee.avatar_url || "https://ui-avatars.com/api/?background=afb2f6&name=" + encodeURIComponent(task.assignee.name)}
-                                alt={task.assignee.name}
-                                width={28}
-                                height={28}
-                                className="w-full h-full object-cover"
-                            />
-                        </div>
+                        <Avatar user={task.assignee} size="sm" ringed />
                         {assigneeFirstName ? (
                             <span className="hidden max-w-[6.5rem] truncate text-xs font-medium text-slate-600 md:block">
                                 {assigneeFirstName}

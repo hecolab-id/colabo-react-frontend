@@ -24,15 +24,7 @@ import { useTeam, useRemoveMember } from "@/lib/hooks/use-team";
 import { leaveTeam, updateMemberRole, getRoles } from "@/lib/api";
 import { useStore } from "@/lib/store";
 import { Role, User } from "@/lib/types";
-
-function getInitials(name: string) {
-    return name
-        .split(" ")
-        .filter(Boolean)
-        .slice(0, 2)
-        .map((part) => part[0]?.toUpperCase())
-        .join("");
-}
+import { Avatar } from "@/components/ui/avatar";
 
 export default function MembersPage({ params }: { params: Promise<{ teamSlug: string }> }) {
     const { teamSlug } = use(params);
@@ -295,9 +287,7 @@ export default function MembersPage({ params }: { params: Promise<{ teamSlug: st
                                     >
                                         <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
                                             <div className="flex min-w-0 items-start gap-4 lg:items-center">
-                                                <div className="flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-full bg-slate-900 text-[15px] font-bold text-white shadow-sm">
-                                                    {getInitials(member.name)}
-                                                </div>
+                                                <Avatar user={member} size="lg" className="shadow-sm" />
 
                                                 <div className="min-w-0">
                                                     <div className="flex flex-wrap items-center gap-2">

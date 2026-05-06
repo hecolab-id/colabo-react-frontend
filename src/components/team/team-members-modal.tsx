@@ -7,6 +7,7 @@ import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { createInvite, removeMember, getTeamInvites } from "@/lib/api";
 import { useEscapeKey } from "@/lib/hooks/use-escape-key";
+import { Avatar } from "@/components/ui/avatar";
 
 interface TeamMembersModalProps {
     team: Team;
@@ -199,9 +200,7 @@ export function TeamMembersModal({ team, currentUser, onClose, onUpdate }: TeamM
                             {members.map((member) => (
                                 <div key={member.id} className="flex items-center justify-between p-4 rounded-[24px] border border-black/5 bg-slate-50 shadow-sm transition-all hover:bg-white hover:shadow-md">
                                     <div className="flex items-center gap-4">
-                                        <div className="w-12 h-12 rounded-[16px] bg-slate-900 flex items-center justify-center text-sm font-bold text-white shadow-lg shadow-slate-900/10">
-                                            {member.name.charAt(0)}
-                                        </div>
+                                        <Avatar user={member} size="md" className="h-12 w-12 shadow-lg shadow-slate-900/10" />
                                         <div>
                                             <p className="text-[15px] font-semibold text-slate-900 flex items-center gap-2">
                                                 {member.name}

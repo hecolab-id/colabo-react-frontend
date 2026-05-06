@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { PlanPackageDialog } from "@/components/billing/plan-package-dialog";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
+import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SettingsField } from "@/components/ui/settings-field";
@@ -945,9 +946,7 @@ function TeamSettingsPageContent({ params }: { params: Promise<{ teamSlug: strin
                                         selectedNewOwner === member.id ? "bg-white shadow-sm" : ""
                                     }`}
                                 >
-                                    <div className="flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-full bg-slate-900 text-[13px] font-bold text-white shadow-sm">
-                                        {member.name.charAt(0)}
-                                    </div>
+                                    <Avatar user={member} size="md" className="h-[42px] w-[42px] text-[13px] shadow-sm" />
                                     <div className="min-w-0 flex-1">
                                         <p className="truncate text-[14px] font-semibold text-slate-900">{member.name}</p>
                                         <p className="truncate text-[13px] text-slate-500">{member.email}</p>

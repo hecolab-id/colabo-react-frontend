@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback, type ReactNode } from "react";
-import Image from "@/components/app-image";
 import { inviteProjectMember, getProjectInvites, getTeamBySlug, removeProjectMember } from "@/lib/api";
 import { Project, User, ProjectInvite } from "@/lib/types";
 import { Search, UserPlus, Trash2 } from "lucide-react";
 import { useParams } from "@/lib/navigation";
+import { Avatar } from "@/components/ui/avatar";
 import { ModalShell } from "@/components/ui/modal-shell";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -194,13 +194,7 @@ export function ManageProjectMembersModal({
                                         project.members.map((member) => (
                                             <div key={member.id} className="flex items-center justify-between rounded-[1.35rem] border border-black/5 bg-white/78 p-3 shadow-[0_18px_40px_-34px_rgba(15,23,42,0.42)] transition-[border-color,background-color,box-shadow] hover:border-slate-200 hover:bg-white hover:shadow-[0_22px_50px_-34px_rgba(15,23,42,0.5)]">
                                                 <div className="flex items-center gap-3">
-                                                    <div className="h-10 w-10 rounded-[12px] bg-slate-900 flex items-center justify-center text-white text-sm font-semibold shadow-sm">
-                                                        {member.avatar_url ? (
-                                                            <Image src={member.avatar_url} alt={member.name} width={40} height={40} className="h-10 w-10 rounded-[12px]" />
-                                                        ) : (
-                                                            member.name.charAt(0)
-                                                        )}
-                                                    </div>
+                                                    <Avatar user={member} size="md" className="h-10 w-10 shadow-sm" />
                                                     <div>
                                                         <p className="text-[14px] font-semibold text-slate-900">{member.name}</p>
                                                         <p className="text-[12px] font-medium text-slate-500">{member.email}</p>
@@ -270,13 +264,7 @@ export function ManageProjectMembersModal({
                                         availableMembers.map((user) => (
                                             <div key={user.id} className="flex items-center justify-between p-3 rounded-[16px] transition-colors border border-transparent hover:border-black/5 hover:bg-slate-50 hover:shadow-sm group">
                                                 <div className="flex items-center gap-3">
-                                                    <div className="h-8 w-8 rounded-[10px] bg-slate-100 flex items-center justify-center text-slate-900 text-[11px] font-bold shadow-sm">
-                                                        {user.avatar_url ? (
-                                                            <Image src={user.avatar_url} alt={user.name} width={32} height={32} className="h-8 w-8 rounded-[10px]" />
-                                                        ) : (
-                                                            user.name.charAt(0)
-                                                        )}
-                                                    </div>
+                                                    <Avatar user={user} size="sm" tone="tint" />
                                                     <div className="text-[13px]">
                                                         <p className="font-semibold text-slate-900 leading-tight">{user.name}</p>
                                                         <p className="font-medium text-slate-500 mt-0.5">{user.email}</p>

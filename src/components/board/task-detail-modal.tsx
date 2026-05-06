@@ -54,6 +54,7 @@ import {
 import { Checklist } from "./checklist";
 import { useStore } from "@/lib/store";
 import { useEscapeKey } from "@/lib/hooks/use-escape-key";
+import { Avatar } from "@/components/ui/avatar";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 import { RichTextEditor } from "@/components/ui/rich-text-editor";
 import { LabelSelector } from "@/components/modals/label-selector";
@@ -1389,9 +1390,7 @@ export function TaskDetailModal({ task, projectColumns: initialProjectColumns, o
 
                                                     return (
                                                         <article key={item.id} className="flex gap-3 rounded-[1.1rem] border border-slate-200/70 bg-white/62 p-3">
-                                                            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
-                                                                {item.user.name.charAt(0)}
-                                                            </div>
+                                                            <Avatar user={item.user} size="md" tone="tint" />
                                                             <div className="min-w-0 flex-1">
                                                                 <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
                                                                     <span className="text-sm font-semibold text-slate-950">{item.user.name}</span>
@@ -1452,9 +1451,7 @@ export function TaskDetailModal({ task, projectColumns: initialProjectColumns, o
                                                                                 index === activeMentionIndex ? "bg-primary/10 text-primary" : "hover:bg-slate-50"
                                                                             )}
                                                                         >
-                                                                            <div className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-primary/10 text-xs font-semibold text-primary">
-                                                                                {member.name.charAt(0)}
-                                                                            </div>
+                                                                            <Avatar user={member} size="sm" tone="tint" />
                                                                             <div className="min-w-0 flex-1">
                                                                                 <div className="truncate text-sm font-medium text-slate-950">{member.name}</div>
                                                                                 <div className="truncate text-xs text-slate-500">{member.email}</div>
@@ -1538,21 +1535,11 @@ export function TaskDetailModal({ task, projectColumns: initialProjectColumns, o
                                                     className="flex w-full items-center justify-between gap-3 rounded-[1.15rem] border border-slate-300 bg-white px-3 py-3 text-left transition-[border-color,background-color] hover:border-primary/25 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15"
                                                 >
                                                     <div className="min-w-0 flex items-center gap-3">
-                                                        <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary/10">
-                                                            {taskState.assignee?.avatar_url ? (
-                                                                <Image
-                                                                    src={taskState.assignee.avatar_url}
-                                                                    alt={taskState.assignee.name}
-                                                                    width={40}
-                                                                    height={40}
-                                                                    className="h-full w-full object-cover"
-                                                                />
-                                                            ) : (
-                                                                <span className="text-sm font-semibold text-primary">
-                                                                    {taskState.assignee?.name?.charAt(0) || "?"}
-                                                                </span>
-                                                            )}
-                                                        </div>
+                                                        {taskState.assignee ? (
+                                                            <Avatar user={taskState.assignee} size="md" tone="tint" className="h-10 w-10" />
+                                                        ) : (
+                                                            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary">?</span>
+                                                        )}
                                                         <div className="min-w-0">
                                                             <p className="truncate text-sm font-semibold text-slate-950">
                                                                 {taskState.assignee?.name || "Unassigned"}
@@ -1585,21 +1572,7 @@ export function TaskDetailModal({ task, projectColumns: initialProjectColumns, o
                                                                     onClick={() => handleAssign(member.id)}
                                                                     className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left text-sm transition-colors hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15"
                                                                 >
-                                                                    <div className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-primary/10">
-                                                                        {member.avatar_url ? (
-                                                                            <Image
-                                                                                src={member.avatar_url}
-                                                                                alt={member.name}
-                                                                                width={32}
-                                                                                height={32}
-                                                                                className="h-full w-full object-cover"
-                                                                            />
-                                                                        ) : (
-                                                                            <span className="text-xs font-semibold text-primary">
-                                                                                {member.name.charAt(0)}
-                                                                            </span>
-                                                                        )}
-                                                                    </div>
+                                                                    <Avatar user={member} size="sm" tone="tint" />
                                                                     <span className="min-w-0 flex-1 truncate text-slate-900">{member.name}</span>
                                                                     {taskState.assignee_id === member.id ? (
                                                                         <Check className="h-4 w-4 text-primary" aria-hidden="true" />
@@ -1786,9 +1759,7 @@ export function TaskDetailModal({ task, projectColumns: initialProjectColumns, o
                                                         index === activeMentionIndex ? "bg-primary/10 text-primary" : "hover:bg-slate-50"
                                                     )}
                                                 >
-                                                    <div className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-primary/10 text-xs font-semibold text-primary">
-                                                        {member.name.charAt(0)}
-                                                    </div>
+                                                    <Avatar user={member} size="sm" tone="tint" />
                                                     <div className="min-w-0 flex-1">
                                                         <div className="truncate text-sm font-medium text-slate-950">{member.name}</div>
                                                         <div className="truncate text-xs text-slate-500">{member.email}</div>

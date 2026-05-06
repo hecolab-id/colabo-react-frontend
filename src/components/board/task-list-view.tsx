@@ -1,12 +1,12 @@
 "use client";
 
-import Image from "@/components/app-image";
 import { usePathname, useRouter, useSearchParams } from "@/lib/navigation";
 import { Task, Column } from "@/lib/types";
 import { TaskDetailModal } from "./task-detail-modal";
 import { ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { ChevronRight, ChevronDown, Circle, Clock, AlertCircle, Calendar } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Avatar } from "@/components/ui/avatar";
 import { LabelBadge } from "@/components/ui/label-badge";
 import { formatTaskDate, getDueDateTone, priorityToneMap } from "@/lib/task-ui";
 import { useVirtualWindow } from "@/lib/hooks/use-virtual-window";
@@ -329,19 +329,7 @@ function TaskListRow({ task, column, onClick }: { task: Task; column: Column; on
             <div className="flex items-center justify-between gap-3 border-t border-black/5 pt-3 md:col-span-2 md:justify-start md:border-t-0 md:pt-0">
                 {task.assignee ? (
                     <div className="flex min-w-0 items-center gap-2">
-                        <div className="flex h-7 w-7 items-center justify-center overflow-hidden rounded-full bg-primary/10">
-                            {task.assignee.avatar_url ? (
-                                <Image
-                                    src={task.assignee.avatar_url}
-                                    alt={task.assignee.name}
-                                    width={28}
-                                    height={28}
-                                    className="h-full w-full object-cover"
-                                />
-                            ) : (
-                                <span className="text-xs font-medium text-primary">{task.assignee.name.charAt(0)}</span>
-                            )}
-                        </div>
+                        <Avatar user={task.assignee} size="sm" tone="tint" />
                         <span className="min-w-0 truncate text-sm text-muted-foreground">{task.assignee.name}</span>
                     </div>
                 ) : (

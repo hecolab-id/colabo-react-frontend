@@ -5,6 +5,7 @@ import { FolderPlus, X, CheckCircle2, Check, ChevronDown } from "lucide-react";
 import { Column, Project, TaskStatus, User } from "@/lib/types";
 import { Listbox, ListboxButton, ListboxOption, ListboxOptions } from "@headlessui/react";
 import { cn } from "@/lib/utils";
+import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ModalShell } from "@/components/ui/modal-shell";
@@ -21,38 +22,6 @@ export type CreateTaskFormValues = {
 
 type ProjectOption = Pick<Project, "id" | "name" | "slug">;
 type AssigneeOption = Pick<User, "id" | "name" | "email" | "avatar_url">;
-
-function getInitials(name: string) {
-    return name
-        .split(" ")
-        .filter(Boolean)
-        .slice(0, 2)
-        .map((part) => part[0]?.toUpperCase() ?? "")
-        .join("") || "?";
-}
-
-function AssigneeAvatar({ user, size = 28 }: { user: Pick<User, "name" | "avatar_url">; size?: number }) {
-    const dimension = { width: size, height: size };
-    if (user.avatar_url) {
-        return (
-            <img
-                src={user.avatar_url}
-                alt=""
-                className="rounded-full object-cover ring-1 ring-black/5"
-                style={dimension}
-            />
-        );
-    }
-    return (
-        <span
-            aria-hidden="true"
-            className="inline-flex items-center justify-center rounded-full bg-slate-900 font-semibold text-white"
-            style={{ ...dimension, fontSize: Math.max(10, Math.round(size * 0.42)) }}
-        >
-            {getInitials(user.name)}
-        </span>
-    );
-}
 
 const statusOptions: Array<{ value: TaskStatus; label: string }> = [
     { value: "TODO", label: "To Do" },
@@ -377,7 +346,7 @@ export function CreateTaskModal({
                                     options={assignees.map((a) => ({
                                         value: a.id,
                                         label: a.name,
-                                        leading: <AssigneeAvatar user={a} size={24} />,
+                                        leading: <Avatar user={a} size="xs" />,
                                     }))}
                                 />
                             </SettingsField>

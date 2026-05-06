@@ -22,6 +22,7 @@ import {
 } from "@/lib/hooks/use-messenger";
 import { Bell, Bot, Camera, Check, ChevronDown, ChevronRight, Loader2, Save, Search, UserRound, X } from "lucide-react";
 import Link from "@/components/app-link";
+import { getInitials } from "@/components/ui/avatar";
 import { Formik, Form, Field } from "formik";
 import {
     Combobox,
@@ -124,14 +125,6 @@ function sanitizeDigits(value: string) {
     return value.replace(/\D/g, "");
 }
 
-function getInitials(name: string) {
-    return name
-        .split(" ")
-        .map((part) => part[0])
-        .join("")
-        .slice(0, 2)
-        .toUpperCase() || "U";
-}
 
 function readFileAsDataUrl(file: File) {
     return new Promise<string>((resolve, reject) => {
