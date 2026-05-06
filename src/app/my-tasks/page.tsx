@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Link from "@/components/app-link";
 import {
     ArrowRight,
@@ -9,15 +9,20 @@ import {
     ListTodo,
     AlertTriangle,
 } from "lucide-react";
-import { getMyTasks } from "@/lib/api";
+import { getMyTasks, updateTask } from "@/lib/api";
 import { cn } from "@/lib/utils";
-import { Task } from "@/lib/types";
+import { Task, TaskStatus } from "@/lib/types";
 import {
     formatTaskDate,
     getPriorityTone,
     getStatusTone,
     getDueDateTone,
 } from "@/lib/task-ui";
+import { ProjectViewModeSwitcher } from "@/components/project/project-toolbar";
+import { MyTasksBoard } from "@/components/my-tasks/my-tasks-board";
+
+type MyTasksViewMode = "board" | "list";
+const VIEW_MODE_STORAGE_KEY = "colabo:my-tasks:view-mode";
 
 function isTaskDone(task: Task) {
     return task.status === "DONE" || task.column?.type === "done";
@@ -46,23 +51,58 @@ function getTaskIdentifier(task: Task) {
 export default function MyTasksPage() {
     const [tasks, setTasks] = useState<Task[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [viewMode, setViewMode] = useState<MyTasksViewMode>("list");
+
+    const loadTasks = useCallback(async () => {
+        try {
+            setIsLoading(true);
+            const data = await getMyTasks();
+            setTasks(data || []);
+        } catch (error) {
+            console.error("Failed to load tasks", error);
+            setTasks([]);
+        } finally {
+            setIsLoading(false);
+        }
+    }, []);
 
     useEffect(() => {
-        async function loadTasks() {
-            try {
-                setIsLoading(true);
-                const data = await getMyTasks();
-                setTasks(data || []);
-            } catch (error) {
-                console.error("Failed to load tasks", error);
-                setTasks([]);
-            } finally {
-                setIsLoading(false);
-            }
-        }
-
         loadTasks();
+    }, [loadTasks]);
+
+    const handleTaskStatusChange = useCallback(async (taskId: string, newStatus: TaskStatus) => {
+        let previousStatus: TaskStatus | undefined;
+        setTasks((prev) => prev.map((task) => {
+            if (task.id !== taskId) return task;
+            previousStatus = task.status;
+            return { ...task, status: newStatus };
+        }));
+
+        try {
+            await updateTask(taskId, { status: newStatus });
+        } catch (error) {
+            console.error("Failed to update task status", error);
+            if (previousStatus) {
+                setTasks((prev) => prev.map((task) => (
+                    task.id === taskId ? { ...task, status: previousStatus as TaskStatus } : task
+                )));
+            }
+            loadTasks();
+        }
+    }, [loadTasks]);
+
+    useEffect(() => {
+        if (typeof window === "undefined") return;
+        const stored = window.localStorage.getItem(VIEW_MODE_STORAGE_KEY);
+        if (stored === "board" || stored === "list") {
+            setViewMode(stored);
+        }
     }, []);
+
+    useEffect(() => {
+        if (typeof window === "undefined") return;
+        window.localStorage.setItem(VIEW_MODE_STORAGE_KEY, viewMode);
+    }, [viewMode]);
 
     const now = new Date();
     const upcomingCutoff = new Date(now);
@@ -129,8 +169,30 @@ export default function MyTasksPage() {
                         {tasks.length === 0 ? "No assignments yet." : `${activeTasks.length} active tasks waiting for your input.`}
                     </p>
                 </div>
+
+                <div className="mt-6 flex justify-start sm:justify-end">
+                    <ProjectViewModeSwitcher
+                        viewMode={viewMode}
+                        onChange={(mode) => {
+                            if (mode === "board" || mode === "list") {
+                                setViewMode(mode);
+                            }
+                        }}
+                        availableModes={["board", "list"]}
+                    />
+                </div>
             </header>
 
+            {viewMode === "board" ? (
+                <section className="animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both">
+                    <MyTasksBoard
+                        tasks={tasks}
+                        getTaskHref={getTaskHref}
+                        onTaskStatusChange={handleTaskStatusChange}
+                    />
+                </section>
+            ) : (
+                <>
             {startHereTask && (
                 <section className="animate-in fade-in slide-in-from-bottom-4 duration-500 delay-100 fill-mode-both">
                     <div className="mb-4">
@@ -330,6 +392,8 @@ export default function MyTasksPage() {
                     </div>
                 )}
             </section>
+                </>
+            )}
         </main>
     );
 }

@@ -14,6 +14,7 @@ interface TaskCardProps {
     task: Task;
     sortable?: boolean;
     isBoardDragging?: boolean;
+    showProjectContext?: boolean;
 }
 
 type TaskCardSurfaceProps = {
@@ -23,9 +24,10 @@ type TaskCardSurfaceProps = {
     setNodeRef?: (element: HTMLDivElement | null) => void;
     style?: CSSProperties;
     dragProps?: HTMLAttributes<HTMLDivElement>;
+    showProjectContext?: boolean;
 };
 
-function SortableTaskCard({ task, isBoardDragging = false }: TaskCardProps) {
+function SortableTaskCard({ task, isBoardDragging = false, showProjectContext = false }: TaskCardProps) {
     const sortableState = useSortable({
         id: task.id,
         data: { type: "task", taskId: task.id },
@@ -54,6 +56,7 @@ function SortableTaskCard({ task, isBoardDragging = false }: TaskCardProps) {
             setNodeRef={setNodeRef}
             style={style}
             dragProps={dragProps}
+            showProjectContext={showProjectContext}
         />
     );
 }
@@ -65,6 +68,7 @@ function TaskCardSurface({
     setNodeRef,
     style,
     dragProps,
+    showProjectContext = false,
 }: TaskCardSurfaceProps) {
     const priority = getPriorityTone(task.priority);
     const progress = useMemo(() => {
@@ -112,6 +116,14 @@ function TaskCardSurface({
             )}
             {...dragProps}
         >
+            {showProjectContext && task.project && (
+                <div className="mb-2 flex min-w-0 items-center gap-1.5 text-[10.5px] font-medium uppercase tracking-[0.14em] text-slate-500">
+                    <span className="font-mono text-slate-400">{task.project.key}</span>
+                    <span className="text-slate-300">·</span>
+                    <span className="truncate normal-case tracking-normal text-slate-600">{task.project.name}</span>
+                </div>
+            )}
+
             <div className="flex items-start justify-between gap-3">
                 <span
                     className={cn(
@@ -210,7 +222,7 @@ function TaskCardBase({ sortable = true, ...props }: TaskCardProps) {
         return <TaskCardSurface {...props} />;
     }
 
-    return <SortableTaskCard {...props} />;
+    return <SortableTaskCard task={props.task} isBoardDragging={props.isBoardDragging} showProjectContext={props.showProjectContext} />;
 }
 
 export const TaskCard = memo(TaskCardBase);

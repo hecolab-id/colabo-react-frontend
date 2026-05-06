@@ -28,17 +28,26 @@ function toggleSelection<T>(items: T[], value: T) {
 export function ProjectViewModeSwitcher({
     viewMode,
     onChange,
+    availableModes,
 }: {
     viewMode: ProjectViewMode;
     onChange: (mode: ProjectViewMode) => void;
+    availableModes?: ProjectViewMode[];
 }) {
+    const modes = ([
+        ["board", "Board", Columns],
+        ["list", "List", List],
+        ["calendar", "Calendar", CalendarDays],
+    ] as const).filter(([value]) => !availableModes || availableModes.includes(value));
+
     return (
-        <div className="grid grid-cols-3 gap-1 rounded-[0.95rem] border border-white/70 bg-white/78 p-1 shadow-[0_10px_24px_rgba(15,23,42,0.05)] backdrop-blur-xl md:flex md:items-center md:rounded-[1.1rem] md:p-1">
-            {([
-                ["board", "Board", Columns],
-                ["list", "List", List],
-                ["calendar", "Calendar", CalendarDays],
-            ] as const).map(([value, label, Icon]) => (
+        <div
+            className={cn(
+                "grid gap-1 rounded-[0.95rem] border border-white/70 bg-white/78 p-1 shadow-[0_10px_24px_rgba(15,23,42,0.05)] backdrop-blur-xl md:flex md:items-center md:rounded-[1.1rem] md:p-1",
+                modes.length === 3 ? "grid-cols-3" : modes.length === 2 ? "grid-cols-2" : "grid-cols-1",
+            )}
+        >
+            {modes.map(([value, label, Icon]) => (
                 <button
                     key={value}
                     onClick={() => onChange(value)}
