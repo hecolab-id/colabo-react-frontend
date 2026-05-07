@@ -36,13 +36,6 @@ export function AdminShell({ children }: { children: ReactNode }) {
     const [profileOpen, setProfileOpen] = useState(false);
 
     useEffect(() => {
-        document.documentElement.classList.add("admin-dark");
-        return () => {
-            document.documentElement.classList.remove("admin-dark");
-        };
-    }, []);
-
-    useEffect(() => {
         if (typeof window === "undefined") return;
         const saved = window.localStorage.getItem("admin-nav-collapsed");
         setIsCollapsed(saved === "true");
@@ -80,22 +73,26 @@ export function AdminShell({ children }: { children: ReactNode }) {
     };
 
     return (
-        <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.78),transparent_18%),radial-gradient(circle_at_top_right,rgba(184,173,255,0.14),transparent_26%),linear-gradient(180deg,#fdfefe_0%,#eef4fb_100%)] text-slate-950">
+        <main className="min-h-screen overflow-x-hidden bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.78),transparent_18%),radial-gradient(circle_at_top_right,rgba(184,173,255,0.14),transparent_26%),linear-gradient(180deg,#fdfefe_0%,#eef4fb_100%)] text-foreground">
             <aside
-                className={`fixed inset-y-0 left-0 z-40 hidden border-r border-white/75 bg-white/72 shadow-[20px_0_60px_rgba(15,23,42,0.06)] backdrop-blur-2xl lg:block ${
+                className={`fixed inset-y-0 left-0 z-40 hidden border-r border-black/5 bg-white lg:block ${
                     isCollapsed ? "w-[92px]" : "w-[284px]"
                 }`}
             >
                 <div className="flex h-full flex-col px-3 py-4">
                     <div className={`flex items-center ${isCollapsed ? "justify-center" : "justify-between"} gap-3 px-2 pb-5`}>
                         <div className="flex items-center gap-3">
-                            <div className="grid h-11 w-11 place-items-center overflow-hidden rounded-2xl border border-white/10 bg-[#141924] shadow-[0_10px_30px_rgba(0,0,0,0.28)]">
-                                <Image src="/logo.webp" alt="Colabo Logo" width={44} height={44} className="h-11 w-11 object-cover" />
-                            </div>
+                            <Image
+                                src="/logo.webp"
+                                alt="Colabo Logo"
+                                width={40}
+                                height={40}
+                                className="h-10 w-10 shrink-0 object-contain"
+                            />
                             {!isCollapsed && (
                                 <div>
-                                    <p className="font-space-grotesk text-lg font-semibold text-slate-950">Colabo Admin</p>
-                                    <p className="text-xs uppercase tracking-[0.24em] text-slate-500">Owner Console</p>
+                                    <p className="font-space-grotesk text-lg font-semibold text-foreground">Colabo Admin</p>
+                                    <p className="text-[11px] uppercase tracking-[0.22em] text-muted-foreground">Ops Console</p>
                                 </div>
                             )}
                         </div>
@@ -104,7 +101,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
                                 type="button"
                                 onClick={toggleCollapsed}
                                 aria-label="Collapse admin navigation"
-                                className="rounded-full border border-black/5 bg-white p-2 text-slate-500 transition hover:bg-slate-50"
+                                className="rounded-full border border-black/5 bg-white p-2 text-muted-foreground transition hover:bg-muted"
                             >
                                 <Menu className="h-4 w-4" />
                             </button>
@@ -114,14 +111,14 @@ export function AdminShell({ children }: { children: ReactNode }) {
                                 type="button"
                                 onClick={toggleCollapsed}
                                 aria-label="Expand admin navigation"
-                                className="mt-3 rounded-full border border-black/5 bg-white p-2 text-slate-500 transition hover:bg-slate-50"
+                                className="mt-3 rounded-full border border-black/5 bg-white p-2 text-muted-foreground transition hover:bg-muted"
                             >
                                 <PanelsTopLeft className="h-4 w-4" />
                             </button>
                         )}
                     </div>
 
-                    <nav className="space-y-2">
+                    <nav className="space-y-1">
                         {navItems.map((item) => {
                             const active = pathname === item.href;
                             const Icon = item.icon;
@@ -130,19 +127,19 @@ export function AdminShell({ children }: { children: ReactNode }) {
                                     key={item.href}
                                     href={item.href}
                                     aria-current={active ? "page" : undefined}
-                                    className={`group flex items-center gap-3 rounded-[20px] px-4 py-3 transition ${
+                                    className={`group flex items-center gap-3 rounded-[14px] px-3 py-2.5 transition ${
                                         isCollapsed ? "justify-center px-0" : ""
                                     } ${
                                         active
-                                            ? "bg-slate-950 text-white shadow-[0_14px_36px_rgba(15,23,42,0.18)]"
-                                            : "text-slate-600 hover:bg-white hover:text-slate-950"
+                                            ? "bg-primary text-primary-foreground shadow-[0_14px_30px_-18px_rgba(109,93,252,0.55)]"
+                                            : "text-muted-foreground hover:bg-muted hover:text-foreground"
                                     }`}
                                 >
-                                    <Icon className={`h-4 w-4 shrink-0 ${active ? "text-white" : "text-slate-400 group-hover:text-slate-950"}`} />
+                                    <Icon className={`h-4 w-4 shrink-0 ${active ? "text-primary-foreground" : "text-muted-foreground group-hover:text-foreground"}`} />
                                     {!isCollapsed && (
                                         <div className="min-w-0">
                                             <div className="text-sm font-semibold">{item.label}</div>
-                                            <div className={`mt-1 truncate text-xs ${active ? "text-slate-300" : "text-slate-500"}`}>{item.description}</div>
+                                            <div className={`mt-0.5 truncate text-[11px] ${active ? "text-white/75" : "text-muted-foreground"}`}>{item.description}</div>
                                         </div>
                                     )}
                                 </Link>
@@ -153,26 +150,26 @@ export function AdminShell({ children }: { children: ReactNode }) {
             </aside>
 
             {mobileNavOpen && (
-                <div className="fixed inset-0 z-50 bg-black/50 lg:hidden" onClick={() => setMobileNavOpen(false)}>
+                <div className="fixed inset-0 z-50 bg-foreground/40 backdrop-blur-md lg:hidden" onClick={() => setMobileNavOpen(false)}>
                     <div
-                        className="h-full w-[82vw] max-w-[320px] border-r border-white/70 bg-white/88 p-4 shadow-[20px_0_60px_rgba(15,23,42,0.08)] backdrop-blur-2xl"
+                        className="h-full w-[82vw] max-w-[320px] border-r border-black/5 bg-white p-4 shadow-glass"
                         onClick={(event) => event.stopPropagation()}
                     >
                         <div className="mb-4 flex items-center justify-between">
                             <div>
-                                <p className="font-space-grotesk text-lg font-semibold text-slate-950">Colabo Admin</p>
-                                <p className="text-xs uppercase tracking-[0.24em] text-slate-500">Owner Console</p>
+                                <p className="font-space-grotesk text-lg font-semibold text-foreground">Colabo Admin</p>
+                                <p className="text-[11px] uppercase tracking-[0.22em] text-muted-foreground">Ops Console</p>
                             </div>
                             <button
                                 type="button"
                                 onClick={() => setMobileNavOpen(false)}
                                 aria-label="Close admin navigation"
-                                className="rounded-full border border-white/10 bg-white/[0.04] p-2 text-slate-300"
+                                className="rounded-full border border-black/5 bg-white p-2 text-muted-foreground transition hover:bg-muted"
                             >
                                 <X className="h-4 w-4" />
                             </button>
                         </div>
-                        <nav className="space-y-2">
+                        <nav className="space-y-1">
                             {navItems.map((item) => {
                                 const active = pathname === item.href;
                                 const Icon = item.icon;
@@ -181,14 +178,16 @@ export function AdminShell({ children }: { children: ReactNode }) {
                                         key={item.href}
                                         href={item.href}
                                         onClick={() => setMobileNavOpen(false)}
-                                        className={`flex items-center gap-3 rounded-[18px] px-4 py-3 ${
-                                            active ? "bg-slate-950 text-white" : "border border-white/80 bg-white text-slate-700"
+                                        className={`flex items-center gap-3 rounded-[14px] px-3 py-2.5 ${
+                                            active
+                                                ? "bg-primary text-primary-foreground"
+                                                : "text-muted-foreground hover:bg-muted hover:text-foreground"
                                         }`}
                                     >
                                         <Icon className="h-4 w-4" />
                                         <div>
                                             <div className="text-sm font-semibold">{item.label}</div>
-                                            <div className={`mt-1 text-xs ${active ? "text-slate-300" : "text-slate-500"}`}>{item.description}</div>
+                                            <div className={`mt-0.5 text-[11px] ${active ? "text-white/75" : "text-muted-foreground"}`}>{item.description}</div>
                                         </div>
                                     </Link>
                                 );
@@ -198,68 +197,64 @@ export function AdminShell({ children }: { children: ReactNode }) {
                 </div>
             )}
 
-            <div className={`min-h-screen transition-all duration-300 ${isCollapsed ? "lg:pl-[116px]" : "lg:pl-[308px]"}`}>
-                <div className="px-3 py-3 sm:px-5 sm:py-5 lg:px-8">
-                    <div className="rounded-[28px] border border-white/75 bg-white/72 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur-2xl">
-                        <div className="flex items-center gap-3 border-b border-white/75 px-4 py-4 sm:px-6">
-                            <button
-                                type="button"
-                                onClick={() => setMobileNavOpen(true)}
-                                aria-label="Open admin navigation"
-                                className="rounded-full border border-black/5 bg-white p-2 text-slate-500 lg:hidden"
-                            >
-                                <Menu className="h-4 w-4" />
-                            </button>
+            <div className={`min-h-screen transition-all duration-300 ${isCollapsed ? "lg:pl-[92px]" : "lg:pl-[284px]"}`}>
+                <header className="sticky top-0 z-30 flex items-center gap-3 border-b border-black/5 bg-white/85 px-4 py-3 backdrop-blur-md sm:px-6 lg:px-8">
+                    <button
+                        type="button"
+                        onClick={() => setMobileNavOpen(true)}
+                        aria-label="Open admin navigation"
+                        className="rounded-full border border-black/5 bg-white p-2 text-muted-foreground lg:hidden"
+                    >
+                        <Menu className="h-4 w-4" />
+                    </button>
 
-                            <div className="min-w-0 flex-1">
-                                <p className="text-xs uppercase tracking-[0.24em] text-slate-500">Admin Workspace</p>
-                                <h1 className="truncate font-space-grotesk text-xl font-semibold text-slate-950 sm:text-2xl">
-                                    Welcome back, {user?.name?.split(" ")[0] || "Owner"}
-                                </h1>
+                    <div className="min-w-0 flex-1">
+                        <p className="text-[11px] uppercase tracking-[0.22em] text-muted-foreground">Admin Workspace</p>
+                        <h1 className="truncate font-space-grotesk text-xl font-semibold text-foreground sm:text-2xl">
+                            Welcome back, {user?.name?.split(" ")[0] || "Owner"}
+                        </h1>
+                    </div>
+
+                    <div className="relative shrink-0">
+                        <button
+                            type="button"
+                            onClick={() => setProfileOpen((current) => !current)}
+                            aria-label="Open profile menu"
+                            className="flex items-center gap-3 rounded-full border border-black/5 bg-white px-2 py-1.5 text-left transition hover:bg-muted"
+                        >
+                            <div className="grid h-8 w-8 place-items-center rounded-full bg-[var(--accent)] text-sm font-semibold text-primary">
+                                {(user?.name || "A").slice(0, 1).toUpperCase()}
                             </div>
+                            <div className="hidden pr-2 sm:block">
+                                <p className="text-sm font-medium text-foreground">{user?.name || "Owner"}</p>
+                                <p className="text-[11px] text-muted-foreground">{user?.email || "admin@colabo"}</p>
+                            </div>
+                        </button>
 
-                            <div className="relative">
+                        {profileOpen && (
+                            <div className="absolute right-0 top-[calc(100%+8px)] z-50 w-56 rounded-[14px] border border-black/5 bg-white p-1.5 shadow-glass">
+                                <Link
+                                    href="/dashboard/settings"
+                                    onClick={() => setProfileOpen(false)}
+                                    className="flex items-center gap-3 rounded-[10px] px-3 py-2.5 text-sm text-foreground transition hover:bg-muted"
+                                >
+                                    <Settings className="h-4 w-4" />
+                                    Settings
+                                </Link>
                                 <button
                                     type="button"
-                                    onClick={() => setProfileOpen((current) => !current)}
-                                    aria-label="Open profile menu"
-                                    className="flex items-center gap-3 rounded-full border border-white/80 bg-white/78 px-2 py-2 text-left shadow-sm"
+                                    onClick={handleLogout}
+                                    className="flex w-full items-center gap-3 rounded-[10px] px-3 py-2.5 text-sm text-[var(--danger-fg)] transition hover:bg-muted"
                                 >
-                                    <div className="grid h-9 w-9 place-items-center rounded-full bg-[linear-gradient(180deg,#f0b181,#d88245)] text-sm font-semibold text-[#111827]">
-                                        {(user?.name || "A").slice(0, 1).toUpperCase()}
-                                    </div>
-                                    <div className="hidden pr-2 sm:block">
-                                        <p className="text-sm font-medium text-slate-950">{user?.name || "Owner"}</p>
-                                        <p className="text-xs text-slate-500">{user?.email || "admin@colabo"}</p>
-                                    </div>
+                                    <LogOut className="h-4 w-4" />
+                                    Logout
                                 </button>
-
-                                {profileOpen && (
-                                    <div className="absolute right-0 top-[calc(100%+12px)] z-50 w-56 rounded-[20px] border border-white/80 bg-white/88 p-2 shadow-[0_24px_60px_rgba(15,23,42,0.12)] backdrop-blur-2xl">
-                                        <Link
-                                            href="/dashboard/settings"
-                                            onClick={() => setProfileOpen(false)}
-                                            className="flex items-center gap-3 rounded-[14px] px-3 py-3 text-sm text-slate-700 transition hover:bg-slate-50"
-                                        >
-                                            <Settings className="h-4 w-4" />
-                                            Settings
-                                        </Link>
-                                        <button
-                                            type="button"
-                                            onClick={handleLogout}
-                                            className="flex w-full items-center gap-3 rounded-[14px] px-3 py-3 text-sm text-rose-600 transition hover:bg-slate-50"
-                                        >
-                                            <LogOut className="h-4 w-4" />
-                                            Logout
-                                        </button>
-                                    </div>
-                                )}
                             </div>
-                        </div>
-
-                        <div className="space-y-6 p-4 sm:p-6 lg:p-7">{children}</div>
+                        )}
                     </div>
-                </div>
+                </header>
+
+                <div className="mx-auto w-full max-w-6xl space-y-6 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">{children}</div>
             </div>
         </main>
     );
