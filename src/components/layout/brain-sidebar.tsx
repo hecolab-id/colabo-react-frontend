@@ -76,6 +76,7 @@ export function BrainSidebar({ isOpen, onClose, projectId, projectName, projectS
     const assistantContentRef = useRef("");
     const abortControllerRef = useRef<AbortController | null>(null);
     const clearTimeoutRef = useRef<number | null>(null);
+    const scrollThrottleRef = useRef(0);
 
     useEscapeKey(isOpen, onClose);
 
@@ -92,12 +93,23 @@ export function BrainSidebar({ isOpen, onClose, projectId, projectName, projectS
         window.localStorage.setItem(EXPANDED_STORAGE_KEY, String(isExpanded));
     }, [isExpanded]);
 
-    const scrollToBottom = useCallback(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    const scrollToBottom = useCallback((smooth: boolean) => {
+        messagesEndRef.current?.scrollIntoView({ behavior: smooth ? "smooth" : "auto" });
     }, []);
 
     useEffect(() => {
-        scrollToBottom();
+        if (isTyping) {
+            // During streaming, throttle to once per 200ms with instant scroll
+            // so smooth-behavior animations don't queue and interrupt each other.
+            const now = Date.now();
+            if (now - scrollThrottleRef.current < 200) return;
+            scrollThrottleRef.current = now;
+            scrollToBottom(false);
+        } else {
+            // Idle (initial render, completion, user-message append) gets the
+            // smooth final scroll.
+            scrollToBottom(true);
+        }
     }, [messages, isTyping, scrollToBottom]);
 
     // Cancel any in-flight stream + pending confirms when the drawer is unmounted.
@@ -290,9 +302,11 @@ export function BrainSidebar({ isOpen, onClose, projectId, projectName, projectS
     return (
         <div
             className={cn(
-                "fixed inset-y-0 right-0 z-50 flex flex-col border-l border-border bg-card shadow-glass transform transition-all duration-300 ease-out",
+                "fixed inset-y-0 right-0 z-50 flex flex-col border-l border-border bg-card shadow-glass transform transition-[transform,box-shadow] duration-300 ease-out",
                 isOpen ? "translate-x-0" : "translate-x-full",
-                isExpanded ? "w-[760px]" : "w-[380px]",
+                isExpanded
+                    ? "w-full sm:w-[min(760px,90vw)] lg:w-[min(760px,55vw)]"
+                    : "w-full sm:w-[380px]",
             )}
             role="complementary"
             aria-label="Project Brain assistant"
@@ -329,10 +343,10 @@ export function BrainSidebar({ isOpen, onClose, projectId, projectName, projectS
                             onClick={handleClearClick}
                             disabled={isTyping}
                             className={cn(
-                                "flex h-9 items-center justify-center gap-1.5 rounded-full px-2.5 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 disabled:cursor-not-allowed disabled:opacity-50",
+                                "flex h-10 items-center justify-center gap-1.5 rounded-full px-2.5 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 disabled:cursor-not-allowed disabled:opacity-50",
                                 pendingClear
                                     ? "bg-[var(--danger-bg)] text-[var(--danger-fg)]"
-                                    : "w-9 px-0 text-muted-foreground hover:bg-muted hover:text-foreground",
+                                    : "w-10 px-0 text-muted-foreground hover:bg-muted hover:text-foreground",
                             )}
                             title={pendingClear ? "Click again to confirm" : "Clear conversation"}
                             aria-label={pendingClear ? "Click again to confirm clear" : "Clear conversation"}
@@ -343,7 +357,7 @@ export function BrainSidebar({ isOpen, onClose, projectId, projectName, projectS
                     ) : null}
                     <button
                         onClick={() => setIsExpanded(!isExpanded)}
-                        className="flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+                        className="hidden md:flex h-10 w-10 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
                         title={isExpanded ? "Collapse to default width" : "Expand to wide view"}
                         aria-label={isExpanded ? "Minimize Project Brain" : "Expand Project Brain"}
                     >
@@ -351,7 +365,7 @@ export function BrainSidebar({ isOpen, onClose, projectId, projectName, projectS
                     </button>
                     <button
                         onClick={onClose}
-                        className="flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+                        className="flex h-10 w-10 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
                         aria-label="Close Project Brain"
                     >
                         <X className="h-4 w-4" />
@@ -473,7 +487,7 @@ export function BrainSidebar({ isOpen, onClose, projectId, projectName, projectS
                                         setInput(prompt);
                                         textareaRef.current?.focus();
                                     }}
-                                    className="rounded-full border border-border bg-muted/40 px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-card hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+                                    className="inline-flex min-h-10 items-center rounded-full border border-border bg-muted/40 px-3 py-2 text-xs font-medium text-muted-foreground transition-colors hover:bg-card hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
                                 >
                                     {prompt}
                                 </button>
@@ -491,7 +505,7 @@ export function BrainSidebar({ isOpen, onClose, projectId, projectName, projectS
                         onKeyDown={handleKeyDown}
                         placeholder="Ask about your project..."
                         disabled={!projectId}
-                        className="block w-full resize-none rounded-[1.15rem] border border-border bg-card py-3 pl-4 pr-14 text-sm leading-6 text-foreground outline-none transition-[border-color,box-shadow,background-color] placeholder:text-muted-foreground/60 focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:cursor-not-allowed disabled:opacity-60"
+                        className="block w-full resize-none rounded-[1.15rem] border border-border bg-card py-3 pl-4 pr-14 text-sm leading-6 text-foreground outline-none transition-[border-color,box-shadow,background-color] placeholder:text-muted-foreground/70 focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:cursor-not-allowed disabled:opacity-60"
                         style={{ minHeight: "3rem", maxHeight: `${TEXTAREA_MAX_HEIGHT_PX}px` }}
                         aria-label="Message Project Brain"
                     />
@@ -499,18 +513,18 @@ export function BrainSidebar({ isOpen, onClose, projectId, projectName, projectS
                         <button
                             type="button"
                             onClick={handleStop}
-                            className="absolute right-2 bottom-2 flex h-9 w-9 items-center justify-center rounded-full bg-primary text-primary-foreground transition-opacity hover:opacity-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 active:scale-[0.985]"
+                            className="absolute right-1.5 bottom-1.5 flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground transition-opacity hover:opacity-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 active:scale-[0.985]"
                             aria-label="Stop generating"
                             title="Stop generating"
                         >
-                            <Square className="h-3 w-3 fill-current" aria-hidden="true" />
+                            <Square className="h-3.5 w-3.5 fill-current" aria-hidden="true" />
                         </button>
                     ) : (
                         <button
                             type="submit"
                             disabled={sendDisabled}
                             className={cn(
-                                "absolute right-2 bottom-2 flex h-9 w-9 items-center justify-center rounded-full transition-[opacity,background-color] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 active:scale-[0.985]",
+                                "absolute right-1.5 bottom-1.5 flex h-10 w-10 items-center justify-center rounded-full transition-[opacity,background-color] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 active:scale-[0.985]",
                                 sendDisabled
                                     ? "pointer-events-none bg-muted text-muted-foreground/60"
                                     : "bg-primary text-primary-foreground hover:opacity-95",
@@ -522,23 +536,23 @@ export function BrainSidebar({ isOpen, onClose, projectId, projectName, projectS
                     )}
                 </form>
 
-                <div className="flex items-center justify-between text-[11px] text-muted-foreground/70">
-                    <span>
-                        <kbd className="rounded border border-border bg-muted/60 px-1 py-0.5 font-mono text-[10px]">Enter</kbd>
+                <div className="flex items-center justify-between gap-3 text-xs text-muted-foreground">
+                    <span className="min-w-0 flex-1 truncate">
+                        <kbd className="rounded border border-border bg-muted px-1 py-0.5 font-mono text-[11px]">Enter</kbd>
                         <span className="mx-1">to send,</span>
-                        <kbd className="rounded border border-border bg-muted/60 px-1 py-0.5 font-mono text-[10px]">Shift</kbd>
+                        <kbd className="rounded border border-border bg-muted px-1 py-0.5 font-mono text-[11px]">Shift</kbd>
                         <span className="mx-1">+</span>
-                        <kbd className="rounded border border-border bg-muted/60 px-1 py-0.5 font-mono text-[10px]">Enter</kbd>
+                        <kbd className="rounded border border-border bg-muted px-1 py-0.5 font-mono text-[11px]">Enter</kbd>
                         <span className="ml-1">for newline</span>
                     </span>
                     {projectId && onOpenTaskGenerator ? (
                         <button
                             type="button"
                             onClick={onOpenTaskGenerator}
-                            className="inline-flex items-center gap-1 rounded-full px-2 py-1 text-[11px] font-medium text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+                            className="inline-flex min-h-9 shrink-0 items-center gap-1 rounded-full px-2.5 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
                             title="Generate tasks with AI"
                         >
-                            <Wand2 className="h-3 w-3" aria-hidden="true" />
+                            <Wand2 className="h-3.5 w-3.5" aria-hidden="true" />
                             Generate tasks
                         </button>
                     ) : null}
