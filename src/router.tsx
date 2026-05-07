@@ -35,6 +35,7 @@ const AdminRevenuePage = lazy(() => import("@/app/admin/revenue/page"));
 const AdminPaymentsPage = lazy(() => import("@/app/admin/payments/page"));
 const AdminUsersPage = lazy(() => import("@/app/admin/users/page"));
 const AdminPlansPage = lazy(() => import("@/app/admin/plans/page"));
+const AdminAIUsagePage = lazy(() => import("@/app/admin/ai-usage/page"));
 
 function RouteFallback() {
   return <div className="flex min-h-screen items-center justify-center text-sm text-slate-500">Loading…</div>;
@@ -221,6 +222,7 @@ function OfflineAwareRoutes() {
             <Route path="payments" element={<AdminPaymentsPage />} />
             <Route path="users" element={<AdminUsersPage />} />
             <Route path="plans" element={<AdminPlansPage />} />
+            <Route path="ai-usage" element={<AdminAIUsagePage />} />
           </Route>
         </Routes>
       </Suspense>

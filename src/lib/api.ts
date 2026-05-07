@@ -1,5 +1,5 @@
 import axios from "axios";
-import { AuthResponse, Plan, Project, ProjectDocument, ProjectDocumentKind, Task, Team, Comment, Notification, User, ActivityLog, Column, Checklist, ChecklistItem, Role, TeamUsage, CommentMention, LinkPreview, MessengerConnection, NotificationPreference, MessengerPlatform, TeamMessengerPolicy, MessengerLinkToken, BrowserPushSettings, BrowserPushSubscriptionInput, AdminImpersonationState, AdminOverview, AdminPaymentTransaction, AdminPlan, AdminProjectRow, AdminTeamRow, AdminUserRow, AdminListResponse, DashboardActionBucketId, DashboardActionItem, DashboardActionSeverity, DashboardHealthMetric, DashboardOverview, DashboardProjectSummary, DashboardRecommendedAction, PaginatedResult, TeamActivityItem, TeamActivityOverview, TeamInvite, TeamInvitePreview } from "./types";
+import { AuthResponse, Plan, Project, ProjectDocument, ProjectDocumentKind, Task, Team, Comment, Notification, User, ActivityLog, Column, Checklist, ChecklistItem, Role, TeamUsage, CommentMention, LinkPreview, MessengerConnection, NotificationPreference, MessengerPlatform, TeamMessengerPolicy, MessengerLinkToken, BrowserPushSettings, BrowserPushSubscriptionInput, AdminImpersonationState, AdminOverview, AdminPaymentTransaction, AdminPlan, AdminProjectRow, AdminTeamRow, AdminUserRow, AdminListResponse, AdminAIUsageSummary, AdminAIUsageTeamRow, AdminAIUsageUserRow, AdminAIUsageFeatureRow, DashboardActionBucketId, DashboardActionItem, DashboardActionSeverity, DashboardHealthMetric, DashboardOverview, DashboardProjectSummary, DashboardRecommendedAction, PaginatedResult, TeamActivityItem, TeamActivityOverview, TeamInvite, TeamInvitePreview } from "./types";
 
 export const API_ORIGIN = (import.meta.env.VITE_API_URL || "").replace(/\/$/, "");
 export const API_BASE_URL = API_ORIGIN ? `${API_ORIGIN}/v1` : "/v1";
@@ -1008,6 +1008,59 @@ export const getAdminPayments = async (query?: AdminListQuery): Promise<AdminLis
 export const getAdminPlans = async (query?: AdminListQuery): Promise<AdminListResponse<AdminPlan>> => {
     const { data } = await api.get(`/admin/plans?${buildAdminListParams(query).toString()}`);
     return data.data || { items: [], meta: { total: 0, page: 1, page_size: query?.page_size || 12 } };
+};
+
+// AI Usage Report (Phase 3 of AI Usage Report feature).
+//
+// AdminAIUsageQuery extends AdminListQuery with time-range and team-filter
+// parameters. The backend default range is 30 days ending in Asia/Jakarta
+// time when from/to are omitted.
+
+type AdminAIUsageQuery = AdminListQuery & {
+    from?: string;     // ISO 8601
+    to?: string;       // ISO 8601
+    team_id?: string;
+};
+
+const buildAIUsageParams = (query?: AdminAIUsageQuery) => {
+    const params = buildAdminListParams(query);
+    if (!query) return params;
+    if (query.from) params.set("from", query.from);
+    if (query.to) params.set("to", query.to);
+    if (query.team_id) params.set("team_id", query.team_id);
+    return params;
+};
+
+export const getAdminAIUsageSummary = async (
+    query?: AdminAIUsageQuery,
+    signal?: AbortSignal,
+): Promise<AdminAIUsageSummary> => {
+    const { data } = await api.get(`/admin/ai-usage/summary?${buildAIUsageParams(query).toString()}`, { signal });
+    return data.data;
+};
+
+export const getAdminAIUsageByTeam = async (
+    query?: AdminAIUsageQuery,
+    signal?: AbortSignal,
+): Promise<AdminListResponse<AdminAIUsageTeamRow>> => {
+    const { data } = await api.get(`/admin/ai-usage/teams?${buildAIUsageParams(query).toString()}`, { signal });
+    return data.data || { items: [], meta: { total: 0, page: 1, page_size: query?.page_size || 12 } };
+};
+
+export const getAdminAIUsageByUser = async (
+    query?: AdminAIUsageQuery,
+    signal?: AbortSignal,
+): Promise<AdminListResponse<AdminAIUsageUserRow>> => {
+    const { data } = await api.get(`/admin/ai-usage/users?${buildAIUsageParams(query).toString()}`, { signal });
+    return data.data || { items: [], meta: { total: 0, page: 1, page_size: query?.page_size || 12 } };
+};
+
+export const getAdminAIUsageByFeature = async (
+    query?: AdminAIUsageQuery,
+    signal?: AbortSignal,
+): Promise<AdminAIUsageFeatureRow[]> => {
+    const { data } = await api.get(`/admin/ai-usage/features?${buildAIUsageParams(query).toString()}`, { signal });
+    return data.data || [];
 };
 
 export const impersonateUser = async (userId: string): Promise<{ user: User; tokens: AuthResponse["tokens"]; impersonation?: AdminImpersonationState }> => {

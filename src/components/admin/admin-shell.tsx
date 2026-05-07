@@ -12,6 +12,7 @@ import {
     LogOut,
     PanelsTopLeft,
     Settings,
+    Sparkles,
     UserCog,
     WalletCards,
     X,
@@ -25,6 +26,7 @@ const navItems = [
     { href: "/admin/payments", label: "Payments", description: "Transactions", icon: CreditCard },
     { href: "/admin/users", label: "Users", description: "Accounts and support", icon: UserCog },
     { href: "/admin/plans", label: "Plans", description: "Pricing tiers", icon: PanelsTopLeft },
+    { href: "/admin/ai-usage", label: "AI Usage", description: "Tokens by team & feature", icon: Sparkles },
 ];
 
 export function AdminShell({ children }: { children: ReactNode }) {
