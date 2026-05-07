@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useParams, useRouter } from "@/lib/navigation";
 import { Sidebar } from "./sidebar";
 import { BrainSidebar } from "./brain-sidebar";
@@ -48,6 +48,37 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
     const activeProject = projectBySlug ?? projectById;
     const projectId = activeProject?.id;
     const availableGlobalAssignees = currentTeam?.members || [];
+
+    const projectStats = useMemo(() => {
+        const tasks = activeProject?.tasks;
+        if (!tasks || tasks.length === 0) return undefined;
+        const now = Date.now();
+        const sevenDaysMs = 7 * 24 * 60 * 60 * 1000;
+        const isDone = (t: typeof tasks[number]) => t.status === "DONE" || t.column?.type === "done";
+        let totalActive = 0;
+        let overdueCount = 0;
+        let dueSoonCount = 0;
+        let completedThisWeek = 0;
+        for (const t of tasks) {
+            const done = isDone(t);
+            if (!done) {
+                totalActive += 1;
+                if (t.due_date) {
+                    const due = new Date(t.due_date).getTime();
+                    if (!Number.isNaN(due)) {
+                        if (due < now) overdueCount += 1;
+                        else if (due - now < sevenDaysMs) dueSoonCount += 1;
+                    }
+                }
+            } else if (t.updated_at) {
+                const completed = new Date(t.updated_at).getTime();
+                if (!Number.isNaN(completed) && now - completed < sevenDaysMs) {
+                    completedThisWeek += 1;
+                }
+            }
+        }
+        return { totalActive, overdueCount, dueSoonCount, completedThisWeek };
+    }, [activeProject?.tasks]);
     const canManageActiveProjectMembers = !!currentTeam && !!currentUser && (
         currentTeam.owner_id === currentUser.id ||
         ["OWNER", "ADMIN"].includes((currentTeam.role || "").toUpperCase())
@@ -186,6 +217,8 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
                 isOpen={isBrainOpen}
                 onClose={() => setIsBrainOpen(false)}
                 projectId={projectId}
+                projectName={activeProject?.name}
+                projectStats={projectStats}
                 onOpenTaskGenerator={() => setIsTaskGeneratorOpen(true)}
             />
 
