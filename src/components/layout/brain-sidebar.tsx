@@ -433,13 +433,16 @@ export function BrainSidebar({ isOpen, onClose, projectId, projectName, projectS
                 {isTyping && (
                     <div className="flex items-center gap-2 pl-1">
                         <div
-                            className="flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-2"
+                            className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-2 text-xs font-medium text-muted-foreground"
                             aria-live="polite"
                             aria-label="Project Brain is thinking"
                         >
-                            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary/60" style={{ animationDelay: "0ms", animationDuration: "1200ms" }} />
-                            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary/60" style={{ animationDelay: "200ms", animationDuration: "1200ms" }} />
-                            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary/60" style={{ animationDelay: "400ms", animationDuration: "1200ms" }} />
+                            <span>Thinking</span>
+                            <span className="inline-flex items-center gap-1" aria-hidden="true">
+                                <span className="block h-1.5 w-1.5 animate-pulse rounded-full bg-primary/70" style={{ animationDelay: "0ms", animationDuration: "1200ms" }} />
+                                <span className="block h-1.5 w-1.5 animate-pulse rounded-full bg-primary/70" style={{ animationDelay: "200ms", animationDuration: "1200ms" }} />
+                                <span className="block h-1.5 w-1.5 animate-pulse rounded-full bg-primary/70" style={{ animationDelay: "400ms", animationDuration: "1200ms" }} />
+                            </span>
                         </div>
                     </div>
                 )}
