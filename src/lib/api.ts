@@ -1122,7 +1122,8 @@ export const streamAIChat = async (
     message: string,
     onChunk: (chunk: string) => void,
     onComplete: () => void,
-    onError: (error: string) => void
+    onError: (error: string) => void,
+    signal?: AbortSignal,
 ): Promise<void> => {
     try {
         // Get access token
@@ -1150,6 +1151,7 @@ export const streamAIChat = async (
                 project_id: projectId,
                 message: message,
             }),
+            signal,
         });
 
         if (!response.ok) {
@@ -1197,6 +1199,11 @@ export const streamAIChat = async (
 
         onComplete();
     } catch (error) {
+        if (error instanceof DOMException && error.name === "AbortError") {
+            // Caller-initiated abort. Caller handles UI state via the
+            // controller it owns, so we don't surface a synthetic error.
+            return;
+        }
         console.error("AI chat error:", error);
         onError(error instanceof Error ? error.message : "Unknown error");
     }
