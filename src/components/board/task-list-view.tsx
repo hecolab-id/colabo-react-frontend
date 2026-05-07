@@ -265,6 +265,7 @@ function TaskListRow({ task, column, onClick }: { task: Task; column: Column; on
     const tone = priorityToneMap[task.priority] || priorityToneMap.MEDIUM;
     const PriorityIcon = priority.icon;
     const dueDateTone = getDueDateTone(task.due_date);
+    const isTaskDone = task.status === "DONE" || column.type === "done" || task.column?.type === "done";
 
     return (
         <button
@@ -274,6 +275,7 @@ function TaskListRow({ task, column, onClick }: { task: Task; column: Column; on
                 "kanban-task-card group grid w-full cursor-pointer grid-cols-1 gap-3 rounded-[1.25rem] border border-white/80 bg-white/88 px-4 py-4 text-left shadow-[0_10px_24px_-22px_rgba(15,23,42,0.32)] backdrop-blur-xl transition-[transform,border-color,box-shadow] duration-200 ease-out hover:border-slate-300 hover:shadow-[0_18px_36px_-28px_rgba(15,23,42,0.44)] md:grid-cols-12 md:gap-4 md:py-3",
                 task.priority === "HIGH" && tone.highAccentClassName,
                 dueDateTone.isOverdue && "is-overdue",
+                isTaskDone && "is-complete",
             )}
         >
             <div className="min-w-0 md:col-span-5">
@@ -292,7 +294,7 @@ function TaskListRow({ task, column, onClick }: { task: Task; column: Column; on
                         {priority.label}
                     </span>
                     {task.due_date ? (
-                        <span className={cn("inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px]", dueDateTone.className)}>
+                        <span className={cn("inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px]", dueDateTone.className, dueDateTone.isOverdue && isTaskDone && "is-complete-overdue-date")}>
                             <Calendar className="h-3 w-3" />
                             {formatTaskDate(task.due_date)}
                         </span>
@@ -340,7 +342,7 @@ function TaskListRow({ task, column, onClick }: { task: Task; column: Column; on
 
             <div className="hidden items-center justify-end gap-2 md:col-span-1 md:flex">
                 {task.due_date ? (
-                    <span className={cn("inline-flex items-center gap-1 rounded-full px-2 py-1 text-[11px]", dueDateTone.className)}>
+                    <span className={cn("inline-flex items-center gap-1 rounded-full px-2 py-1 text-[11px]", dueDateTone.className, dueDateTone.isOverdue && isTaskDone && "is-complete-overdue-date")}>
                         <Calendar className="h-3 w-3" />
                         <span className="sr-only">Due</span>
                     </span>

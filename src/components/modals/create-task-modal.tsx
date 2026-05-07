@@ -64,7 +64,7 @@ function CustomListbox({
     return (
         <Listbox value={value} onChange={onChange} disabled={disabled}>
             <div className="relative">
-                <ListboxButton className="relative w-full appearance-none px-4 py-3.5 rounded-2xl border-0 bg-slate-50 text-slate-900 text-left text-[15px] font-medium focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:bg-slate-100 transition-colors disabled:opacity-60 disabled:cursor-not-allowed">
+                <ListboxButton className="relative w-full appearance-none rounded-[1.05rem] border border-slate-200/70 bg-white/78 px-4 py-3 text-left text-[15px] font-medium text-slate-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.72)] transition-colors focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 disabled:cursor-not-allowed disabled:opacity-60 sm:rounded-2xl sm:bg-slate-50 sm:py-3.5 sm:focus:bg-slate-100">
                     <span className="flex min-w-0 items-center gap-2.5 pr-6">
                         {selectedOption?.leading ? (
                             <span className="flex shrink-0 items-center">{selectedOption.leading}</span>
@@ -236,6 +236,7 @@ export function CreateTaskModal({
     const columnOptions = availableColumns.map((column) => ({ value: column.id, label: column.name }));
     const selectedColumn = availableColumns.find((column) => column.id === selectedColumnId);
     const canSubmit = title.trim().length > 0 && projectId.length > 0 && !isSubmitting && !isColumnsLoading;
+    const shouldShowProjectField = !lockProjectSelection;
 
     if (!isOpen) return null;
 
@@ -270,7 +271,8 @@ export function CreateTaskModal({
             description={!successMessage ? "Add a task to your execution queue." : undefined}
             onClose={onClose}
             maxWidthClassName="max-w-md"
-            contentClassName="max-h-[90dvh] overflow-y-visible scrollbar-hide"
+            contentClassName="max-h-[92dvh] overflow-hidden"
+            bodyClassName="flex max-h-[92dvh] flex-col px-5 pb-5 pt-6 sm:p-8"
         >
                 {projects.length === 0 ? (
                     <EmptyState
@@ -290,81 +292,86 @@ export function CreateTaskModal({
                         }
                     />
                 ) : (
-                    <form onSubmit={handleSubmit} className="space-y-6 block">
-                        {successMessage && (
-                            <div className="flex items-center gap-3 rounded-[20px] border border-emerald-100 bg-emerald-50/50 p-4 animate-in fade-in zoom-in-95 duration-200">
-                                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
-                                    <CheckCircle2 className="h-4 w-4" />
+                    <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
+                        <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-1 pb-3 [scrollbar-width:none] [-ms-overflow-style:none] sm:space-y-6 [&::-webkit-scrollbar]:hidden">
+                            {successMessage && (
+                                <div className="flex items-center gap-3 rounded-[20px] border border-emerald-100 bg-emerald-50/50 p-4 animate-in fade-in zoom-in-95 duration-200">
+                                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
+                                        <CheckCircle2 className="h-4 w-4" />
+                                    </div>
+                                    <p className="text-sm font-medium text-emerald-800">{successMessage}</p>
                                 </div>
-                                <p className="text-sm font-medium text-emerald-800">{successMessage}</p>
+                            )}
+
+                            <SettingsField label="Task Title">
+                                <Input
+                                    type="text"
+                                    value={title}
+                                    onChange={(e) => setTitle(e.target.value)}
+                                    onFocus={() => setIsFocused(true)}
+                                    onBlur={() => setIsFocused(false)}
+                                    placeholder="e.g. Implement login flow..."
+                                    required
+                                    autoFocus
+                                    className="h-12 rounded-[1.05rem] bg-white/78 text-[15px] sm:h-12 sm:rounded-2xl"
+                                />
+                            </SettingsField>
+
+                            {shouldShowProjectField ? (
+                                <SettingsField label="Parent Project" className="relative z-[70]">
+                                    <CustomListbox
+                                        value={projectId}
+                                        onChange={(value) => {
+                                            setProjectId(value);
+                                            setSelectedColumnId("");
+                                        }}
+                                        disabled={projects.length === 0}
+                                        placeholder="Select a project directory"
+                                        options={projects.map((p) => ({ value: p.id, label: p.name }))}
+                                    />
+                                </SettingsField>
+                            ) : null}
+
+                            <div className="relative z-20 grid grid-cols-1 gap-4 sm:grid-cols-2">
+                                <SettingsField label="Delegate To" className="relative z-30">
+                                    <CustomListbox
+                                        value={assigneeId}
+                                        onChange={setAssigneeId}
+                                        placeholder="Leave Unassigned"
+                                        options={assignees.map((a) => ({
+                                            value: a.id,
+                                            label: a.name,
+                                            leading: <Avatar user={a} size="xs" />,
+                                        }))}
+                                    />
+                                </SettingsField>
+
+                                <SettingsField label="Status" className="relative z-20">
+                                    <CustomListbox
+                                        value={selectedColumnId || status}
+                                        onChange={(value) => {
+                                            if (columnOptions.length > 0) {
+                                                setSelectedColumnId(value);
+                                                setStatus(getStatusFromColumn(availableColumns.find((column) => column.id === value), status));
+                                            } else {
+                                                setStatus(value as TaskStatus);
+                                            }
+                                        }}
+                                        disabled={isColumnsLoading}
+                                        placeholder={isColumnsLoading ? "Loading columns..." : "Select column"}
+                                        options={columnOptions.length > 0 ? columnOptions : statusOptions}
+                                    />
+                                </SettingsField>
                             </div>
-                        )}
-
-                        <SettingsField label="Task Title">
-                            <Input
-                                type="text"
-                                value={title}
-                                onChange={(e) => setTitle(e.target.value)}
-                                onFocus={() => setIsFocused(true)}
-                                onBlur={() => setIsFocused(false)}
-                                placeholder="e.g. Implement login flow..."
-                                required
-                                autoFocus
-                            />
-                        </SettingsField>
-
-                        <SettingsField label="Parent Project" className="relative z-[70]">
-                            <CustomListbox
-                                value={projectId}
-                                onChange={(value) => {
-                                    setProjectId(value);
-                                    setSelectedColumnId("");
-                                }}
-                                disabled={lockProjectSelection || projects.length === 0}
-                                placeholder="Select a project directory"
-                                options={projects.map((p) => ({ value: p.id, label: p.name }))}
-                            />
-                        </SettingsField>
-
-                        <div className="relative z-20 grid grid-cols-1 gap-5 sm:grid-cols-2 sm:gap-4">
-                            <SettingsField label="Delegate To" className="relative z-30">
-                                <CustomListbox
-                                    value={assigneeId}
-                                    onChange={setAssigneeId}
-                                    placeholder="Leave Unassigned"
-                                    options={assignees.map((a) => ({
-                                        value: a.id,
-                                        label: a.name,
-                                        leading: <Avatar user={a} size="xs" />,
-                                    }))}
-                                />
-                            </SettingsField>
-
-                            <SettingsField label="Status" className="relative z-20">
-                                <CustomListbox
-                                    value={selectedColumnId || status}
-                                    onChange={(value) => {
-                                        if (columnOptions.length > 0) {
-                                            setSelectedColumnId(value);
-                                            setStatus(getStatusFromColumn(availableColumns.find((column) => column.id === value), status));
-                                        } else {
-                                            setStatus(value as TaskStatus);
-                                        }
-                                    }}
-                                    disabled={isColumnsLoading}
-                                    placeholder={isColumnsLoading ? "Loading columns..." : "Select column"}
-                                    options={columnOptions.length > 0 ? columnOptions : statusOptions}
-                                />
-                            </SettingsField>
                         </div>
 
-                        <div className="relative z-0 pt-4 flex flex-col-reverse sm:flex-row gap-3">
+                        <div className="relative z-0 mt-4 rounded-[1.55rem] border border-white/80 bg-white/68 p-2 shadow-[0_18px_50px_rgba(15,23,42,0.08)] backdrop-blur-xl sm:flex sm:flex-row-reverse sm:gap-3 sm:border-0 sm:bg-transparent sm:p-0 sm:shadow-none">
                             <Button
                                 type="button"
                                 onClick={onClose}
                                 variant="ghost"
                                 size="lg"
-                                className="w-full sm:w-auto"
+                                className="mt-1 h-11 w-full text-slate-600 hover:bg-transparent sm:mt-0 sm:h-12 sm:w-auto sm:px-6"
                             >
                                 Cancel
                             </Button>
@@ -372,14 +379,14 @@ export function CreateTaskModal({
                                 type="submit"
                                 disabled={!canSubmit}
                                 size="lg"
-                                className="w-full flex-1"
+                                className="!h-[60px] !min-h-[60px] w-full rounded-[1.25rem] text-[15px] shadow-[0_18px_36px_rgba(109,93,252,0.28)] active:scale-[0.99] sm:!h-12 sm:!min-h-12 sm:flex-1 sm:rounded-full"
                             >
                                 {isSubmitting ? "Executing..." : "Publish Task"}
                             </Button>
                         </div>
                         
                         {/* Fake padding for mobile bottom area if focused */}
-                        {isFocused && <div className="h-52 sm:hidden transition-all duration-300 pointer-events-none" />}
+                        {isFocused && <div className="h-24 sm:hidden transition-all duration-300 pointer-events-none" />}
                     </form>
                 )}
         </ModalShell>

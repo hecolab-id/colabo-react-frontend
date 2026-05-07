@@ -113,6 +113,7 @@ function TaskCardSurface({
 
     // Due date helpers
     const dueDateTone = getDueDateTone(task.due_date);
+    const isTaskDone = task.status === "DONE" || task.column?.type === "done";
 
     return (
         <div
@@ -125,6 +126,7 @@ function TaskCardSurface({
                     : "border border-black/5 bg-white",
                 task.priority === "HIGH" && priority.highAccentClassName,
                 dueDateTone.isOverdue && "is-overdue",
+                isTaskDone && "is-complete",
                 isBoardDragging
                     ? "will-change-transform transition-none shadow-none"
                     : cn(
@@ -182,7 +184,8 @@ function TaskCardSurface({
                 <div className={cn(
                     "mb-3 flex w-fit items-center gap-1.5 rounded-full px-2.5 py-1 text-xs",
                     dueDateTone.isOverdue && "px-3 py-1.5",
-                    dueDateTone.className
+                    dueDateTone.className,
+                    dueDateTone.isOverdue && isTaskDone && "is-complete-overdue-date"
                 )}>
                     <Calendar className={cn("w-3 h-3", dueDateTone.isOverdue && "h-3.5 w-3.5")} />
                     <span>{formatTaskDate(task.due_date)}</span>
@@ -196,12 +199,12 @@ function TaskCardSurface({
                         <span>Progress</span>
                         <span>{progress.value}%</span>
                     </div>
-                    <div className="h-1.5 overflow-hidden rounded-full bg-slate-100">
+                    <div className="h-1.5 overflow-hidden rounded-full bg-[var(--progress-green-track)] shadow-[inset_0_1px_0_rgba(255,255,255,0.72)]">
                         <div
                             className={cn(
                                 "h-full rounded-full transition-[width,background-color]",
                                 progress.value === 100
-                                    ? "bg-[var(--status-done-fg)]"
+                                    ? "bg-[image:var(--progress-green)]"
                                     : "bg-primary",
                             )}
                             style={{ width: `${progress.value}%` }}

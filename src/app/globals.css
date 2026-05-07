@@ -35,7 +35,8 @@
 
   /* Progress colors */
   --progress-orange: linear-gradient(90deg, #b8adff, #6d5dfc);
-  --progress-green: linear-gradient(90deg, #64c7a3, #2f7a63);
+  --progress-green: linear-gradient(90deg, #a8ddcf, #6bbfa8);
+  --progress-green-track: rgba(220, 244, 237, 0.78);
 
   --status-todo-bg: #eff4fb;
   --status-todo-fg: #4c5c74;
@@ -103,6 +104,8 @@
   --status-done-bg: #173028;
   --status-done-fg: #bce2d5;
   --status-done-border: #3d6f62;
+  --progress-green: linear-gradient(90deg, #7fb9a8, #a8d8ca);
+  --progress-green-track: rgba(63, 111, 98, 0.28);
   --status-backlog-bg: #1a2233;
   --status-backlog-fg: #b5bfd1;
   --status-backlog-border: #364055;
@@ -200,6 +203,36 @@
     pointer-events: none;
   }
 
+  .kanban-column-shell[data-column-type="in_progress"] {
+    border-color: rgba(109, 93, 252, 0.2);
+    background: rgba(246, 244, 255, 0.5);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.9),
+      0 20px 48px -40px rgba(109, 93, 252, 0.5);
+  }
+
+  .kanban-column-shell[data-column-type="in_progress"]::before {
+    background:
+      radial-gradient(circle at 20% 0%, rgba(255, 255, 255, 0.96), transparent 35%),
+      linear-gradient(135deg, rgba(184, 173, 255, 0.28), transparent 42%, rgba(109, 93, 252, 0.09));
+    opacity: 0.82;
+  }
+
+  .kanban-column-shell[data-column-type="done"] {
+    border-color: rgba(203, 213, 225, 0.46);
+    background: rgba(248, 250, 252, 0.36);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.84),
+      0 16px 38px -42px rgba(15, 23, 42, 0.24);
+  }
+
+  .kanban-column-shell[data-column-type="done"]::before {
+    background:
+      radial-gradient(circle at 18% 0%, rgba(255, 255, 255, 0.88), transparent 32%),
+      linear-gradient(135deg, rgba(148, 163, 184, 0.09), transparent 42%, rgba(16, 185, 129, 0.06));
+    opacity: 0.46;
+  }
+
   .kanban-column-header {
     position: relative;
     overflow: hidden;
@@ -219,6 +252,65 @@
   .kanban-column-header:hover::after,
   .kanban-column-shell:focus-within .kanban-column-header::after {
     opacity: 1;
+  }
+
+  .kanban-column-header[data-column-type="in_progress"] {
+    border-color: rgba(255, 255, 255, 0.94);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(248, 247, 255, 0.88));
+    box-shadow:
+      0 12px 30px -24px rgba(109, 93, 252, 0.44),
+      inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  }
+
+  .kanban-column-header[data-column-type="in_progress"]::after {
+    background: linear-gradient(90deg, transparent, rgba(109, 93, 252, 0.44), transparent);
+    opacity: 0.6;
+  }
+
+  .kanban-column-header[data-column-type="in_progress"] .kanban-column-dot {
+    box-shadow: 0 0 0 4px rgba(109, 93, 252, 0.11);
+  }
+
+  .kanban-column-header[data-column-type="in_progress"] .kanban-column-title {
+    color: rgb(30, 41, 59);
+  }
+
+  .kanban-column-header[data-column-type="done"] {
+    border-color: rgba(255, 255, 255, 0.72);
+    background: rgba(255, 255, 255, 0.58);
+    box-shadow:
+      0 8px 22px -24px rgba(15, 23, 42, 0.18),
+      inset 0 1px 0 rgba(255, 255, 255, 0.72);
+  }
+
+  .kanban-column-header[data-column-type="done"]::after {
+    background: linear-gradient(90deg, transparent, rgba(16, 185, 129, 0.18), transparent);
+    opacity: 0.32;
+  }
+
+  .kanban-column-header[data-column-type="done"] .kanban-column-dot {
+    opacity: 0.58;
+    box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.62);
+  }
+
+  .kanban-column-header[data-column-type="done"] .kanban-column-title,
+  .kanban-column-header[data-column-type="done"] .kanban-column-count {
+    color: rgb(100, 116, 139);
+  }
+
+  .kanban-column-header[data-column-type="done"] .kanban-column-count {
+    opacity: 0.72;
+  }
+
+  .kanban-column-body[data-column-type="in_progress"] {
+    border-color: rgba(221, 214, 254, 0.58);
+    background: linear-gradient(180deg, rgba(248, 247, 255, 0.72), rgba(241, 245, 249, 0.62));
+  }
+
+  .kanban-column-body[data-column-type="done"] {
+    border-color: rgba(226, 232, 240, 0.56);
+    background: linear-gradient(180deg, rgba(248, 250, 252, 0.5), rgba(241, 245, 249, 0.44));
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.62);
   }
 
   .kanban-task-card {
@@ -257,6 +349,19 @@
       radial-gradient(circle at 88% 8%, rgba(199, 51, 99, 0.14), transparent 34%);
   }
 
+  .kanban-task-card.is-overdue.is-complete {
+    background:
+      linear-gradient(180deg, rgba(248, 250, 252, 0.9), rgba(255, 255, 255, 0.86) 58%),
+      rgba(255, 255, 255, 0.86);
+    border-color: rgba(226, 232, 240, 0.78);
+  }
+
+  .kanban-task-card.is-overdue.is-complete::before {
+    background:
+      linear-gradient(115deg, rgba(255, 255, 255, 0.7), transparent 34%),
+      radial-gradient(circle at 88% 8%, rgba(100, 116, 139, 0.08), transparent 34%);
+  }
+
   .kanban-task-card:hover {
     --card-tilt-x: 0.75deg;
   }
@@ -278,6 +383,14 @@
     box-shadow: 0 10px 24px -18px rgba(179, 66, 66, 0.7);
   }
 
+  .kanban-overdue-date.is-complete-overdue-date {
+    border-color: rgba(203, 213, 225, 0.9);
+    background: rgba(248, 250, 252, 0.86);
+    color: rgb(100, 116, 139);
+    box-shadow: none;
+    font-weight: 500;
+  }
+
   .kanban-overdue-date::after {
     content: "";
     position: absolute;
@@ -287,6 +400,10 @@
     opacity: 0;
     animation: overdue-attention 2.4s ease-out infinite;
     pointer-events: none;
+  }
+
+  .kanban-overdue-date.is-complete-overdue-date::after {
+    display: none;
   }
 
   @keyframes overdue-attention {

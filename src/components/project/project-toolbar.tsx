@@ -1,4 +1,4 @@
-import { CalendarDays, Columns, FolderCog, List, SlidersHorizontal, Trash2, Users } from "lucide-react";
+import { CalendarDays, ChevronsUpDown, Columns, FolderCog, List, Plus, SlidersHorizontal, Trash2, Users } from "lucide-react";
 import type { RefObject, ReactNode } from "react";
 import type { Column, Task } from "@/lib/types";
 import type { DueDateFilter, TaskSortOption } from "@/lib/task-ui";
@@ -64,6 +64,77 @@ export function ProjectViewModeSwitcher({
                     <span className="hidden md:inline">{label}</span>
                 </button>
             ))}
+        </div>
+    );
+}
+
+export function ProjectMobileActionBar({
+    viewMode,
+    onViewChange,
+    onOpenControls,
+    onAddTask,
+    isControlsOpen,
+    hasActiveControls,
+    controlsCount,
+}: {
+    viewMode: ProjectViewMode;
+    onViewChange: (mode: ProjectViewMode) => void;
+    onOpenControls: () => void;
+    onAddTask: () => void;
+    isControlsOpen: boolean;
+    hasActiveControls: boolean;
+    controlsCount: number;
+}) {
+    const viewLabels: Record<ProjectViewMode, string> = {
+        board: "Board",
+        list: "List",
+        calendar: "Calendar",
+    };
+
+    return (
+        <div className="fixed inset-x-4 bottom-[calc(env(safe-area-inset-bottom)+78px)] z-[55] mx-auto flex h-[64px] max-w-sm items-center gap-2 rounded-[1.65rem] border border-white/80 bg-white/88 p-2 shadow-[0_22px_50px_-28px_rgba(15,23,42,0.38)] backdrop-blur-2xl md:hidden">
+            <button
+                type="button"
+                onClick={onOpenControls}
+                aria-label="Open project controls"
+                className={cn(
+                    "relative flex h-12 w-12 shrink-0 touch-manipulation items-center justify-center rounded-[1.25rem] border-2 transition-[background-color,border-color,color,transform,box-shadow] active:scale-95",
+                    hasActiveControls || isControlsOpen
+                        ? "border-primary/45 bg-primary/10 text-primary shadow-[0_12px_24px_-20px_rgba(109,93,252,0.6)]"
+                        : "border-slate-200/80 bg-white text-slate-500 hover:border-primary/35 hover:text-primary",
+                )}
+            >
+                <SlidersHorizontal className="h-5 w-5" aria-hidden="true" />
+                {controlsCount > 0 ? (
+                    <span className="absolute -right-1 -top-1 min-w-5 rounded-full bg-primary px-1.5 py-0.5 text-center text-[10px] font-bold text-primary-foreground">
+                        {controlsCount}
+                    </span>
+                ) : null}
+            </button>
+
+            <label className="relative flex h-12 min-w-0 flex-1 items-center justify-center rounded-[1.25rem] border border-slate-200/80 bg-white px-4 text-slate-950 shadow-[inset_0_1px_0_rgba(255,255,255,0.8),0_10px_22px_-20px_rgba(15,23,42,0.34)]">
+                <span className="pointer-events-none truncate pr-7 text-[17px] font-semibold">{viewLabels[viewMode]}</span>
+                <ChevronsUpDown className="pointer-events-none absolute right-4 h-5 w-5 text-slate-700" aria-hidden="true" />
+                <select
+                    value={viewMode}
+                    onChange={(event) => onViewChange(event.target.value as ProjectViewMode)}
+                    aria-label="Change project view"
+                    className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+                >
+                    <option value="board">Board</option>
+                    <option value="list">List</option>
+                    <option value="calendar">Calendar</option>
+                </select>
+            </label>
+
+            <button
+                type="button"
+                onClick={onAddTask}
+                aria-label="Add task"
+                className="flex h-12 w-14 shrink-0 touch-manipulation items-center justify-center rounded-[1.25rem] bg-gradient-to-br from-primary to-[#8f7cff] text-primary-foreground shadow-[0_16px_30px_-18px_rgba(109,93,252,0.72)] transition-[transform,box-shadow,filter] hover:brightness-[1.03] active:scale-95"
+            >
+                <Plus className="h-7 w-7 stroke-[2.5]" aria-hidden="true" />
+            </button>
         </div>
     );
 }
