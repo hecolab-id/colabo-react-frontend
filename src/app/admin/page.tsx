@@ -10,7 +10,6 @@ import {
     Panel,
     StackedTrend,
     StatusPill,
-    SummaryCard,
     formatCurrencyIdr,
     formatNumber,
 } from "@/components/admin/admin-ui";
@@ -63,106 +62,77 @@ export default function AdminOverviewPage() {
 
     if (loading || !overview) {
         return (
-            <div className="flex min-h-[40vh] items-center justify-center px-6">
-                <div className="w-full max-w-sm rounded-[28px] border border-white/10 bg-[#111827]/80 p-8 text-center shadow-[0_30px_120px_rgba(0,0,0,0.45)] backdrop-blur-xl">
-                    <div className="mx-auto h-11 w-11 animate-spin rounded-full border-2 border-[#c8925b]/20 border-t-[#d8ad7d]" />
-                    <p className="mt-5 text-sm text-slate-300">Loading business health overview.</p>
+            <div className="flex min-h-[40vh] items-center justify-center">
+                <div className="flex flex-col items-center gap-3 text-muted-foreground">
+                    <div className="h-9 w-9 animate-spin rounded-full border-2 border-border border-t-primary" />
+                    <p className="text-sm">Loading overview...</p>
                 </div>
             </div>
         );
     }
 
     return (
-        <div className="space-y-4">
-            <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="space-y-6">
+            <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
                 <HeroStat
-                    label="Revenue This Month"
+                    label="Revenue this month"
                     value={formatCurrencyIdr(overview.total_revenue_this_month)}
                     meta="Display converted to IDR"
-                    tone="revenue"
                 />
                 <HeroStat
-                    label="Active Users"
+                    label="Active users"
                     value={formatNumber(overview.total_active_users)}
                     meta="Accounts ready to operate"
-                    tone="neutral"
                 />
                 <HeroStat
-                    label="Active Projects"
+                    label="Active projects"
                     value={formatNumber(overview.total_active_projects)}
                     meta={`${formatNumber(overview.total_projects)} total tracked`}
-                    tone="neutral"
                 />
                 <HeroStat
-                    label="Tracked Payments"
+                    label="Tracked payments"
                     value={formatNumber(paymentTotal)}
                     meta={watchlistTeams.length > 0 ? `${watchlistTeams.length} teams need attention` : "No urgent team alerts"}
-                    tone={watchlistTeams.length > 0 ? "alert" : "calm"}
                 />
             </section>
 
             <section className="grid gap-4 lg:grid-cols-[1.25fr_0.75fr]">
                 <Panel
-                    eyebrow="Overview"
-                    title="Business health before configuration"
-                    subtitle="This page stays focused on what is changing in the business and where you may need to intervene."
+                    eyebrow="Growth"
+                    title="Free vs paid"
+                    subtitle={`Paid: ${formatNumber(overview.free_vs_paid_ratio.paid)} · Free: ${formatNumber(overview.free_vs_paid_ratio.free)}.`}
                 >
-                    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-                        <SummaryCard
-                            title="Total Active Users"
-                            value={formatNumber(overview.total_active_users)}
-                            meta="Live accounts with active status"
-                            tone="neutral"
-                        />
-                        <SummaryCard
-                            title="Total Active Projects"
-                            value={formatNumber(overview.total_active_projects)}
-                            meta="Non-deleted projects across tenants"
-                            tone="cool"
-                        />
-                        <SummaryCard
-                            title="Revenue This Month"
-                            value={formatCurrencyIdr(overview.total_revenue_this_month)}
-                            meta="Owner display in IDR"
-                            tone="revenue"
-                        />
-                        <SummaryCard
-                            title="Free vs Paid"
-                            value={`${overview.free_vs_paid_ratio.paid} / ${overview.free_vs_paid_ratio.free}`}
-                            meta="Paid teams versus free teams"
-                            tone="calm"
-                        />
-                    </div>
+                    <DualBarChart data={overview.daily_registrations} />
                 </Panel>
 
                 <Panel
                     eyebrow="Watchlist"
-                    title="Teams that may need attention"
-                    subtitle="Operational risk is surfaced here so the owner dashboard stays actionable."
+                    title="Teams needing attention"
+                    subtitle="Operational risk surfaced so the dashboard stays actionable."
                 >
-                    <div className="space-y-3">
+                    <div className="space-y-2.5">
                         {watchlistTeams.length === 0 ? (
-                            <EmptyState message="No teams are currently on the watchlist. Connection, subscription, and usage signals look stable." />
+                            <EmptyState message="No teams on the watchlist. Connection, subscription, and usage signals look stable." compact />
                         ) : (
                             watchlistTeams.map((team) => (
-                                <div key={team.id} className="rounded-[24px] border border-white/10 bg-white/[0.035] p-4">
+                                <div key={team.id} className="rounded-[14px] border border-black/5 bg-white p-3.5">
                                     <div className="flex items-start justify-between gap-3">
                                         <div className="min-w-0">
-                                            <p className="truncate font-medium text-white">{team.name}</p>
-                                            <p className="mt-1 truncate text-sm text-slate-400">
-                                                {team.owner_name} - {team.current_plan_name || "No plan assigned"}
+                                            <p className="truncate text-sm font-semibold text-foreground">{team.name}</p>
+                                            <p className="mt-0.5 truncate text-xs text-muted-foreground">
+                                                {team.owner_name} · {team.current_plan_name || "No plan assigned"}
                                             </p>
                                         </div>
                                         <StatusPill
                                             tone={team.whatsapp_status === "CONNECTED" ? "calm" : "alert"}
-                                            label={team.whatsapp_status === "CONNECTED" ? "Stable" : "Needs review"}
+                                            label={team.whatsapp_status === "CONNECTED" ? "Stable" : "Review"}
                                         />
                                     </div>
-                                    <div className="mt-4 flex flex-wrap gap-2">
+                                    <div className="mt-2.5 flex flex-wrap gap-1.5">
                                         {team.reasons.map((reason) => (
                                             <span
                                                 key={`${team.id}-${reason}`}
-                                                className="rounded-full border border-[#b8adff]/20 bg-[#b8adff]/10 px-3 py-1 text-xs font-medium text-[#d8d1ff]"
+                                                className="rounded-full bg-[var(--accent)] px-2.5 py-0.5 text-[11px] font-medium text-primary"
                                             >
                                                 {reason}
                                             </span>
@@ -175,18 +145,11 @@ export default function AdminOverviewPage() {
                 </Panel>
             </section>
 
-            <section className="grid gap-4 xl:grid-cols-[1.1fr_0.9fr]">
-                <Panel
-                    eyebrow="Growth"
-                    title="Daily registrations"
-                    subtitle="A single growth view keeps the overview readable while still showing how the platform is moving."
-                >
-                    <DualBarChart data={overview.daily_registrations} />
-                </Panel>
+            <section>
                 <Panel
                     eyebrow="Revenue"
                     title="Monthly revenue and recurring run-rate"
-                    subtitle="Keep only the financial trend that matters most on the overview page."
+                    subtitle="The financial trend that matters most on the overview page."
                 >
                     <StackedTrend
                         primary={overview.revenue_trend}
