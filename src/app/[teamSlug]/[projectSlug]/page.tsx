@@ -13,6 +13,7 @@ import {
     ProjectControlsPopover,
     ProjectControlsTrigger,
     ProjectFilterState,
+    ProjectMobileActionBar,
     ProjectViewMode,
     ProjectViewModeSwitcher,
 } from "@/components/project/project-toolbar";
@@ -337,16 +338,19 @@ function ProjectSlugPageContent({ params }: { params: Promise<{ teamSlug: string
         <div className="flex h-full flex-col overflow-x-hidden">
             {/* Toolbar */}
             <div className="mb-4 flex flex-col gap-3 md:mb-6 md:flex-row md:items-center md:justify-between">
-                <ProjectViewModeSwitcher viewMode={viewMode} onChange={setViewMode} />
+                <div className="hidden md:block">
+                    <ProjectViewModeSwitcher viewMode={viewMode} onChange={setViewMode} />
+                </div>
 
                 <div className="md:hidden" ref={mobileControlsRef}>
-                    <ProjectControlsTrigger
-                        isOpen={isMobileControlsOpen}
+                    <ProjectMobileActionBar
+                        viewMode={viewMode}
+                        onViewChange={setViewMode}
+                        onOpenControls={() => setIsMobileControlsOpen((prev) => !prev)}
+                        onAddTask={() => openCreateTask()}
+                        isControlsOpen={isMobileControlsOpen}
                         hasActiveControls={hasVisibleFilters || sortOption !== "default"}
-                        count={activeFilterCount + (sortOption === "default" ? 0 : 1)}
-                        onClick={() => setIsMobileControlsOpen((prev) => !prev)}
-                        className="fixed bottom-[86px] left-4 z-30 h-[52px] w-[52px] rounded-full border-slate-200 bg-white px-0 text-slate-600 shadow-[0_16px_34px_rgba(15,23,42,0.14)] md:hidden"
-                        showLabel={false}
+                        controlsCount={activeFilterCount + (sortOption === "default" ? 0 : 1)}
                     />
 
                     {isMobileControlsOpen && (
@@ -354,7 +358,7 @@ function ProjectSlugPageContent({ params }: { params: Promise<{ teamSlug: string
                             isOpen={isMobileControlsOpen}
                             title="Controls"
                             description="Manage sorting, filters, and project actions."
-                            className="fixed inset-x-4 bottom-40 z-30"
+                            className="fixed inset-x-4 bottom-[calc(env(safe-area-inset-bottom)+154px)] z-[55]"
                         >
                             <ProjectControlsContent
                                 columns={columns}

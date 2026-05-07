@@ -42,6 +42,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
     const teamSlug = params?.teamSlug as string | undefined;
     const projectSlug = params?.projectSlug as string | undefined;
     const legacyProjectId = params?.id as string | undefined;
+    const isProjectRoute = Boolean(projectSlug || legacyProjectId);
     const { data: projectBySlug, refetch: refetchProjectBySlug } = useProjectBySlugs(teamSlug || "", projectSlug || "");
     const { data: projectById, refetch: refetchProjectById } = useProject(legacyProjectId || "");
     const { data: teamProjects = [] } = useProjects(currentTeam?.slug || "");
@@ -199,7 +200,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
                 </button>
             )}
 
-            {currentTeam && (
+            {currentTeam && !isProjectRoute && (
                 <button
                     type="button"
                     onClick={() => {

@@ -26,7 +26,7 @@ export function ModalShell({
   useEscapeKey(true, onClose);
 
   const modal = (
-    <div className="fixed inset-0 z-50 flex items-end justify-center p-0 sm:items-center sm:p-4">
+    <div className="fixed inset-0 z-[80] flex items-end justify-center p-0 sm:items-center sm:p-4">
       <div className="absolute inset-0 bg-slate-950/28 backdrop-blur-md" onClick={onClose} aria-hidden="true" />
       <div
         className={cn(

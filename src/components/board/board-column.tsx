@@ -5,7 +5,7 @@ import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable"
 import { Task, Column } from "@/lib/types";
 import { TaskCard } from "./task-card";
 import { Plus, Settings, GripVertical, MoreHorizontal } from "lucide-react";
-import { ComponentPropsWithoutRef, forwardRef, memo, useEffect, useMemo, useRef, useState } from "react";
+import { ComponentPropsWithoutRef, CSSProperties, forwardRef, memo, useEffect, useMemo, useRef, useState } from "react";
 import { useVirtualWindow } from "@/lib/hooks/use-virtual-window";
 import { cn } from "@/lib/utils";
 
@@ -44,6 +44,8 @@ const BoardColumnBase = forwardRef<HTMLDivElement, BoardColumnProps>(({
     const mobileMenuRef = useRef<HTMLDivElement>(null);
     const shouldVirtualize = tasks.length > 24;
     const sortableItems = useMemo(() => tasks.map((task) => task.id), [tasks]);
+    const columnType = column?.type || "default";
+    const columnStyle = { "--column-color": color } as CSSProperties;
     const virtual = useVirtualWindow<HTMLDivElement>({
         count: tasks.length,
         estimateSize: 232,
@@ -79,6 +81,8 @@ const BoardColumnBase = forwardRef<HTMLDivElement, BoardColumnProps>(({
     return (
         <div
             ref={ref}
+            data-column-type={columnType}
+            style={columnStyle}
             className={cn(
                 "kanban-column-shell flex h-full w-[min(17.5rem,calc(100vw-5.75rem))] shrink-0 snap-start snap-always flex-col rounded-[1.45rem] border border-slate-200/70 bg-slate-100/45 p-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.86),0_18px_46px_-40px_rgba(15,23,42,0.36)] md:w-80 md:max-w-none md:snap-center",
                 isDragging && "ring-2 ring-primary/20"
@@ -86,6 +90,7 @@ const BoardColumnBase = forwardRef<HTMLDivElement, BoardColumnProps>(({
         >
             {/* Header with Drag Handle */}
             <div
+                data-column-type={columnType}
                 className={cn(
                     "kanban-column-header group mb-2.5 flex items-center justify-between rounded-[1rem] border border-white/90 bg-white/86 px-3 py-2.5 shadow-[0_10px_26px_-24px_rgba(15,23,42,0.32)] backdrop-blur-xl md:py-3",
                 )}
@@ -94,14 +99,11 @@ const BoardColumnBase = forwardRef<HTMLDivElement, BoardColumnProps>(({
                 <div className="flex flex-1 items-center gap-2 min-w-0 cursor-grab active:cursor-grabbing">
                     {/* Visible Drag Handle */}
                     <GripVertical className="h-4 w-4 shrink-0 text-muted-foreground/50 transition-colors hover:text-muted-foreground" />
-                    <span
-                        className="h-3 w-3 flex-shrink-0 rounded-full"
-                        style={{ backgroundColor: color }}
-                    />
-                    <h3 className="truncate text-sm font-semibold text-foreground">
+                    <span className="kanban-column-dot h-3 w-3 flex-shrink-0 rounded-full bg-[var(--column-color)]" />
+                    <h3 className="kanban-column-title truncate text-sm font-semibold text-foreground">
                         {title}
                     </h3>
-                    <span className="shrink-0 text-sm text-muted-foreground">
+                    <span className="kanban-column-count shrink-0 text-sm text-muted-foreground">
                         ({tasks.length})
                     </span>
                 </div>
@@ -165,7 +167,8 @@ const BoardColumnBase = forwardRef<HTMLDivElement, BoardColumnProps>(({
                     setNodeRef(node);
                     virtual.containerRef.current = node;
                 }}
-                className="flex-1 overflow-y-auto overscroll-y-contain rounded-[1.05rem] border border-slate-200/65 bg-[linear-gradient(180deg,rgba(248,250,252,0.78),rgba(241,245,249,0.66))] p-2 touch-pan-y shadow-[inset_0_1px_0_rgba(255,255,255,0.78)] [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+                data-column-type={columnType}
+                className="kanban-column-body flex-1 overflow-y-auto overscroll-y-contain rounded-[1.05rem] border border-slate-200/65 bg-[linear-gradient(180deg,rgba(248,250,252,0.78),rgba(241,245,249,0.66))] p-2 touch-pan-y shadow-[inset_0_1px_0_rgba(255,255,255,0.78)] [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
             >
                 <SortableContext items={sortableItems} strategy={verticalListSortingStrategy}>
                     {shouldVirtualize ? (
