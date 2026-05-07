@@ -438,11 +438,20 @@ export function BrainSidebar({ isOpen, onClose, projectId, projectName, projectS
                             aria-label="Project Brain is thinking"
                         >
                             <span>Thinking</span>
-                            <span className="inline-flex items-center gap-1" aria-hidden="true">
-                                <span className="block h-1.5 w-1.5 animate-pulse rounded-full bg-primary/70" style={{ animationDelay: "0ms", animationDuration: "1200ms" }} />
-                                <span className="block h-1.5 w-1.5 animate-pulse rounded-full bg-primary/70" style={{ animationDelay: "200ms", animationDuration: "1200ms" }} />
-                                <span className="block h-1.5 w-1.5 animate-pulse rounded-full bg-primary/70" style={{ animationDelay: "400ms", animationDuration: "1200ms" }} />
-                            </span>
+                            <div className="flex items-center gap-1" aria-hidden="true">
+                                <div
+                                    className="h-2 w-2 animate-pulse rounded-full"
+                                    style={{ backgroundColor: "var(--primary)", animationDelay: "0ms", animationDuration: "1200ms" }}
+                                />
+                                <div
+                                    className="h-2 w-2 animate-pulse rounded-full"
+                                    style={{ backgroundColor: "var(--primary)", animationDelay: "200ms", animationDuration: "1200ms" }}
+                                />
+                                <div
+                                    className="h-2 w-2 animate-pulse rounded-full"
+                                    style={{ backgroundColor: "var(--primary)", animationDelay: "400ms", animationDuration: "1200ms" }}
+                                />
+                            </div>
                         </div>
                     </div>
                 )}
