@@ -980,33 +980,45 @@ const buildAdminListParams = (query?: AdminListQuery) => {
 };
 
 // Admin Mode
-export const getAdminDashboard = async (): Promise<AdminOverview> => {
-    const { data } = await api.get("/admin/overview");
+export const getAdminDashboard = async (signal?: AbortSignal): Promise<AdminOverview> => {
+    const { data } = await api.get("/admin/overview", { signal });
     return data.data;
 };
 
-export const getAdminTeams = async (query?: AdminListQuery): Promise<AdminListResponse<AdminTeamRow>> => {
-    const { data } = await api.get(`/admin/teams?${buildAdminListParams(query).toString()}`);
+export const getAdminTeams = async (
+    query?: AdminListQuery,
+    signal?: AbortSignal,
+): Promise<AdminListResponse<AdminTeamRow>> => {
+    const { data } = await api.get(`/admin/teams?${buildAdminListParams(query).toString()}`, { signal });
     return data.data || { items: [], meta: { total: 0, page: 1, page_size: query?.page_size || 12 } };
 };
 
-export const getAdminProjects = async (): Promise<AdminProjectRow[]> => {
-    const { data } = await api.get("/admin/projects");
+export const getAdminProjects = async (signal?: AbortSignal): Promise<AdminProjectRow[]> => {
+    const { data } = await api.get("/admin/projects", { signal });
     return data.data || [];
 };
 
-export const getAdminUsers = async (query?: AdminListQuery): Promise<AdminListResponse<AdminUserRow>> => {
-    const { data } = await api.get(`/admin/users?${buildAdminListParams(query).toString()}`);
+export const getAdminUsers = async (
+    query?: AdminListQuery,
+    signal?: AbortSignal,
+): Promise<AdminListResponse<AdminUserRow>> => {
+    const { data } = await api.get(`/admin/users?${buildAdminListParams(query).toString()}`, { signal });
     return data.data || { items: [], meta: { total: 0, page: 1, page_size: query?.page_size || 12 } };
 };
 
-export const getAdminPayments = async (query?: AdminListQuery): Promise<AdminListResponse<AdminPaymentTransaction>> => {
-    const { data } = await api.get(`/admin/payments?${buildAdminListParams(query).toString()}`);
+export const getAdminPayments = async (
+    query?: AdminListQuery,
+    signal?: AbortSignal,
+): Promise<AdminListResponse<AdminPaymentTransaction>> => {
+    const { data } = await api.get(`/admin/payments?${buildAdminListParams(query).toString()}`, { signal });
     return data.data || { items: [], meta: { total: 0, page: 1, page_size: query?.page_size || 12 } };
 };
 
-export const getAdminPlans = async (query?: AdminListQuery): Promise<AdminListResponse<AdminPlan>> => {
-    const { data } = await api.get(`/admin/plans?${buildAdminListParams(query).toString()}`);
+export const getAdminPlans = async (
+    query?: AdminListQuery,
+    signal?: AbortSignal,
+): Promise<AdminListResponse<AdminPlan>> => {
+    const { data } = await api.get(`/admin/plans?${buildAdminListParams(query).toString()}`, { signal });
     return data.data || { items: [], meta: { total: 0, page: 1, page_size: query?.page_size || 12 } };
 };
 

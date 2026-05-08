@@ -1,6 +1,6 @@
 "use client";
 
-import { ReactNode, useState } from "react";
+import { CSSProperties, ReactNode, useState } from "react";
 import { AdminOverview } from "@/lib/types";
 
 const USD_TO_IDR = 16250;
@@ -504,6 +504,96 @@ export function formatCompactNumber(value: number) {
         notation: "compact",
         maximumFractionDigits: 1,
     }).format(value || 0);
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// Skeleton primitives
+//
+// Three building blocks that every admin page should use for "data is on its
+// way" feedback. They share one shimmer atom so we can adjust timing, tone,
+// and reduced-motion behavior in exactly one place.
+// ────────────────────────────────────────────────────────────────────────────
+
+type SkeletonRounded = "sm" | "md" | "lg" | "xl" | "2xl" | "full";
+
+const SKELETON_ROUNDED: Record<SkeletonRounded, string> = {
+    sm: "rounded-md",
+    md: "rounded-[12px]",
+    lg: "rounded-[16px]",
+    xl: "rounded-[20px]",
+    "2xl": "rounded-[24px]",
+    full: "rounded-full",
+};
+
+type SkeletonProps = {
+    className?: string;
+    rounded?: SkeletonRounded;
+    height?: number | string;
+    width?: number | string;
+};
+
+// Skeleton is the atomic shimmer block. Defaults to a soft tinted neutral
+// surface that matches the rest of the admin UI; pass className to override.
+export function Skeleton({ className = "", rounded = "lg", height, width }: SkeletonProps) {
+    const style: CSSProperties = {};
+    if (height !== undefined) style.height = typeof height === "number" ? `${height}px` : height;
+    if (width !== undefined) style.width = typeof width === "number" ? `${width}px` : width;
+
+    return (
+        <div
+            aria-hidden
+            style={style}
+            className={
+                `animate-pulse bg-muted motion-reduce:animate-none ${SKELETON_ROUNDED[rounded]} ${className}`.trim()
+            }
+        />
+    );
+}
+
+// SkeletonRows renders a vertical stack of card-shaped skeletons sized to
+// match list rows used across the admin section. Override `rowHeight` per
+// page so the swap to real content lands without layout shift.
+export function SkeletonRows({
+    count,
+    rowHeight = 112,
+    gap = "sm",
+    className = "",
+}: {
+    count: number;
+    rowHeight?: number;
+    gap?: "xs" | "sm" | "md";
+    className?: string;
+}) {
+    const gapClass = gap === "xs" ? "space-y-1.5" : gap === "md" ? "space-y-3" : "space-y-2";
+    return (
+        <div className={`${gapClass} ${className}`.trim()}>
+            {Array.from({ length: count }).map((_, i) => (
+                <div
+                    key={i}
+                    style={{ height: rowHeight }}
+                    aria-hidden
+                    className="animate-pulse rounded-[16px] border border-black/5 bg-white motion-reduce:animate-none"
+                />
+            ))}
+        </div>
+    );
+}
+
+// SkeletonHeroStatGrid mirrors the 4-card HeroStat row used at the top of
+// metric-heavy pages. Default `count` is 4; pass a smaller value when the
+// page only renders 2 or 3 stats.
+export function SkeletonHeroStatGrid({ count = 4 }: { count?: number }) {
+    return (
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {Array.from({ length: count }).map((_, i) => (
+                <div
+                    key={i}
+                    aria-hidden
+                    className="h-24 animate-pulse rounded-[16px] border border-black/5 bg-white motion-reduce:animate-none"
+                />
+            ))}
+        </div>
+    );
 }
 
 // StackedBarPoint feeds StackedBarChart. `segments` order is fixed by the
