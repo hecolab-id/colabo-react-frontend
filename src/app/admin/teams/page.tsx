@@ -2,16 +2,21 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { getAdminPlans, getAdminTeams, updateAdminTeamSubscription } from "@/lib/api";
-import { AdminPlan, AdminTeamRow } from "@/lib/types";
+import { AdminListResponse, AdminPlan, AdminTeamRow } from "@/lib/types";
 import {
     EmptyState,
     PaginationControls,
     SearchField,
+    SkeletonRows,
     StatusPill,
     formatCompactNumber,
     formatNumber,
 } from "@/components/admin/admin-ui";
+import { useAdminQuery } from "@/lib/hooks/use-admin-query";
 import { TeamEditDrawer } from "@/components/admin/team-edit-drawer";
+
+const REFRESHING_CLASS = "opacity-60 transition-opacity duration-200";
+const STEADY_CLASS = "transition-opacity duration-200";
 
 type SubscriptionTone = "calm" | "alert" | "revenue" | "slate" | "warning";
 
@@ -30,37 +35,31 @@ const SUBSCRIPTION_LABELS: Record<string, string> = {
 };
 
 export default function AdminTeamsPage() {
-    const [loading, setLoading] = useState(true);
-    const [teams, setTeams] = useState<AdminTeamRow[]>([]);
-    const [plans, setPlans] = useState<AdminPlan[]>([]);
     const [savingTeamId, setSavingTeamId] = useState<string | null>(null);
     const [editingTeamId, setEditingTeamId] = useState<string | null>(null);
     const [draft, setDraft] = useState<{ status: string; plan_id?: string }>({ status: "PENDING" });
     const [query, setQuery] = useState("");
     const [page, setPage] = useState(1);
     const pageSize = 20;
-    const [total, setTotal] = useState(0);
 
-    useEffect(() => {
-        const loadData = async () => {
-            try {
-                setLoading(true);
-                const [teamRows, planRows] = await Promise.all([
-                    getAdminTeams({ q: query, page, page_size: pageSize }),
-                    getAdminPlans({ page: 1, page_size: 100 }),
-                ]);
-                setTeams(teamRows?.items || []);
-                setTotal(teamRows?.meta?.total || 0);
-                setPlans(planRows?.items || []);
-            } catch (error) {
-                console.error("Failed to load admin teams:", error);
-            } finally {
-                setLoading(false);
-            }
-        };
+    const teamsQ = useAdminQuery<AdminListResponse<AdminTeamRow>>(
+        (signal) => getAdminTeams({ q: query, page, page_size: pageSize }, signal),
+        [query, page],
+        "Couldn't load teams. Retry?",
+    );
 
-        void loadData();
-    }, [page, query]);
+    // Plans is a one-shot fetch on mount; useAdminQuery just gives us the
+    // same loading/error contract for free. It doesn't refetch on filter
+    // change because its dep list is empty.
+    const plansQ = useAdminQuery<AdminListResponse<AdminPlan>>(
+        (signal) => getAdminPlans({ page: 1, page_size: 100 }, signal),
+        [],
+        "Couldn't load plans. Retry?",
+    );
+
+    const teams = teamsQ.data?.items ?? [];
+    const total = teamsQ.data?.meta.total ?? 0;
+    const plans = plansQ.data?.items ?? [];
 
     const totalPages = Math.max(1, Math.ceil(total / pageSize));
     const editingTeam = useMemo(
@@ -96,9 +95,7 @@ export default function AdminTeamsPage() {
                 status: draft.status,
                 plan_id: draft.plan_id,
             });
-            const teamRows = await getAdminTeams({ q: query, page, page_size: pageSize });
-            setTeams(teamRows?.items || []);
-            setTotal(teamRows?.meta?.total || 0);
+            teamsQ.reload();
             setEditingTeamId(null);
         } catch (error) {
             console.error("Failed to update team subscription:", error);
@@ -132,20 +129,21 @@ export default function AdminTeamsPage() {
                         />
                     </div>
                     <p className="text-sm text-muted-foreground sm:ml-auto sm:shrink-0">
-                        {loading ? "Loading..." : `${formatNumber(total)} ${total === 1 ? "team" : "teams"}`}
+                        {teamsQ.isInitialLoading
+                            ? "Loading…"
+                            : `${formatNumber(total)} ${total === 1 ? "team" : "teams"}`}
                     </p>
                 </div>
 
-                {loading ? (
-                    <div className="space-y-2">
-                        {Array.from({ length: 4 }).map((_, idx) => (
-                            <div key={idx} className="h-24 animate-pulse rounded-[16px] border border-black/5 bg-white" />
-                        ))}
-                    </div>
+                {teamsQ.isInitialLoading ? (
+                    <SkeletonRows count={4} rowHeight={120} />
+                ) : teamsQ.error ? (
+                    <EmptyState message={teamsQ.error} />
                 ) : teams.length === 0 ? (
                     <EmptyState message="No teams match this search yet. Teams appear here once users complete signup." />
                 ) : (
-                    <ul className="space-y-2">
+                    <ul className={`space-y-2 ${teamsQ.isRefreshing ? REFRESHING_CLASS : STEADY_CLASS}`}>
+
                         {teams.map((team) => {
                             const subStatus = team.subscription_status || "PENDING";
                             const subscriptionTone = SUBSCRIPTION_TONES[subStatus] || "slate";
@@ -214,7 +212,7 @@ export default function AdminTeamsPage() {
                     </ul>
                 )}
 
-                {!loading && teams.length > 0 ? (
+                {!teamsQ.isInitialLoading && teams.length > 0 ? (
                     <PaginationControls
                         page={page}
                         totalPages={totalPages}

@@ -17,6 +17,7 @@ import {
     AdminAIUsageTeamRow,
     AdminAIUsageTimeseries,
     AdminAIUsageUserRow,
+    AdminListResponse,
     AdminTeamRow,
 } from "@/lib/types";
 import {
@@ -25,6 +26,9 @@ import {
     PaginationControls,
     Panel,
     SearchField,
+    Skeleton,
+    SkeletonHeroStatGrid,
+    SkeletonRows,
     StackedBarChart,
     StackedBarPoint,
     StackedFeatureBar,
@@ -33,7 +37,14 @@ import {
     formatDate,
     formatNumber,
 } from "@/components/admin/admin-ui";
+import { useAdminQuery, AdminQueryResult } from "@/lib/hooks/use-admin-query";
 import { FEATURE_LABELS, FEATURE_ORDER } from "./feature-labels";
+
+// Tailwind class applied to data containers when a panel is refetching.
+// Keeps the previous data on screen but dims it so the user sees that a
+// refresh is in flight without losing context.
+const REFRESHING_CLASS = "opacity-60 transition-opacity duration-200";
+const STEADY_CLASS = "transition-opacity duration-200";
 
 // ---------- Range (filter state) ----------
 
@@ -90,12 +101,6 @@ function readRangeFromUrl(params: URLSearchParams): RangeState {
     return { kind: "30d" };
 }
 
-function isAbortError(err: unknown): boolean {
-    if (!err || typeof err !== "object") return false;
-    const e = err as { code?: string; name?: string };
-    return e.code === "ERR_CANCELED" || e.name === "CanceledError" || e.name === "AbortError";
-}
-
 // ---------- Page ----------
 
 export default function AdminAIUsagePage() {
@@ -117,35 +122,12 @@ export default function AdminAIUsagePage() {
         return g === "hour" || g === "day" ? g : undefined;
     });
 
-    // Summary panel
-    const [summary, setSummary] = useState<AdminAIUsageSummary | null>(null);
-    const [summaryLoading, setSummaryLoading] = useState(true);
-    const [summaryError, setSummaryError] = useState<string | null>(null);
-
-    // Daily chart panel
-    const [timeseries, setTimeseries] = useState<AdminAIUsageTimeseries | null>(null);
-    const [timeseriesLoading, setTimeseriesLoading] = useState(true);
-    const [timeseriesError, setTimeseriesError] = useState<string | null>(null);
-
-    // Per-team panel
-    const [teamRows, setTeamRows] = useState<AdminAIUsageTeamRow[]>([]);
+    // Pagination + search are local UI state. Data fetching itself is
+    // delegated to useAdminQuery below, which owns the loading / error
+    // / data lifecycle and emits the two-phase loading flags.
     const [teamPage, setTeamPage] = useState(1);
-    const [teamTotal, setTeamTotal] = useState(0);
     const [teamQuery, setTeamQuery] = useState("");
-    const [teamLoading, setTeamLoading] = useState(true);
-    const [teamError, setTeamError] = useState<string | null>(null);
-
-    // Top users panel
-    const [userRows, setUserRows] = useState<AdminAIUsageUserRow[]>([]);
     const [userPage, setUserPage] = useState(1);
-    const [userTotal, setUserTotal] = useState(0);
-    const [userLoading, setUserLoading] = useState(true);
-    const [userError, setUserError] = useState<string | null>(null);
-
-    // Feature breakdown panel
-    const [featureRows, setFeatureRows] = useState<AdminAIUsageFeatureRow[]>([]);
-    const [featureLoading, setFeatureLoading] = useState(true);
-    const [featureError, setFeatureError] = useState<string | null>(null);
 
     // Team selector dropdown options (one-shot fetch on mount)
     const [teamOptions, setTeamOptions] = useState<AdminTeamRow[]>([]);
@@ -191,99 +173,74 @@ export default function AdminAIUsagePage() {
         [baseQuery, granularityOverride],
     );
 
-    // ---- Summary fetch ----
-    useEffect(() => {
-        const ac = new AbortController();
-        setSummaryLoading(true);
-        setSummaryError(null);
-        getAdminAIUsageSummary(baseQuery, ac.signal)
-            .then((s) => setSummary(s))
-            .catch((err) => {
-                if (isAbortError(err)) return;
-                setSummaryError("Couldn't load summary. Retry?");
-            })
-            .finally(() => setSummaryLoading(false));
-        return () => ac.abort();
-    }, [baseQuery]);
+    // ---- Five panel queries ----
+    // Each panel owns its own AbortController + two-phase loading flags via
+    // useAdminQuery. The hook cancels stale fetches automatically when deps
+    // change, so rapid filter clicks no longer race.
 
-    // ---- Daily chart (timeseries) fetch ----
-    useEffect(() => {
-        const ac = new AbortController();
-        setTimeseriesLoading(true);
-        setTimeseriesError(null);
-        getAdminAIUsageTimeseries(timeseriesQuery, ac.signal)
-            .then((ts) => setTimeseries(ts))
-            .catch((err) => {
-                if (isAbortError(err)) return;
-                setTimeseriesError("Couldn't load daily usage. Retry?");
-            })
-            .finally(() => setTimeseriesLoading(false));
-        return () => ac.abort();
-    }, [timeseriesQuery]);
+    const summaryQ = useAdminQuery<AdminAIUsageSummary>(
+        (signal) => getAdminAIUsageSummary(baseQuery, signal),
+        [baseQuery],
+        "Couldn't load summary. Retry?",
+    );
 
-    // ---- Per-team fetch ----
-    useEffect(() => {
-        const ac = new AbortController();
-        setTeamLoading(true);
-        setTeamError(null);
-        getAdminAIUsageByTeam(
-            { ...baseQuery, q: teamQuery || undefined, page: teamPage, page_size: PAGE_SIZE },
-            ac.signal,
-        )
-            .then((res) => {
-                setTeamRows(res.items);
-                setTeamTotal(res.meta.total);
-            })
-            .catch((err) => {
-                if (isAbortError(err)) return;
-                setTeamError("Couldn't load teams. Retry?");
-            })
-            .finally(() => setTeamLoading(false));
-        return () => ac.abort();
-    }, [baseQuery, teamQuery, teamPage]);
+    const timeseriesQ = useAdminQuery<AdminAIUsageTimeseries>(
+        (signal) => getAdminAIUsageTimeseries(timeseriesQuery, signal),
+        [timeseriesQuery],
+        "Couldn't load daily usage. Retry?",
+    );
 
-    // ---- Top users fetch ----
-    // Locked product decision: aggregate across all teams. The team_id filter
-    // is intentionally NOT passed here. Don't "fix" this without revisiting
-    // docs/ai-usage-report/README.md.
-    useEffect(() => {
-        const ac = new AbortController();
-        setUserLoading(true);
-        setUserError(null);
-        const userQuery = { from: baseQuery.from, to: baseQuery.to, page: userPage, page_size: PAGE_SIZE };
-        getAdminAIUsageByUser(userQuery, ac.signal)
-            .then((res) => {
-                setUserRows(res.items);
-                setUserTotal(res.meta.total);
-            })
-            .catch((err) => {
-                if (isAbortError(err)) return;
-                setUserError("Couldn't load users. Retry?");
-            })
-            .finally(() => setUserLoading(false));
-        return () => ac.abort();
-    }, [baseQuery, userPage]);
+    const teamsQ = useAdminQuery<AdminListResponse<AdminAIUsageTeamRow>>(
+        (signal) =>
+            getAdminAIUsageByTeam(
+                {
+                    ...baseQuery,
+                    q: teamQuery || undefined,
+                    page: teamPage,
+                    page_size: PAGE_SIZE,
+                },
+                signal,
+            ),
+        [baseQuery, teamQuery, teamPage],
+        "Couldn't load teams. Retry?",
+    );
 
-    // ---- Feature breakdown fetch ----
-    useEffect(() => {
-        const ac = new AbortController();
-        setFeatureLoading(true);
-        setFeatureError(null);
-        getAdminAIUsageByFeature(baseQuery, ac.signal)
-            .then((rows) => setFeatureRows(rows))
-            .catch((err) => {
-                if (isAbortError(err)) return;
-                setFeatureError("Couldn't load features. Retry?");
-            })
-            .finally(() => setFeatureLoading(false));
-        return () => ac.abort();
-    }, [baseQuery]);
+    // Locked product decision: aggregate across all teams. The team_id
+    // filter is intentionally NOT forwarded here. Don't "fix" this without
+    // revisiting docs/ai-usage-report/README.md.
+    const usersQ = useAdminQuery<AdminListResponse<AdminAIUsageUserRow>>(
+        (signal) =>
+            getAdminAIUsageByUser(
+                {
+                    from: baseQuery.from,
+                    to: baseQuery.to,
+                    page: userPage,
+                    page_size: PAGE_SIZE,
+                },
+                signal,
+            ),
+        [baseQuery, userPage],
+        "Couldn't load users. Retry?",
+    );
+
+    const featuresQ = useAdminQuery<AdminAIUsageFeatureRow[]>(
+        (signal) => getAdminAIUsageByFeature(baseQuery, signal),
+        [baseQuery],
+        "Couldn't load features. Retry?",
+    );
 
     // ---- Reset paging when filters change ----
     useEffect(() => {
         setTeamPage(1);
         setUserPage(1);
     }, [baseQuery, teamQuery]);
+
+    // Convenience destructuring so the JSX below stays readable.
+    const teamRows = teamsQ.data?.items ?? [];
+    const teamTotal = teamsQ.data?.meta.total ?? 0;
+    const userRows = usersQ.data?.items ?? [];
+    const userTotal = usersQ.data?.meta.total ?? 0;
+    const featureRows = featuresQ.data ?? [];
 
     const teamTotalPages = Math.max(1, Math.ceil(teamTotal / PAGE_SIZE));
     const userTotalPages = Math.max(1, Math.ceil(userTotal / PAGE_SIZE));
@@ -320,12 +277,10 @@ export default function AdminAIUsagePage() {
                 onGranularityChange={setGranularityOverride}
             />
 
-            <SummaryRow summary={summary} loading={summaryLoading} error={summaryError} />
+            <SummaryRow query={summaryQ} />
 
             <DailyUsagePanel
-                timeseries={timeseries}
-                loading={timeseriesLoading}
-                error={timeseriesError}
+                query={timeseriesQ}
                 overridden={granularityOverride !== undefined}
             />
 
@@ -345,14 +300,14 @@ export default function AdminAIUsagePage() {
                     />
                 </div>
 
-                {teamLoading ? (
-                    <SkeletonRows count={4} />
-                ) : teamError ? (
-                    <EmptyState message={teamError} />
+                {teamsQ.isInitialLoading ? (
+                    <SkeletonRows count={4} rowHeight={120} />
+                ) : teamsQ.error ? (
+                    <EmptyState message={teamsQ.error} />
                 ) : teamRows.length === 0 ? (
                     <EmptyState message="No teams used AI in this range. Adjust the time window or pick a different team filter." />
                 ) : (
-                    <ul className="space-y-2">
+                    <ul className={`space-y-2 ${teamsQ.isRefreshing ? REFRESHING_CLASS : STEADY_CLASS}`}>
                         {teamRows.map((row) => (
                             <TeamRow
                                 key={row.team_id}
@@ -363,7 +318,7 @@ export default function AdminAIUsagePage() {
                     </ul>
                 )}
 
-                {!teamLoading && teamRows.length > 0 ? (
+                {!teamsQ.isInitialLoading && teamRows.length > 0 ? (
                     <div className="mt-4">
                         <PaginationControls
                             page={teamPage}
@@ -381,14 +336,14 @@ export default function AdminAIUsagePage() {
                 title="Users ranked by token usage"
                 subtitle="Aggregated across every team the user belongs to. Per-team drill-down deferred to V2."
             >
-                {userLoading ? (
-                    <SkeletonRows count={4} />
-                ) : userError ? (
-                    <EmptyState message={userError} />
+                {usersQ.isInitialLoading ? (
+                    <SkeletonRows count={4} rowHeight={120} />
+                ) : usersQ.error ? (
+                    <EmptyState message={usersQ.error} />
                 ) : userRows.length === 0 ? (
                     <EmptyState message="No user-attributed AI calls in this range." />
                 ) : (
-                    <ul className="space-y-2">
+                    <ul className={`space-y-2 ${usersQ.isRefreshing ? REFRESHING_CLASS : STEADY_CLASS}`}>
                         {userRows.map((row) => (
                             <UserRow
                                 key={row.user_id}
@@ -399,7 +354,7 @@ export default function AdminAIUsagePage() {
                     </ul>
                 )}
 
-                {!userLoading && userRows.length > 0 ? (
+                {!usersQ.isInitialLoading && userRows.length > 0 ? (
                     <div className="mt-4">
                         <PaginationControls
                             page={userPage}
@@ -417,12 +372,14 @@ export default function AdminAIUsagePage() {
                 title="Tokens by AI feature"
                 subtitle="One stacked bar showing each feature's share of the total."
             >
-                {featureLoading ? (
-                    <SkeletonRows count={4} />
-                ) : featureError ? (
-                    <EmptyState message={featureError} />
+                {featuresQ.isInitialLoading ? (
+                    <SkeletonRows count={1} rowHeight={64} />
+                ) : featuresQ.error ? (
+                    <EmptyState message={featuresQ.error} />
                 ) : (
-                    <StackedFeatureBar items={buildFeatureBarItems(featureRows)} />
+                    <div className={featuresQ.isRefreshing ? REFRESHING_CLASS : STEADY_CLASS}>
+                        <StackedFeatureBar items={buildFeatureBarItems(featureRows)} />
+                    </div>
                 )}
             </Panel>
         </main>
@@ -541,32 +498,21 @@ function FilterBar({
     );
 }
 
-function SummaryRow({
-    summary,
-    loading,
-    error,
-}: {
-    summary: AdminAIUsageSummary | null;
-    loading: boolean;
-    error: string | null;
-}) {
-    if (error) {
-        return <EmptyState message={error} />;
+function SummaryRow({ query }: { query: AdminQueryResult<AdminAIUsageSummary> }) {
+    if (query.isInitialLoading || !query.data) {
+        if (query.error) {
+            return <EmptyState message={query.error} />;
+        }
+        return <SkeletonHeroStatGrid count={4} />;
     }
-    if (loading || !summary) {
-        return (
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                {Array.from({ length: 4 }).map((_, i) => (
-                    <div
-                        key={i}
-                        className="h-24 animate-pulse rounded-[16px] border border-black/5 bg-white"
-                    />
-                ))}
-            </div>
-        );
-    }
+
+    const summary = query.data;
     return (
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div
+            className={`grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4 ${
+                query.isRefreshing ? REFRESHING_CLASS : STEADY_CLASS
+            }`}
+        >
             <HeroStat
                 label="Total tokens"
                 value={formatCompactNumber(summary.total_tokens)}
@@ -691,35 +637,21 @@ function UserRow({ row, maxTokens }: { row: AdminAIUsageUserRow; maxTokens: numb
     );
 }
 
-function SkeletonRows({ count }: { count: number }) {
-    return (
-        <div className="space-y-2">
-            {Array.from({ length: count }).map((_, i) => (
-                <div
-                    key={i}
-                    className="h-24 animate-pulse rounded-[16px] border border-black/5 bg-white"
-                />
-            ))}
-        </div>
-    );
-}
-
 function DailyUsagePanel({
-    timeseries,
-    loading,
-    error,
+    query,
     overridden,
 }: {
-    timeseries: AdminAIUsageTimeseries | null;
-    loading: boolean;
-    error: string | null;
+    query: AdminQueryResult<AdminAIUsageTimeseries>;
     overridden: boolean;
 }) {
+    const timeseries = query.data;
     const granularity = timeseries?.granularity ?? "day";
     const bucketWord = granularity === "hour" ? "hourly" : "daily";
     const subtitle = overridden
         ? `Stacked by feature · ${bucketWord} buckets (manual override)`
         : `Stacked by feature · ${bucketWord} buckets (auto from range)`;
+
+    const hasPoints = !!timeseries && timeseries.points.length > 0;
 
     return (
         <Panel
@@ -727,19 +659,21 @@ function DailyUsagePanel({
             title="Tokens over time"
             subtitle={subtitle}
         >
-            {loading ? (
-                <div className="h-60 animate-pulse rounded-[14px] border border-black/5 bg-white" />
-            ) : error ? (
-                <EmptyState message={error} />
-            ) : !timeseries || timeseries.points.length === 0 ? (
+            {query.isInitialLoading ? (
+                <Skeleton height={240} rounded="lg" className="border border-black/5 bg-white" />
+            ) : query.error ? (
+                <EmptyState message={query.error} />
+            ) : !hasPoints ? (
                 <EmptyState
                     compact
                     message="No token activity in this range yet. The chart fills in as users hit AI features."
                 />
             ) : (
-                <StackedBarChart points={mapTimeseriesToStackedPoints(timeseries)} />
+                <div className={query.isRefreshing ? REFRESHING_CLASS : STEADY_CLASS}>
+                    <StackedBarChart points={mapTimeseriesToStackedPoints(timeseries!)} />
+                </div>
             )}
-            {timeseries && timeseries.points.length > 0 ? (
+            {hasPoints ? (
                 <div className="mt-4 flex flex-wrap gap-x-4 gap-y-2 text-xs text-muted-foreground">
                     {FEATURE_ORDER.map((f) => (
                         <span key={f} className="flex items-center gap-2">
