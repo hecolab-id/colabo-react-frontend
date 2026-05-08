@@ -4,36 +4,28 @@ import { useEffect, useState } from "react";
 import { useRouter } from "@/lib/navigation";
 import { getAdminUsers } from "@/lib/api";
 import { useStore } from "@/lib/store";
-import { AdminUserRow } from "@/lib/types";
-import { EmptyState, Metric, PaginationControls, Panel, SearchField, StatusPill, formatDate, formatNumber } from "@/components/admin/admin-ui";
+import { AdminListResponse, AdminUserRow } from "@/lib/types";
+import { EmptyState, Metric, PaginationControls, Panel, SearchField, SkeletonRows, StatusPill, formatDate, formatNumber } from "@/components/admin/admin-ui";
+import { useAdminQuery } from "@/lib/hooks/use-admin-query";
+
+const REFRESHING_CLASS = "opacity-60 transition-opacity duration-200";
+const STEADY_CLASS = "transition-opacity duration-200";
 
 export default function AdminUsersPage() {
     const router = useRouter();
     const { startImpersonation } = useStore();
-    const [loading, setLoading] = useState(true);
-    const [users, setUsers] = useState<AdminUserRow[]>([]);
     const [query, setQuery] = useState("");
     const [page, setPage] = useState(1);
     const pageSize = 12;
-    const [total, setTotal] = useState(0);
 
-    useEffect(() => {
-        const loadData = async () => {
-            try {
-                setLoading(true);
-                const response = await getAdminUsers({ q: query, page, page_size: pageSize });
-                setUsers(response?.items || []);
-                setTotal(response?.meta?.total || 0);
-            } catch (error) {
-                console.error("Failed to load admin users:", error);
-            } finally {
-                setLoading(false);
-            }
-        };
+    const usersQ = useAdminQuery<AdminListResponse<AdminUserRow>>(
+        (signal) => getAdminUsers({ q: query, page, page_size: pageSize }, signal),
+        [query, page],
+        "Couldn't load users. Retry?",
+    );
 
-        void loadData();
-    }, [page, query]);
-
+    const users = usersQ.data?.items ?? [];
+    const total = usersQ.data?.meta.total ?? 0;
     const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
     useEffect(() => {
@@ -41,10 +33,6 @@ export default function AdminUsersPage() {
             setPage(totalPages);
         }
     }, [page, totalPages]);
-
-    if (loading) {
-        return <div className="rounded-[28px] border border-white/10 bg-[#111827]/60 p-8 text-sm text-slate-300">Loading users.</div>;
-    }
 
     return (
         <div className="space-y-4">
@@ -58,6 +46,12 @@ export default function AdminUsersPage() {
                     <Metric label="Matching users" value={formatNumber(total)} />
                 </div>
 
+                {usersQ.isInitialLoading ? (
+                    <SkeletonRows count={6} rowHeight={64} />
+                ) : usersQ.error ? (
+                    <EmptyState message={usersQ.error} />
+                ) : (
+                <div className={usersQ.isRefreshing ? REFRESHING_CLASS : STEADY_CLASS}>
                 <div className="hidden lg:block">
                     <div className="overflow-x-auto rounded-[22px]">
                         <table className="w-full min-w-[760px] table-fixed text-sm">
@@ -145,6 +139,8 @@ export default function AdminUsersPage() {
                         ))
                     )}
                 </div>
+                </div>
+                )}
 
                 <div className="mt-4">
                     <PaginationControls page={page} totalPages={totalPages} totalItems={total} label="users" onChange={setPage} />

@@ -2,7 +2,7 @@
 
 import { FormEvent, useEffect, useState } from "react";
 import { createAdminPlan, deleteAdminPlan, getAdminPlans, updateAdminPlan } from "@/lib/api";
-import { AdminPlan } from "@/lib/types";
+import { AdminListResponse, AdminPlan } from "@/lib/types";
 import {
     EmptyState,
     Metric,
@@ -10,12 +10,17 @@ import {
     PaginationControls,
     Panel,
     SearchField,
+    SkeletonRows,
     TextField,
     formatCompactNumber,
     formatCurrencyIdr,
     formatNumber,
 } from "@/components/admin/admin-ui";
+import { useAdminQuery } from "@/lib/hooks/use-admin-query";
 import { ToggleSwitch } from "@/components/ui/toggle-switch";
+
+const REFRESHING_CLASS = "opacity-60 transition-opacity duration-200";
+const STEADY_CLASS = "transition-opacity duration-200";
 
 type PlanDraft = Omit<AdminPlan, "id" | "created_at">;
 
@@ -33,32 +38,20 @@ const emptyPlanDraft: PlanDraft = {
 };
 
 export default function AdminPlansPage() {
-    const [loading, setLoading] = useState(true);
-    const [plans, setPlans] = useState<AdminPlan[]>([]);
     const [editingPlanId, setEditingPlanId] = useState<string | null>(null);
     const [planDraft, setPlanDraft] = useState<PlanDraft>(emptyPlanDraft);
     const [query, setQuery] = useState("");
     const [page, setPage] = useState(1);
     const pageSize = 8;
-    const [total, setTotal] = useState(0);
 
-    const loadPlans = async () => {
-        try {
-            setLoading(true);
-            const response = await getAdminPlans({ q: query, page, page_size: pageSize });
-            setPlans(response?.items || []);
-            setTotal(response?.meta?.total || 0);
-        } catch (error) {
-            console.error("Failed to load admin plans:", error);
-        } finally {
-            setLoading(false);
-        }
-    };
+    const plansQ = useAdminQuery<AdminListResponse<AdminPlan>>(
+        (signal) => getAdminPlans({ q: query, page, page_size: pageSize }, signal),
+        [query, page],
+        "Couldn't load plans. Retry?",
+    );
 
-    useEffect(() => {
-        void loadPlans();
-    }, [page, query]);
-
+    const plans = plansQ.data?.items ?? [];
+    const total = plansQ.data?.meta.total ?? 0;
     const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
     useEffect(() => {
@@ -79,7 +72,7 @@ export default function AdminPlansPage() {
 
             setPlanDraft(emptyPlanDraft);
             setEditingPlanId(null);
-            await loadPlans();
+            plansQ.reload();
         } catch (error) {
             console.error("Failed to save plan:", error);
         }
@@ -104,15 +97,11 @@ export default function AdminPlansPage() {
     const handlePlanDelete = async (planId: string) => {
         try {
             await deleteAdminPlan(planId);
-            await loadPlans();
+            plansQ.reload();
         } catch (error) {
             console.error("Failed to delete plan:", error);
         }
     };
-
-    if (loading) {
-        return <div className="rounded-[28px] border border-white/10 bg-[#111827]/60 p-8 text-sm text-slate-300">Loading plans.</div>;
-    }
 
     return (
         <div className="space-y-4">
@@ -171,7 +160,12 @@ export default function AdminPlansPage() {
                         <Metric label="Matching plans" value={formatNumber(total)} />
                     </div>
 
-                    <div className="space-y-3">
+                    {plansQ.isInitialLoading ? (
+                        <SkeletonRows count={4} rowHeight={140} />
+                    ) : plansQ.error ? (
+                        <EmptyState message={plansQ.error} />
+                    ) : (
+                    <div className={`space-y-3 ${plansQ.isRefreshing ? REFRESHING_CLASS : STEADY_CLASS}`}>
                         {plans.length === 0 ? (
                             <EmptyState message="No plans match this search yet." />
                         ) : (
@@ -211,6 +205,7 @@ export default function AdminPlansPage() {
                             ))
                         )}
                     </div>
+                    )}
 
                     <div className="mt-4">
                         <PaginationControls page={page} totalPages={totalPages} totalItems={total} label="plans" onChange={setPage} />
