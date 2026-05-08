@@ -1,46 +1,43 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import { getAdminDashboard, getAdminPayments, getAdminTeams } from "@/lib/api";
-import { AdminOverview, AdminTeamRow } from "@/lib/types";
+import { AdminListResponse, AdminOverview, AdminPaymentTransaction, AdminTeamRow } from "@/lib/types";
 import {
     DualBarChart,
     EmptyState,
     HeroStat,
     Panel,
+    Skeleton,
+    SkeletonHeroStatGrid,
     StackedTrend,
     StatusPill,
     formatCurrencyIdr,
     formatNumber,
 } from "@/components/admin/admin-ui";
+import { useAdminQuery } from "@/lib/hooks/use-admin-query";
+
+const REFRESHING_CLASS = "opacity-60 transition-opacity duration-200";
+const STEADY_CLASS = "transition-opacity duration-200";
 
 export default function AdminOverviewPage() {
-    const [loading, setLoading] = useState(true);
-    const [overview, setOverview] = useState<AdminOverview | null>(null);
-    const [teams, setTeams] = useState<AdminTeamRow[]>([]);
-    const [paymentTotal, setPaymentTotal] = useState(0);
+    const overviewQ = useAdminQuery<AdminOverview>(
+        (signal) => getAdminDashboard(signal),
+        [],
+        "Couldn't load overview. Retry?",
+    );
+    const teamsQ = useAdminQuery<AdminListResponse<AdminTeamRow>>(
+        (signal) => getAdminTeams({ page: 1, page_size: 100 }, signal),
+        [],
+    );
+    const paymentsQ = useAdminQuery<AdminListResponse<AdminPaymentTransaction>>(
+        (signal) => getAdminPayments({ page: 1, page_size: 1 }, signal),
+        [],
+    );
 
-    useEffect(() => {
-        const loadData = async () => {
-            try {
-                setLoading(true);
-                const [overviewData, teamRows, paymentRows] = await Promise.all([
-                    getAdminDashboard(),
-                    getAdminTeams({ page: 1, page_size: 100 }),
-                    getAdminPayments({ page: 1, page_size: 1 }),
-                ]);
-                setOverview(overviewData);
-                setTeams(teamRows?.items || []);
-                setPaymentTotal(paymentRows?.meta?.total || 0);
-            } catch (error) {
-                console.error("Failed to load admin overview:", error);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        void loadData();
-    }, []);
+    const overview = overviewQ.data;
+    const teams = teamsQ.data?.items ?? [];
+    const paymentTotal = paymentsQ.data?.meta.total ?? 0;
 
     const watchlistTeams = useMemo(() => {
         return [...teams]
@@ -60,19 +57,30 @@ export default function AdminOverviewPage() {
             .slice(0, 5);
     }, [teams]);
 
-    if (loading || !overview) {
+    // The overview page renders the full layout once data is partial-ready,
+    // so the skeleton matches the final structure: hero grid + 2-column
+    // panel + chart panel. No more blocking spinner.
+    if (overviewQ.isInitialLoading || !overview) {
+        if (overviewQ.error) {
+            return <EmptyState message={overviewQ.error} />;
+        }
         return (
-            <div className="flex min-h-[40vh] items-center justify-center">
-                <div className="flex flex-col items-center gap-3 text-muted-foreground">
-                    <div className="h-9 w-9 animate-spin rounded-full border-2 border-border border-t-primary" />
-                    <p className="text-sm">Loading overview...</p>
-                </div>
+            <div className="space-y-6">
+                <SkeletonHeroStatGrid count={4} />
+                <section className="grid gap-4 lg:grid-cols-[1.25fr_0.75fr]">
+                    <Skeleton height={280} rounded="2xl" className="border border-black/5 bg-white" />
+                    <Skeleton height={280} rounded="2xl" className="border border-black/5 bg-white" />
+                </section>
+                <Skeleton height={260} rounded="2xl" className="border border-black/5 bg-white" />
             </div>
         );
     }
 
+    const isRefreshing =
+        overviewQ.isRefreshing || teamsQ.isRefreshing || paymentsQ.isRefreshing;
+
     return (
-        <div className="space-y-6">
+        <div className={`space-y-6 ${isRefreshing ? REFRESHING_CLASS : STEADY_CLASS}`}>
             <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
                 <HeroStat
                     label="Revenue this month"
