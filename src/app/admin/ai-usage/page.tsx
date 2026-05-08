@@ -740,6 +740,7 @@ function mapTimeseriesToStackedPoints(ts: AdminAIUsageTimeseries): StackedBarPoi
     return ts.points.map((p) => ({
         bucket: p.bucket,
         total: p.total_tokens,
+        totalCalls: p.total_calls,
         label: formatBucketLabel(p.bucket, ts.granularity),
         fullLabel: formatBucketFullLabel(p.bucket, ts.granularity),
         // FEATURE_ORDER fixes vertical stack order so the same color always

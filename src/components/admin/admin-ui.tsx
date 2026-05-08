@@ -1,6 +1,6 @@
 "use client";
 
-import { ReactNode } from "react";
+import { ReactNode, useState } from "react";
 import { AdminOverview } from "@/lib/types";
 
 const USD_TO_IDR = 16250;
@@ -513,6 +513,7 @@ export function formatCompactNumber(value: number) {
 export type StackedBarPoint = {
     bucket: string;
     total: number;
+    totalCalls?: number;
     label: string;       // X-axis label, e.g. "May 5" or "14:00"
     fullLabel?: string;  // longer hover label, e.g. "May 5, 2026 · 14:00"
     segments: Array<{ key: string; label: string; value: number; color: string }>;
@@ -520,11 +521,15 @@ export type StackedBarPoint = {
 
 // StackedBarChart renders one bar per point with vertically stacked colored
 // segments. Pure CSS / flex; no SVG. Bars share the global y-axis (max of
-// every point's total) so bucket heights are comparable.
+// every point's total) so bucket heights are comparable. A custom tooltip
+// floats above the hovered bar with the bucket label, totals, and the full
+// per-feature breakdown (zero rows dimmed, not omitted).
 //
 // X-axis labels are sampled when there are too many points to fit; the
 // fixed stops mirror DualBarChart so the visual rhythm stays consistent.
 export function StackedBarChart({ points, height = 240 }: { points: StackedBarPoint[]; height?: number }) {
+    const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
+
     const hasData = points.some((p) => p.total > 0);
     if (!hasData) {
         return <EmptyState compact message="No token activity in this range yet." />;
@@ -548,25 +553,22 @@ export function StackedBarChart({ points, height = 240 }: { points: StackedBarPo
     return (
         <div>
             <div
-                className="flex items-end gap-1 overflow-hidden rounded-[14px] border border-black/5 bg-white px-3 pb-3 pt-5"
+                // overflow-visible so the absolute-positioned tooltip can
+                // extend above the chart frame; the inner bars keep their
+                // own rounded-md so visuals stay clean.
+                className="flex items-end gap-1 rounded-[14px] border border-black/5 bg-white px-3 pb-3 pt-5"
                 style={{ height }}
             >
-                {points.map((point) => {
-                    const tooltipLines = [
-                        point.fullLabel ?? point.label,
-                        `${formatNumber(point.total)} tokens`,
-                    ];
-                    for (const seg of point.segments) {
-                        if (seg.value > 0) {
-                            tooltipLines.push(`${seg.label}: ${formatNumber(seg.value)}`);
+                {points.map((point, idx) => (
+                    <div
+                        key={point.bucket}
+                        className="relative flex h-full min-w-0 flex-1 flex-col-reverse"
+                        onMouseEnter={() => setHoveredIdx(idx)}
+                        onMouseLeave={() =>
+                            setHoveredIdx((curr) => (curr === idx ? null : curr))
                         }
-                    }
-                    return (
-                        <div
-                            key={point.bucket}
-                            className="flex h-full min-w-0 flex-1 flex-col-reverse overflow-hidden rounded-md"
-                            title={tooltipLines.join("\n")}
-                        >
+                    >
+                        <div className="flex h-full w-full flex-col-reverse overflow-hidden rounded-md">
                             {point.segments.map((seg) => {
                                 if (seg.value <= 0) return null;
                                 const heightPct = (seg.value / max) * 100;
@@ -582,14 +584,89 @@ export function StackedBarChart({ points, height = 240 }: { points: StackedBarPo
                                 );
                             })}
                         </div>
-                    );
-                })}
+                        {hoveredIdx === idx ? (
+                            <ChartTooltip point={point} alignToEdge={alignTooltip(idx, points.length)} />
+                        ) : null}
+                    </div>
+                ))}
             </div>
             <div className="mt-2 flex justify-between px-1 text-[10px] text-muted-foreground [font-variant-numeric:tabular-nums]">
                 {labelStops.map((idx) => (
                     <span key={idx}>{points[idx]?.label}</span>
                 ))}
             </div>
+        </div>
+    );
+}
+
+// alignTooltip biases the tooltip horizontally for bars near the chart's
+// edges so it doesn't get clipped on the page.
+function alignTooltip(idx: number, total: number): "start" | "center" | "end" {
+    if (total <= 1) return "center";
+    const ratio = idx / (total - 1);
+    if (ratio < 0.15) return "start";
+    if (ratio > 0.85) return "end";
+    return "center";
+}
+
+function ChartTooltip({
+    point,
+    alignToEdge,
+}: {
+    point: StackedBarPoint;
+    alignToEdge: "start" | "center" | "end";
+}) {
+    const horizontalClass =
+        alignToEdge === "start"
+            ? "left-0"
+            : alignToEdge === "end"
+              ? "right-0"
+              : "left-1/2 -translate-x-1/2";
+
+    return (
+        <div
+            role="tooltip"
+            className={
+                "pointer-events-none absolute bottom-full z-20 mb-2 w-56 rounded-xl border border-black/5 bg-white p-3 shadow-lg " +
+                horizontalClass
+            }
+        >
+            <div className="text-xs font-semibold text-foreground">
+                {point.fullLabel ?? point.label}
+            </div>
+            <div className="mt-0.5 text-xs text-muted-foreground [font-variant-numeric:tabular-nums]">
+                {formatNumber(point.total)} tokens
+                {typeof point.totalCalls === "number"
+                    ? ` · ${formatNumber(point.totalCalls)} ${point.totalCalls === 1 ? "call" : "calls"}`
+                    : null}
+            </div>
+            <ul className="mt-2 space-y-1">
+                {point.segments.map((seg) => (
+                    <li
+                        key={seg.key}
+                        className="flex items-center justify-between gap-2 text-[12px]"
+                    >
+                        <span className="flex min-w-0 items-center gap-2 truncate text-muted-foreground">
+                            <span
+                                className="h-2 w-2 shrink-0 rounded-full"
+                                style={{ backgroundColor: seg.color }}
+                                aria-hidden
+                            />
+                            <span className="truncate">{seg.label}</span>
+                        </span>
+                        <span
+                            className={
+                                "[font-variant-numeric:tabular-nums] " +
+                                (seg.value > 0
+                                    ? "font-medium text-foreground"
+                                    : "text-muted-foreground/60")
+                            }
+                        >
+                            {formatNumber(seg.value)}
+                        </span>
+                    </li>
+                ))}
+            </ul>
         </div>
     );
 }
