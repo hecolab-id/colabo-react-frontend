@@ -73,13 +73,24 @@ function useOnlineStatus() {
 }
 
 class RouteLoadBoundary extends Component<
-  { children: ReactNode; isOnline: boolean },
+  { children: ReactNode; isOnline: boolean; pathname: string },
   { hasError: boolean }
 > {
   state = { hasError: false };
 
   static getDerivedStateFromError() {
     return { hasError: true };
+  }
+
+  // Reset the error state when the user navigates to a different path.
+  // We deliberately do NOT remount via `key={pathname}` because that would
+  // tear down the layout shell (sidebar, header) on every route change and
+  // produce a visible flicker. Resetting state in place keeps the layout
+  // mounted and lets React Router swap only the Outlet child.
+  componentDidUpdate(prevProps: { pathname: string }) {
+    if (prevProps.pathname !== this.props.pathname && this.state.hasError) {
+      this.setState({ hasError: false });
+    }
   }
 
   render() {
@@ -181,7 +192,7 @@ function OfflineAwareRoutes() {
   }
 
   return (
-    <RouteLoadBoundary key={location.pathname} isOnline={isOnline}>
+    <RouteLoadBoundary isOnline={isOnline} pathname={location.pathname}>
       <Suspense fallback={<RouteFallback />}>
         <Routes>
           <Route path="/" element={<Navigate to="/login" replace />} />
