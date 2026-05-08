@@ -549,6 +549,7 @@ export function StackedBarChart({ points, height = 240 }: { points: StackedBarPo
                       lastIdx,
                   ]),
               );
+    const labelStopSet = new Set(labelStops);
 
     return (
         <div>
@@ -590,9 +591,11 @@ export function StackedBarChart({ points, height = 240 }: { points: StackedBarPo
                     </div>
                 ))}
             </div>
-            <div className="mt-2 flex justify-between px-1 text-[10px] text-muted-foreground [font-variant-numeric:tabular-nums]">
-                {labelStops.map((idx) => (
-                    <span key={idx}>{points[idx]?.label}</span>
+            <div className="mt-2 flex gap-1 px-3 text-[10px] text-muted-foreground [font-variant-numeric:tabular-nums]">
+                {points.map((point, idx) => (
+                    <div key={point.bucket} className="min-w-0 flex-1 text-center">
+                        {labelStopSet.has(idx) ? point.label : ""}
+                    </div>
                 ))}
             </div>
         </div>

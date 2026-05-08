@@ -107,11 +107,12 @@ export default function AdminAIUsagePage() {
         () => params.get("team") || null,
     );
 
-    // Granularity override is opt-in via ?granularity=hour|day in the URL.
-    // When undefined, the backend auto-deduces from the range duration.
-    // Setter intentionally not destructured: V1 has no UI to flip this; the
-    // URL is the source of truth for the override.
-    const [granularityOverride] = useState<AdminAIUsageGranularity | undefined>(() => {
+    // Granularity override is opt-in via the FilterBar dropdown (also
+    // settable via ?granularity=hour|day in the URL). When undefined, the
+    // backend auto-deduces from the range duration.
+    const [granularityOverride, setGranularityOverride] = useState<
+        AdminAIUsageGranularity | undefined
+    >(() => {
         const g = params.get("granularity");
         return g === "hour" || g === "day" ? g : undefined;
     });
@@ -315,6 +316,8 @@ export default function AdminAIUsagePage() {
                 teamOptions={teamOptions}
                 selectedTeamId={selectedTeamId}
                 onTeamChange={setSelectedTeamId}
+                granularityOverride={granularityOverride}
+                onGranularityChange={setGranularityOverride}
             />
 
             <SummaryRow summary={summary} loading={summaryLoading} error={summaryError} />
@@ -323,6 +326,7 @@ export default function AdminAIUsagePage() {
                 timeseries={timeseries}
                 loading={timeseriesLoading}
                 error={timeseriesError}
+                overridden={granularityOverride !== undefined}
             />
 
             <Panel
@@ -433,12 +437,16 @@ function FilterBar({
     teamOptions,
     selectedTeamId,
     onTeamChange,
+    granularityOverride,
+    onGranularityChange,
 }: {
     range: RangeState;
     onRangeChange: (r: RangeState) => void;
     teamOptions: AdminTeamRow[];
     selectedTeamId: string | null;
     onTeamChange: (id: string | null) => void;
+    granularityOverride: AdminAIUsageGranularity | undefined;
+    onGranularityChange: (g: AdminAIUsageGranularity | undefined) => void;
 }) {
     return (
         <div className="rounded-[16px] border border-black/5 bg-white p-3 sm:p-4">
@@ -467,7 +475,20 @@ function FilterBar({
                     ))}
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
+                    <select
+                        value={granularityOverride ?? ""}
+                        onChange={(e) => {
+                            const v = e.target.value;
+                            onGranularityChange(v === "hour" || v === "day" ? v : undefined);
+                        }}
+                        aria-label="Bucket granularity"
+                        className="h-9 rounded-full border border-border bg-white px-3 text-sm text-foreground outline-none focus:border-primary/40 focus:ring-2 focus:ring-primary/20"
+                    >
+                        <option value="">Auto bucket</option>
+                        <option value="hour">Hourly</option>
+                        <option value="day">Daily</option>
+                    </select>
                     <select
                         value={selectedTeamId ?? ""}
                         onChange={(e) => onTeamChange(e.target.value || null)}
@@ -687,16 +708,18 @@ function DailyUsagePanel({
     timeseries,
     loading,
     error,
+    overridden,
 }: {
     timeseries: AdminAIUsageTimeseries | null;
     loading: boolean;
     error: string | null;
+    overridden: boolean;
 }) {
     const granularity = timeseries?.granularity ?? "day";
-    const subtitle =
-        granularity === "hour"
-            ? "Stacked by feature · auto-bucket: hour (range ≤ 3 days)"
-            : "Stacked by feature · auto-bucket: day";
+    const bucketWord = granularity === "hour" ? "hourly" : "daily";
+    const subtitle = overridden
+        ? `Stacked by feature · ${bucketWord} buckets (manual override)`
+        : `Stacked by feature · ${bucketWord} buckets (auto from range)`;
 
     return (
         <Panel
