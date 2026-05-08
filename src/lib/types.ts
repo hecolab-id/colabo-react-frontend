@@ -389,6 +389,22 @@ export type AdminAIUsageFeatureRow = {
     avg_tokens_per_call: number;
 };
 
+export type AdminAIUsageGranularity = "hour" | "day";
+
+export type AdminAIUsageTimeseriesPoint = {
+    bucket: string; // "YYYY-MM-DD" (day) or "YYYY-MM-DDTHH" (hour) in Asia/Jakarta wall-clock
+    total_tokens: number;
+    total_calls: number;
+    by_feature: Record<AdminAIUsageFeature, number>;
+};
+
+export type AdminAIUsageTimeseries = {
+    granularity: AdminAIUsageGranularity;
+    points: AdminAIUsageTimeseriesPoint[];
+    from: string;
+    to: string;
+};
+
 export type AdminOverview = {
     total_active_users: number;
     total_active_projects: number;

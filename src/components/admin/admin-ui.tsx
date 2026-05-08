@@ -505,3 +505,156 @@ export function formatCompactNumber(value: number) {
         maximumFractionDigits: 1,
     }).format(value || 0);
 }
+
+// StackedBarPoint feeds StackedBarChart. `segments` order is fixed by the
+// caller and corresponds to vertical stacking from bottom to top (segments[0]
+// sits at the base of each bar). Bars whose total is zero render as empty
+// space — the chart auto-detects "no data" via points[].total.
+export type StackedBarPoint = {
+    bucket: string;
+    total: number;
+    label: string;       // X-axis label, e.g. "May 5" or "14:00"
+    fullLabel?: string;  // longer hover label, e.g. "May 5, 2026 · 14:00"
+    segments: Array<{ key: string; label: string; value: number; color: string }>;
+};
+
+// StackedBarChart renders one bar per point with vertically stacked colored
+// segments. Pure CSS / flex; no SVG. Bars share the global y-axis (max of
+// every point's total) so bucket heights are comparable.
+//
+// X-axis labels are sampled when there are too many points to fit; the
+// fixed stops mirror DualBarChart so the visual rhythm stays consistent.
+export function StackedBarChart({ points, height = 240 }: { points: StackedBarPoint[]; height?: number }) {
+    const hasData = points.some((p) => p.total > 0);
+    if (!hasData) {
+        return <EmptyState compact message="No token activity in this range yet." />;
+    }
+
+    const max = Math.max(1, ...points.map((p) => p.total));
+    const lastIdx = Math.max(0, points.length - 1);
+    const labelStops =
+        points.length <= 14
+            ? points.map((_p, idx) => idx)
+            : Array.from(
+                  new Set([
+                      0,
+                      Math.round(lastIdx / 4),
+                      Math.round(lastIdx / 2),
+                      Math.round((lastIdx * 3) / 4),
+                      lastIdx,
+                  ]),
+              );
+
+    return (
+        <div>
+            <div
+                className="flex items-end gap-1 overflow-hidden rounded-[14px] border border-black/5 bg-white px-3 pb-3 pt-5"
+                style={{ height }}
+            >
+                {points.map((point) => {
+                    const tooltipLines = [
+                        point.fullLabel ?? point.label,
+                        `${formatNumber(point.total)} tokens`,
+                    ];
+                    for (const seg of point.segments) {
+                        if (seg.value > 0) {
+                            tooltipLines.push(`${seg.label}: ${formatNumber(seg.value)}`);
+                        }
+                    }
+                    return (
+                        <div
+                            key={point.bucket}
+                            className="flex h-full min-w-0 flex-1 flex-col-reverse overflow-hidden rounded-md"
+                            title={tooltipLines.join("\n")}
+                        >
+                            {point.segments.map((seg) => {
+                                if (seg.value <= 0) return null;
+                                const heightPct = (seg.value / max) * 100;
+                                return (
+                                    <div
+                                        key={seg.key}
+                                        style={{
+                                            height: `${heightPct}%`,
+                                            backgroundColor: seg.color,
+                                            minHeight: 1,
+                                        }}
+                                    />
+                                );
+                            })}
+                        </div>
+                    );
+                })}
+            </div>
+            <div className="mt-2 flex justify-between px-1 text-[10px] text-muted-foreground [font-variant-numeric:tabular-nums]">
+                {labelStops.map((idx) => (
+                    <span key={idx}>{points[idx]?.label}</span>
+                ))}
+            </div>
+        </div>
+    );
+}
+
+// StackedFeatureBar renders a single horizontal bar with one colored
+// segment per item, sized proportionally to item.value across the total.
+// Below the bar, a 2-column legend lists each item's percent share, total,
+// and call count. Empty totals collapse to a friendly "no data" state.
+export type StackedFeatureBarItem = {
+    key: string;
+    label: string;
+    value: number;
+    calls: number;
+    color: string;
+};
+
+export function StackedFeatureBar({ items }: { items: StackedFeatureBarItem[] }) {
+    const total = items.reduce((sum, item) => sum + item.value, 0);
+    const isEmpty = total === 0;
+
+    return (
+        <div>
+            <div className="mb-4 flex h-3 overflow-hidden rounded-full bg-muted">
+                {!isEmpty &&
+                    items.map((item) => {
+                        const pct = (item.value / total) * 100;
+                        if (pct <= 0) return null;
+                        return (
+                            <div
+                                key={item.key}
+                                style={{ width: `${pct}%`, backgroundColor: item.color }}
+                                title={`${item.label}: ${formatNumber(item.value)} tokens (${pct.toFixed(1)}%)`}
+                            />
+                        );
+                    })}
+            </div>
+            {isEmpty ? (
+                <EmptyState compact message="No tokens spent in this range yet." />
+            ) : (
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    {items.map((item) => {
+                        const pct = total > 0 ? (item.value / total) * 100 : 0;
+                        return (
+                            <div key={item.key} className="flex items-start gap-3 text-sm">
+                                <span
+                                    className="mt-1 h-3 w-3 shrink-0 rounded-full"
+                                    style={{ backgroundColor: item.color }}
+                                    aria-hidden
+                                />
+                                <div className="min-w-0 flex-1">
+                                    <div className="flex items-baseline justify-between gap-2">
+                                        <span className="truncate font-medium text-foreground">{item.label}</span>
+                                        <span className="text-muted-foreground [font-variant-numeric:tabular-nums]">
+                                            {pct.toFixed(0)}%
+                                        </span>
+                                    </div>
+                                    <div className="mt-0.5 text-xs text-muted-foreground [font-variant-numeric:tabular-nums]">
+                                        {formatNumber(item.value)} tokens · {formatNumber(item.calls)} calls
+                                    </div>
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+            )}
+        </div>
+    );
+}

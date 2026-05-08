@@ -1,5 +1,5 @@
 import axios from "axios";
-import { AuthResponse, Plan, Project, ProjectDocument, ProjectDocumentKind, Task, Team, Comment, Notification, User, ActivityLog, Column, Checklist, ChecklistItem, Role, TeamUsage, CommentMention, LinkPreview, MessengerConnection, NotificationPreference, MessengerPlatform, TeamMessengerPolicy, MessengerLinkToken, BrowserPushSettings, BrowserPushSubscriptionInput, AdminImpersonationState, AdminOverview, AdminPaymentTransaction, AdminPlan, AdminProjectRow, AdminTeamRow, AdminUserRow, AdminListResponse, AdminAIUsageSummary, AdminAIUsageTeamRow, AdminAIUsageUserRow, AdminAIUsageFeatureRow, DashboardActionBucketId, DashboardActionItem, DashboardActionSeverity, DashboardHealthMetric, DashboardOverview, DashboardProjectSummary, DashboardRecommendedAction, PaginatedResult, TeamActivityItem, TeamActivityOverview, TeamInvite, TeamInvitePreview } from "./types";
+import { AuthResponse, Plan, Project, ProjectDocument, ProjectDocumentKind, Task, Team, Comment, Notification, User, ActivityLog, Column, Checklist, ChecklistItem, Role, TeamUsage, CommentMention, LinkPreview, MessengerConnection, NotificationPreference, MessengerPlatform, TeamMessengerPolicy, MessengerLinkToken, BrowserPushSettings, BrowserPushSubscriptionInput, AdminImpersonationState, AdminOverview, AdminPaymentTransaction, AdminPlan, AdminProjectRow, AdminTeamRow, AdminUserRow, AdminListResponse, AdminAIUsageSummary, AdminAIUsageTeamRow, AdminAIUsageUserRow, AdminAIUsageFeatureRow, AdminAIUsageGranularity, AdminAIUsageTimeseries, DashboardActionBucketId, DashboardActionItem, DashboardActionSeverity, DashboardHealthMetric, DashboardOverview, DashboardProjectSummary, DashboardRecommendedAction, PaginatedResult, TeamActivityItem, TeamActivityOverview, TeamInvite, TeamInvitePreview } from "./types";
 
 export const API_ORIGIN = (import.meta.env.VITE_API_URL || "").replace(/\/$/, "");
 export const API_BASE_URL = API_ORIGIN ? `${API_ORIGIN}/v1` : "/v1";
@@ -1020,6 +1020,7 @@ type AdminAIUsageQuery = AdminListQuery & {
     from?: string;     // ISO 8601
     to?: string;       // ISO 8601
     team_id?: string;
+    granularity?: AdminAIUsageGranularity;
 };
 
 const buildAIUsageParams = (query?: AdminAIUsageQuery) => {
@@ -1028,6 +1029,7 @@ const buildAIUsageParams = (query?: AdminAIUsageQuery) => {
     if (query.from) params.set("from", query.from);
     if (query.to) params.set("to", query.to);
     if (query.team_id) params.set("team_id", query.team_id);
+    if (query.granularity) params.set("granularity", query.granularity);
     return params;
 };
 
@@ -1061,6 +1063,14 @@ export const getAdminAIUsageByFeature = async (
 ): Promise<AdminAIUsageFeatureRow[]> => {
     const { data } = await api.get(`/admin/ai-usage/features?${buildAIUsageParams(query).toString()}`, { signal });
     return data.data || [];
+};
+
+export const getAdminAIUsageTimeseries = async (
+    query?: AdminAIUsageQuery,
+    signal?: AbortSignal,
+): Promise<AdminAIUsageTimeseries> => {
+    const { data } = await api.get(`/admin/ai-usage/timeseries?${buildAIUsageParams(query).toString()}`, { signal });
+    return data.data || { granularity: "day", points: [], from: "", to: "" };
 };
 
 export const impersonateUser = async (userId: string): Promise<{ user: User; tokens: AuthResponse["tokens"]; impersonation?: AdminImpersonationState }> => {

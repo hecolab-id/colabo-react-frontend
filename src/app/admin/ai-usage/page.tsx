@@ -7,27 +7,33 @@ import {
     getAdminAIUsageByTeam,
     getAdminAIUsageByUser,
     getAdminAIUsageSummary,
+    getAdminAIUsageTimeseries,
     getAdminTeams,
 } from "@/lib/api";
 import {
     AdminAIUsageFeatureRow,
+    AdminAIUsageGranularity,
     AdminAIUsageSummary,
     AdminAIUsageTeamRow,
+    AdminAIUsageTimeseries,
     AdminAIUsageUserRow,
     AdminTeamRow,
 } from "@/lib/types";
 import {
-    BarList,
     EmptyState,
     HeroStat,
     PaginationControls,
     Panel,
     SearchField,
+    StackedBarChart,
+    StackedBarPoint,
+    StackedFeatureBar,
+    StackedFeatureBarItem,
     formatCompactNumber,
     formatDate,
     formatNumber,
 } from "@/components/admin/admin-ui";
-import { FEATURE_LABELS } from "./feature-labels";
+import { FEATURE_LABELS, FEATURE_ORDER } from "./feature-labels";
 
 // ---------- Range (filter state) ----------
 
@@ -101,10 +107,24 @@ export default function AdminAIUsagePage() {
         () => params.get("team") || null,
     );
 
+    // Granularity override is opt-in via ?granularity=hour|day in the URL.
+    // When undefined, the backend auto-deduces from the range duration.
+    // Setter intentionally not destructured: V1 has no UI to flip this; the
+    // URL is the source of truth for the override.
+    const [granularityOverride] = useState<AdminAIUsageGranularity | undefined>(() => {
+        const g = params.get("granularity");
+        return g === "hour" || g === "day" ? g : undefined;
+    });
+
     // Summary panel
     const [summary, setSummary] = useState<AdminAIUsageSummary | null>(null);
     const [summaryLoading, setSummaryLoading] = useState(true);
     const [summaryError, setSummaryError] = useState<string | null>(null);
+
+    // Daily chart panel
+    const [timeseries, setTimeseries] = useState<AdminAIUsageTimeseries | null>(null);
+    const [timeseriesLoading, setTimeseriesLoading] = useState(true);
+    const [timeseriesError, setTimeseriesError] = useState<string | null>(null);
 
     // Per-team panel
     const [teamRows, setTeamRows] = useState<AdminAIUsageTeamRow[]>([]);
@@ -138,11 +158,12 @@ export default function AdminAIUsagePage() {
             if (range.to) next.set("to", range.to);
         }
         if (selectedTeamId) next.set("team", selectedTeamId);
+        if (granularityOverride) next.set("granularity", granularityOverride);
         // replace, not push — filter changes shouldn't pollute history.
         router.replace(`/admin/ai-usage?${next.toString()}`);
         // router intentionally omitted from deps: stable identity from useMemo.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [range, selectedTeamId]);
+    }, [range, selectedTeamId, granularityOverride]);
 
     // ---- Team options (one-shot) ----
     useEffect(() => {
@@ -163,6 +184,12 @@ export default function AdminAIUsagePage() {
         };
     }, [range, selectedTeamId]);
 
+    // baseQuery + the granularity override (only the timeseries cares).
+    const timeseriesQuery = useMemo(
+        () => ({ ...baseQuery, granularity: granularityOverride }),
+        [baseQuery, granularityOverride],
+    );
+
     // ---- Summary fetch ----
     useEffect(() => {
         const ac = new AbortController();
@@ -177,6 +204,21 @@ export default function AdminAIUsagePage() {
             .finally(() => setSummaryLoading(false));
         return () => ac.abort();
     }, [baseQuery]);
+
+    // ---- Daily chart (timeseries) fetch ----
+    useEffect(() => {
+        const ac = new AbortController();
+        setTimeseriesLoading(true);
+        setTimeseriesError(null);
+        getAdminAIUsageTimeseries(timeseriesQuery, ac.signal)
+            .then((ts) => setTimeseries(ts))
+            .catch((err) => {
+                if (isAbortError(err)) return;
+                setTimeseriesError("Couldn't load daily usage. Retry?");
+            })
+            .finally(() => setTimeseriesLoading(false));
+        return () => ac.abort();
+    }, [timeseriesQuery]);
 
     // ---- Per-team fetch ----
     useEffect(() => {
@@ -277,6 +319,12 @@ export default function AdminAIUsagePage() {
 
             <SummaryRow summary={summary} loading={summaryLoading} error={summaryError} />
 
+            <DailyUsagePanel
+                timeseries={timeseries}
+                loading={timeseriesLoading}
+                error={timeseriesError}
+            />
+
             <Panel
                 eyebrow="Per-team"
                 title="Teams ranked by token usage"
@@ -363,19 +411,14 @@ export default function AdminAIUsagePage() {
             <Panel
                 eyebrow="Feature breakdown"
                 title="Tokens by AI feature"
-                subtitle="Always 4 rows; features without usage in this range show as zero."
+                subtitle="One stacked bar showing each feature's share of the total."
             >
                 {featureLoading ? (
                     <SkeletonRows count={4} />
                 ) : featureError ? (
                     <EmptyState message={featureError} />
                 ) : (
-                    <BarList
-                        items={featureRows.map((r) => ({
-                            label: FEATURE_LABELS[r.feature].label,
-                            value: r.total_tokens,
-                        }))}
-                    />
+                    <StackedFeatureBar items={buildFeatureBarItems(featureRows)} />
                 )}
             </Panel>
         </main>
@@ -638,4 +681,131 @@ function SkeletonRows({ count }: { count: number }) {
             ))}
         </div>
     );
+}
+
+function DailyUsagePanel({
+    timeseries,
+    loading,
+    error,
+}: {
+    timeseries: AdminAIUsageTimeseries | null;
+    loading: boolean;
+    error: string | null;
+}) {
+    const granularity = timeseries?.granularity ?? "day";
+    const subtitle =
+        granularity === "hour"
+            ? "Stacked by feature · auto-bucket: hour (range ≤ 3 days)"
+            : "Stacked by feature · auto-bucket: day";
+
+    return (
+        <Panel
+            eyebrow="Daily usage"
+            title="Tokens over time"
+            subtitle={subtitle}
+        >
+            {loading ? (
+                <div className="h-60 animate-pulse rounded-[14px] border border-black/5 bg-white" />
+            ) : error ? (
+                <EmptyState message={error} />
+            ) : !timeseries || timeseries.points.length === 0 ? (
+                <EmptyState
+                    compact
+                    message="No token activity in this range yet. The chart fills in as users hit AI features."
+                />
+            ) : (
+                <StackedBarChart points={mapTimeseriesToStackedPoints(timeseries)} />
+            )}
+            {timeseries && timeseries.points.length > 0 ? (
+                <div className="mt-4 flex flex-wrap gap-x-4 gap-y-2 text-xs text-muted-foreground">
+                    {FEATURE_ORDER.map((f) => (
+                        <span key={f} className="flex items-center gap-2">
+                            <span
+                                className="h-2.5 w-2.5 rounded-full"
+                                style={{ backgroundColor: FEATURE_LABELS[f].color }}
+                                aria-hidden
+                            />
+                            {FEATURE_LABELS[f].label}
+                        </span>
+                    ))}
+                </div>
+            ) : null}
+        </Panel>
+    );
+}
+
+// ---------- Helpers (chart data shaping) ----------
+
+function mapTimeseriesToStackedPoints(ts: AdminAIUsageTimeseries): StackedBarPoint[] {
+    return ts.points.map((p) => ({
+        bucket: p.bucket,
+        total: p.total_tokens,
+        label: formatBucketLabel(p.bucket, ts.granularity),
+        fullLabel: formatBucketFullLabel(p.bucket, ts.granularity),
+        // FEATURE_ORDER fixes vertical stack order so the same color always
+        // sits at the same position regardless of which feature dominates.
+        segments: FEATURE_ORDER.map((f) => ({
+            key: f,
+            label: FEATURE_LABELS[f].label,
+            value: p.by_feature[f] ?? 0,
+            color: FEATURE_LABELS[f].color,
+        })),
+    }));
+}
+
+function buildFeatureBarItems(rows: AdminAIUsageFeatureRow[]): StackedFeatureBarItem[] {
+    return FEATURE_ORDER.map((f) => {
+        const row = rows.find((r) => r.feature === f);
+        return {
+            key: f,
+            label: FEATURE_LABELS[f].label,
+            value: row?.total_tokens ?? 0,
+            calls: row?.call_count ?? 0,
+            color: FEATURE_LABELS[f].color,
+        };
+    });
+}
+
+// formatBucketLabel formats the wire-format bucket key for the chart's X-axis.
+// The bucket key is locale-stable Asia/Jakarta wall-clock, so we parse it
+// manually (Date.UTC + timeZone:"UTC") to keep formatting stable across
+// browsers regardless of viewer locale.
+function formatBucketLabel(bucket: string, granularity: AdminAIUsageGranularity): string {
+    if (granularity === "hour") {
+        const hour = bucket.split("T")[1] ?? "00";
+        return `${hour}:00`;
+    }
+    const [y, m, d] = bucket.split("-");
+    if (!y || !m || !d) return bucket;
+    const date = new Date(Date.UTC(Number(y), Number(m) - 1, Number(d)));
+    return date.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        timeZone: "UTC",
+    });
+}
+
+function formatBucketFullLabel(bucket: string, granularity: AdminAIUsageGranularity): string {
+    if (granularity === "hour") {
+        const [datePart, hourPart] = bucket.split("T");
+        const [y, m, d] = (datePart ?? "").split("-");
+        if (!y || !m || !d) return bucket;
+        const date = new Date(Date.UTC(Number(y), Number(m) - 1, Number(d)));
+        const dateLabel = date.toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+            year: "numeric",
+            timeZone: "UTC",
+        });
+        return `${dateLabel} · ${hourPart ?? "00"}:00`;
+    }
+    const [y, m, d] = bucket.split("-");
+    if (!y || !m || !d) return bucket;
+    const date = new Date(Date.UTC(Number(y), Number(m) - 1, Number(d)));
+    return date.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+        timeZone: "UTC",
+    });
 }
