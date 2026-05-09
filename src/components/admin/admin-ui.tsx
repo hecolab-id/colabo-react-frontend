@@ -771,7 +771,9 @@ function ChartTooltip({
 export type StackedFeatureBarItem = {
     key: string;
     label: string;
-    value: number;
+    value: number;       // total tokens for the segment
+    prompt?: number;     // input tokens; rendered in legend if provided
+    completion?: number; // output tokens; rendered in legend if provided
     calls: number;
     color: string;
 };
@@ -817,7 +819,15 @@ export function StackedFeatureBar({ items }: { items: StackedFeatureBarItem[] })
                                         </span>
                                     </div>
                                     <div className="mt-0.5 text-xs text-muted-foreground [font-variant-numeric:tabular-nums]">
-                                        {formatNumber(item.value)} tokens · {formatNumber(item.calls)} calls
+                                        {typeof item.prompt === "number" && typeof item.completion === "number" ? (
+                                            <>
+                                                {formatCompactNumber(item.prompt)} in · {formatCompactNumber(item.completion)} out · {formatNumber(item.calls)} calls
+                                            </>
+                                        ) : (
+                                            <>
+                                                {formatNumber(item.value)} tokens · {formatNumber(item.calls)} calls
+                                            </>
+                                        )}
                                     </div>
                                 </div>
                             </div>

@@ -345,6 +345,8 @@ export type AdminAIUsageFeature =
 
 export type AdminAIUsageSummary = {
     total_tokens: number;
+    prompt_tokens: number;
+    completion_tokens: number;
     total_calls: number;
     unique_teams: number;
     unique_users: number;
@@ -378,6 +380,8 @@ export type AdminAIUsageUserRow = {
     user_name: string;
     user_email: string;
     total_tokens: number;
+    prompt_tokens: number;
+    completion_tokens: number;
     call_count: number;
     last_used_at: string | null;
 };
@@ -385,17 +389,27 @@ export type AdminAIUsageUserRow = {
 export type AdminAIUsageFeatureRow = {
     feature: AdminAIUsageFeature;
     total_tokens: number;
+    prompt_tokens: number;
+    completion_tokens: number;
     call_count: number;
     avg_tokens_per_call: number;
 };
 
 export type AdminAIUsageGranularity = "hour" | "day";
 
+export type AdminAIUsageFeatureBreakdown = {
+    total: number;
+    prompt: number;
+    completion: number;
+};
+
 export type AdminAIUsageTimeseriesPoint = {
     bucket: string; // "YYYY-MM-DD" (day) or "YYYY-MM-DDTHH" (hour) in Asia/Jakarta wall-clock
     total_tokens: number;
+    prompt_tokens: number;
+    completion_tokens: number;
     total_calls: number;
-    by_feature: Record<AdminAIUsageFeature, number>;
+    by_feature: Record<AdminAIUsageFeature, AdminAIUsageFeatureBreakdown>;
 };
 
 export type AdminAIUsageTimeseries = {

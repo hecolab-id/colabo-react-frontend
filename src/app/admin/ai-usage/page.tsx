@@ -11,11 +11,13 @@ import {
     getAdminTeams,
 } from "@/lib/api";
 import {
+    AdminAIUsageFeatureBreakdown,
     AdminAIUsageFeatureRow,
     AdminAIUsageGranularity,
     AdminAIUsageSummary,
     AdminAIUsageTeamRow,
     AdminAIUsageTimeseries,
+    AdminAIUsageTimeseriesPoint,
     AdminAIUsageUserRow,
     AdminListResponse,
     AdminTeamRow,
@@ -516,12 +518,12 @@ function SummaryRow({ query }: { query: AdminQueryResult<AdminAIUsageSummary> })
             <HeroStat
                 label="Total tokens"
                 value={formatCompactNumber(summary.total_tokens)}
-                meta={`${formatNumber(summary.total_calls)} ${summary.total_calls === 1 ? "call" : "calls"}`}
+                meta={`${formatCompactNumber(summary.prompt_tokens)} in · ${formatCompactNumber(summary.completion_tokens)} out`}
             />
             <HeroStat
                 label="Active teams"
                 value={formatNumber(summary.unique_teams)}
-                meta={`${formatNumber(summary.unique_users)} ${summary.unique_users === 1 ? "user" : "users"}`}
+                meta={`${formatNumber(summary.unique_users)} ${summary.unique_users === 1 ? "user" : "users"} · ${formatNumber(summary.total_calls)} ${summary.total_calls === 1 ? "call" : "calls"}`}
             />
             <HeroStat
                 label="Top team"
@@ -621,6 +623,18 @@ function UserRow({ row, maxTokens }: { row: AdminAIUsageUserRow; maxTokens: numb
                             </strong>{" "}
                             {row.call_count === 1 ? "call" : "calls"}
                         </span>
+                        <span>
+                            <strong className="font-semibold text-foreground">
+                                {formatCompactNumber(row.prompt_tokens)}
+                            </strong>{" "}
+                            in
+                        </span>
+                        <span>
+                            <strong className="font-semibold text-foreground">
+                                {formatCompactNumber(row.completion_tokens)}
+                            </strong>{" "}
+                            out
+                        </span>
                         {row.last_used_at ? <span>last {formatDate(row.last_used_at)}</span> : null}
                     </div>
                 </div>
@@ -660,7 +674,10 @@ function DailyUsagePanel({
             subtitle={subtitle}
         >
             {query.isInitialLoading ? (
-                <Skeleton height={240} rounded="lg" className="border border-black/5 bg-white" />
+                <div className="grid gap-4 md:grid-cols-2">
+                    <Skeleton height={240} rounded="lg" className="border border-black/5 bg-white" />
+                    <Skeleton height={240} rounded="lg" className="border border-black/5 bg-white" />
+                </div>
             ) : query.error ? (
                 <EmptyState message={query.error} />
             ) : !hasPoints ? (
@@ -669,8 +686,19 @@ function DailyUsagePanel({
                     message="No token activity in this range yet. The chart fills in as users hit AI features."
                 />
             ) : (
-                <div className={query.isRefreshing ? REFRESHING_CLASS : STEADY_CLASS}>
-                    <StackedBarChart points={mapTimeseriesToStackedPoints(timeseries!)} />
+                <div className={`grid gap-4 md:grid-cols-2 ${query.isRefreshing ? REFRESHING_CLASS : STEADY_CLASS}`}>
+                    <div>
+                        <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                            Input tokens
+                        </p>
+                        <StackedBarChart points={mapTimeseriesToStackedPoints(timeseries!, "prompt")} />
+                    </div>
+                    <div>
+                        <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                            Output tokens
+                        </p>
+                        <StackedBarChart points={mapTimeseriesToStackedPoints(timeseries!, "completion")} />
+                    </div>
                 </div>
             )}
             {hasPoints ? (
@@ -693,10 +721,34 @@ function DailyUsagePanel({
 
 // ---------- Helpers (chart data shaping) ----------
 
-function mapTimeseriesToStackedPoints(ts: AdminAIUsageTimeseries): StackedBarPoint[] {
+// Mode selects which token side a chart should render. The side-by-side
+// daily chart calls this twice — once with "prompt" for the input chart,
+// once with "completion" for the output chart — so they share data shaping.
+type TimeseriesMode = "total" | "prompt" | "completion";
+
+function pickBucketTotal(p: AdminAIUsageTimeseriesPoint, mode: TimeseriesMode): number {
+    if (mode === "prompt") return p.prompt_tokens;
+    if (mode === "completion") return p.completion_tokens;
+    return p.total_tokens;
+}
+
+function pickFeatureValue(
+    breakdown: AdminAIUsageFeatureBreakdown | undefined,
+    mode: TimeseriesMode,
+): number {
+    if (!breakdown) return 0;
+    if (mode === "prompt") return breakdown.prompt;
+    if (mode === "completion") return breakdown.completion;
+    return breakdown.total;
+}
+
+function mapTimeseriesToStackedPoints(
+    ts: AdminAIUsageTimeseries,
+    mode: TimeseriesMode = "total",
+): StackedBarPoint[] {
     return ts.points.map((p) => ({
         bucket: p.bucket,
-        total: p.total_tokens,
+        total: pickBucketTotal(p, mode),
         totalCalls: p.total_calls,
         label: formatBucketLabel(p.bucket, ts.granularity),
         fullLabel: formatBucketFullLabel(p.bucket, ts.granularity),
@@ -705,7 +757,7 @@ function mapTimeseriesToStackedPoints(ts: AdminAIUsageTimeseries): StackedBarPoi
         segments: FEATURE_ORDER.map((f) => ({
             key: f,
             label: FEATURE_LABELS[f].label,
-            value: p.by_feature[f] ?? 0,
+            value: pickFeatureValue(p.by_feature[f], mode),
             color: FEATURE_LABELS[f].color,
         })),
     }));
@@ -718,6 +770,8 @@ function buildFeatureBarItems(rows: AdminAIUsageFeatureRow[]): StackedFeatureBar
             key: f,
             label: FEATURE_LABELS[f].label,
             value: row?.total_tokens ?? 0,
+            prompt: row?.prompt_tokens ?? 0,
+            completion: row?.completion_tokens ?? 0,
             calls: row?.call_count ?? 0,
             color: FEATURE_LABELS[f].color,
         };
