@@ -1,47 +1,43 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import { getAdminDashboard, getAdminPayments, getAdminTeams } from "@/lib/api";
-import { AdminOverview, AdminTeamRow } from "@/lib/types";
+import { AdminListResponse, AdminOverview, AdminPaymentTransaction, AdminTeamRow } from "@/lib/types";
 import {
     DualBarChart,
     EmptyState,
     HeroStat,
     Panel,
+    Skeleton,
+    SkeletonHeroStatGrid,
     StackedTrend,
     StatusPill,
-    SummaryCard,
     formatCurrencyIdr,
     formatNumber,
 } from "@/components/admin/admin-ui";
+import { useAdminQuery } from "@/lib/hooks/use-admin-query";
+
+const REFRESHING_CLASS = "opacity-60 transition-opacity duration-200";
+const STEADY_CLASS = "transition-opacity duration-200";
 
 export default function AdminOverviewPage() {
-    const [loading, setLoading] = useState(true);
-    const [overview, setOverview] = useState<AdminOverview | null>(null);
-    const [teams, setTeams] = useState<AdminTeamRow[]>([]);
-    const [paymentTotal, setPaymentTotal] = useState(0);
+    const overviewQ = useAdminQuery<AdminOverview>(
+        (signal) => getAdminDashboard(signal),
+        [],
+        "Couldn't load overview. Retry?",
+    );
+    const teamsQ = useAdminQuery<AdminListResponse<AdminTeamRow>>(
+        (signal) => getAdminTeams({ page: 1, page_size: 100 }, signal),
+        [],
+    );
+    const paymentsQ = useAdminQuery<AdminListResponse<AdminPaymentTransaction>>(
+        (signal) => getAdminPayments({ page: 1, page_size: 1 }, signal),
+        [],
+    );
 
-    useEffect(() => {
-        const loadData = async () => {
-            try {
-                setLoading(true);
-                const [overviewData, teamRows, paymentRows] = await Promise.all([
-                    getAdminDashboard(),
-                    getAdminTeams({ page: 1, page_size: 100 }),
-                    getAdminPayments({ page: 1, page_size: 1 }),
-                ]);
-                setOverview(overviewData);
-                setTeams(teamRows?.items || []);
-                setPaymentTotal(paymentRows?.meta?.total || 0);
-            } catch (error) {
-                console.error("Failed to load admin overview:", error);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        void loadData();
-    }, []);
+    const overview = overviewQ.data;
+    const teams = teamsQ.data?.items ?? [];
+    const paymentTotal = paymentsQ.data?.meta.total ?? 0;
 
     const watchlistTeams = useMemo(() => {
         return [...teams]
@@ -61,108 +57,90 @@ export default function AdminOverviewPage() {
             .slice(0, 5);
     }, [teams]);
 
-    if (loading || !overview) {
+    // The overview page renders the full layout once data is partial-ready,
+    // so the skeleton matches the final structure: hero grid + 2-column
+    // panel + chart panel. No more blocking spinner.
+    if (overviewQ.isInitialLoading || !overview) {
+        if (overviewQ.error) {
+            return <EmptyState message={overviewQ.error} />;
+        }
         return (
-            <div className="flex min-h-[40vh] items-center justify-center px-6">
-                <div className="w-full max-w-sm rounded-[28px] border border-white/10 bg-[#111827]/80 p-8 text-center shadow-[0_30px_120px_rgba(0,0,0,0.45)] backdrop-blur-xl">
-                    <div className="mx-auto h-11 w-11 animate-spin rounded-full border-2 border-[#c8925b]/20 border-t-[#d8ad7d]" />
-                    <p className="mt-5 text-sm text-slate-300">Loading business health overview.</p>
-                </div>
+            <div className="space-y-6">
+                <SkeletonHeroStatGrid count={4} />
+                <section className="grid gap-4 lg:grid-cols-[1.25fr_0.75fr]">
+                    <Skeleton height={280} rounded="2xl" className="border border-black/5 bg-white" />
+                    <Skeleton height={280} rounded="2xl" className="border border-black/5 bg-white" />
+                </section>
+                <Skeleton height={260} rounded="2xl" className="border border-black/5 bg-white" />
             </div>
         );
     }
 
+    const isRefreshing =
+        overviewQ.isRefreshing || teamsQ.isRefreshing || paymentsQ.isRefreshing;
+
     return (
-        <div className="space-y-4">
-            <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <div className={`space-y-6 ${isRefreshing ? REFRESHING_CLASS : STEADY_CLASS}`}>
+            <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
                 <HeroStat
-                    label="Revenue This Month"
+                    label="Revenue this month"
                     value={formatCurrencyIdr(overview.total_revenue_this_month)}
                     meta="Display converted to IDR"
-                    tone="revenue"
                 />
                 <HeroStat
-                    label="Active Users"
+                    label="Active users"
                     value={formatNumber(overview.total_active_users)}
                     meta="Accounts ready to operate"
-                    tone="neutral"
                 />
                 <HeroStat
-                    label="Active Projects"
+                    label="Active projects"
                     value={formatNumber(overview.total_active_projects)}
                     meta={`${formatNumber(overview.total_projects)} total tracked`}
-                    tone="neutral"
                 />
                 <HeroStat
-                    label="Tracked Payments"
+                    label="Tracked payments"
                     value={formatNumber(paymentTotal)}
                     meta={watchlistTeams.length > 0 ? `${watchlistTeams.length} teams need attention` : "No urgent team alerts"}
-                    tone={watchlistTeams.length > 0 ? "alert" : "calm"}
                 />
             </section>
 
             <section className="grid gap-4 lg:grid-cols-[1.25fr_0.75fr]">
                 <Panel
-                    eyebrow="Overview"
-                    title="Business health before configuration"
-                    subtitle="This page stays focused on what is changing in the business and where you may need to intervene."
+                    eyebrow="Growth"
+                    title="Free vs paid"
+                    subtitle={`Paid: ${formatNumber(overview.free_vs_paid_ratio.paid)} · Free: ${formatNumber(overview.free_vs_paid_ratio.free)}.`}
                 >
-                    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-                        <SummaryCard
-                            title="Total Active Users"
-                            value={formatNumber(overview.total_active_users)}
-                            meta="Live accounts with active status"
-                            tone="neutral"
-                        />
-                        <SummaryCard
-                            title="Total Active Projects"
-                            value={formatNumber(overview.total_active_projects)}
-                            meta="Non-deleted projects across tenants"
-                            tone="cool"
-                        />
-                        <SummaryCard
-                            title="Revenue This Month"
-                            value={formatCurrencyIdr(overview.total_revenue_this_month)}
-                            meta="Owner display in IDR"
-                            tone="revenue"
-                        />
-                        <SummaryCard
-                            title="Free vs Paid"
-                            value={`${overview.free_vs_paid_ratio.paid} / ${overview.free_vs_paid_ratio.free}`}
-                            meta="Paid teams versus free teams"
-                            tone="calm"
-                        />
-                    </div>
+                    <DualBarChart data={overview.daily_registrations} />
                 </Panel>
 
                 <Panel
                     eyebrow="Watchlist"
-                    title="Teams that may need attention"
-                    subtitle="Operational risk is surfaced here so the owner dashboard stays actionable."
+                    title="Teams needing attention"
+                    subtitle="Operational risk surfaced so the dashboard stays actionable."
                 >
-                    <div className="space-y-3">
+                    <div className="space-y-2.5">
                         {watchlistTeams.length === 0 ? (
-                            <EmptyState message="No teams are currently on the watchlist. Connection, subscription, and usage signals look stable." />
+                            <EmptyState message="No teams on the watchlist. Connection, subscription, and usage signals look stable." compact />
                         ) : (
                             watchlistTeams.map((team) => (
-                                <div key={team.id} className="rounded-[24px] border border-white/10 bg-white/[0.035] p-4">
+                                <div key={team.id} className="rounded-[14px] border border-black/5 bg-white p-3.5">
                                     <div className="flex items-start justify-between gap-3">
                                         <div className="min-w-0">
-                                            <p className="truncate font-medium text-white">{team.name}</p>
-                                            <p className="mt-1 truncate text-sm text-slate-400">
-                                                {team.owner_name} - {team.current_plan_name || "No plan assigned"}
+                                            <p className="truncate text-sm font-semibold text-foreground">{team.name}</p>
+                                            <p className="mt-0.5 truncate text-xs text-muted-foreground">
+                                                {team.owner_name} · {team.current_plan_name || "No plan assigned"}
                                             </p>
                                         </div>
                                         <StatusPill
                                             tone={team.whatsapp_status === "CONNECTED" ? "calm" : "alert"}
-                                            label={team.whatsapp_status === "CONNECTED" ? "Stable" : "Needs review"}
+                                            label={team.whatsapp_status === "CONNECTED" ? "Stable" : "Review"}
                                         />
                                     </div>
-                                    <div className="mt-4 flex flex-wrap gap-2">
+                                    <div className="mt-2.5 flex flex-wrap gap-1.5">
                                         {team.reasons.map((reason) => (
                                             <span
                                                 key={`${team.id}-${reason}`}
-                                                className="rounded-full border border-[#b8adff]/20 bg-[#b8adff]/10 px-3 py-1 text-xs font-medium text-[#d8d1ff]"
+                                                className="rounded-full bg-[var(--accent)] px-2.5 py-0.5 text-[11px] font-medium text-primary"
                                             >
                                                 {reason}
                                             </span>
@@ -175,18 +153,11 @@ export default function AdminOverviewPage() {
                 </Panel>
             </section>
 
-            <section className="grid gap-4 xl:grid-cols-[1.1fr_0.9fr]">
-                <Panel
-                    eyebrow="Growth"
-                    title="Daily registrations"
-                    subtitle="A single growth view keeps the overview readable while still showing how the platform is moving."
-                >
-                    <DualBarChart data={overview.daily_registrations} />
-                </Panel>
+            <section>
                 <Panel
                     eyebrow="Revenue"
                     title="Monthly revenue and recurring run-rate"
-                    subtitle="Keep only the financial trend that matters most on the overview page."
+                    subtitle="The financial trend that matters most on the overview page."
                 >
                     <StackedTrend
                         primary={overview.revenue_trend}

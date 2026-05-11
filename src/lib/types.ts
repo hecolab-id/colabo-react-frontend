@@ -332,6 +332,93 @@ export type AdminQuotaTrendPoint = {
     whatsapp_messages: number;
 };
 
+// AI Usage Report (Phase 3 of AI Usage Report feature).
+// Backend serializes UUIDs as strings, time.Time as ISO 8601, nullable IDs
+// as null, and aggregated token counts as plain numbers (zero-filled rather
+// than nullable at the aggregate level).
+
+export type AdminAIUsageFeature =
+    | "BRAIN_CHAT"
+    | "GENERATE_TASKS"
+    | "QUERY_INTENT"
+    | "MESSENGER_ASSISTANT";
+
+export type AdminAIUsageSummary = {
+    total_tokens: number;
+    prompt_tokens: number;
+    completion_tokens: number;
+    total_calls: number;
+    unique_teams: number;
+    unique_users: number;
+
+    top_team_id: string | null;
+    top_team: string;
+
+    top_user_id: string | null;
+    top_user: string;
+    top_user_email: string;
+
+    top_feature: AdminAIUsageFeature | "";
+
+    from: string; // ISO 8601
+    to: string;   // ISO 8601
+};
+
+export type AdminAIUsageTeamRow = {
+    team_id: string;
+    team_name: string;
+    team_slug: string;
+    total_tokens: number;
+    prompt_tokens: number;
+    completion_tokens: number;
+    call_count: number;
+    last_used_at: string | null;
+};
+
+export type AdminAIUsageUserRow = {
+    user_id: string;
+    user_name: string;
+    user_email: string;
+    total_tokens: number;
+    prompt_tokens: number;
+    completion_tokens: number;
+    call_count: number;
+    last_used_at: string | null;
+};
+
+export type AdminAIUsageFeatureRow = {
+    feature: AdminAIUsageFeature;
+    total_tokens: number;
+    prompt_tokens: number;
+    completion_tokens: number;
+    call_count: number;
+    avg_tokens_per_call: number;
+};
+
+export type AdminAIUsageGranularity = "hour" | "day";
+
+export type AdminAIUsageFeatureBreakdown = {
+    total: number;
+    prompt: number;
+    completion: number;
+};
+
+export type AdminAIUsageTimeseriesPoint = {
+    bucket: string; // "YYYY-MM-DD" (day) or "YYYY-MM-DDTHH" (hour) in Asia/Jakarta wall-clock
+    total_tokens: number;
+    prompt_tokens: number;
+    completion_tokens: number;
+    total_calls: number;
+    by_feature: Record<AdminAIUsageFeature, AdminAIUsageFeatureBreakdown>;
+};
+
+export type AdminAIUsageTimeseries = {
+    granularity: AdminAIUsageGranularity;
+    points: AdminAIUsageTimeseriesPoint[];
+    from: string;
+    to: string;
+};
+
 export type AdminOverview = {
     total_active_users: number;
     total_active_projects: number;

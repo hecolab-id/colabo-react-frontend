@@ -1,5 +1,5 @@
 import axios from "axios";
-import { AuthResponse, Plan, Project, ProjectDocument, ProjectDocumentKind, Task, Team, Comment, Notification, User, ActivityLog, Column, Checklist, ChecklistItem, Role, TeamUsage, CommentMention, LinkPreview, MessengerConnection, NotificationPreference, MessengerPlatform, TeamMessengerPolicy, MessengerLinkToken, BrowserPushSettings, BrowserPushSubscriptionInput, AdminImpersonationState, AdminOverview, AdminPaymentTransaction, AdminPlan, AdminProjectRow, AdminTeamRow, AdminUserRow, AdminListResponse, DashboardActionBucketId, DashboardActionItem, DashboardActionSeverity, DashboardHealthMetric, DashboardOverview, DashboardProjectSummary, DashboardRecommendedAction, PaginatedResult, TeamActivityItem, TeamActivityOverview, TeamInvite, TeamInvitePreview } from "./types";
+import { AuthResponse, Plan, Project, ProjectDocument, ProjectDocumentKind, Task, Team, Comment, Notification, User, ActivityLog, Column, Checklist, ChecklistItem, Role, TeamUsage, CommentMention, LinkPreview, MessengerConnection, NotificationPreference, MessengerPlatform, TeamMessengerPolicy, MessengerLinkToken, BrowserPushSettings, BrowserPushSubscriptionInput, AdminImpersonationState, AdminOverview, AdminPaymentTransaction, AdminPlan, AdminProjectRow, AdminTeamRow, AdminUserRow, AdminListResponse, AdminAIUsageSummary, AdminAIUsageTeamRow, AdminAIUsageUserRow, AdminAIUsageFeatureRow, AdminAIUsageGranularity, AdminAIUsageTimeseries, DashboardActionBucketId, DashboardActionItem, DashboardActionSeverity, DashboardHealthMetric, DashboardOverview, DashboardProjectSummary, DashboardRecommendedAction, PaginatedResult, TeamActivityItem, TeamActivityOverview, TeamInvite, TeamInvitePreview } from "./types";
 
 export const API_ORIGIN = (import.meta.env.VITE_API_URL || "").replace(/\/$/, "");
 export const API_BASE_URL = API_ORIGIN ? `${API_ORIGIN}/v1` : "/v1";
@@ -980,34 +980,109 @@ const buildAdminListParams = (query?: AdminListQuery) => {
 };
 
 // Admin Mode
-export const getAdminDashboard = async (): Promise<AdminOverview> => {
-    const { data } = await api.get("/admin/overview");
+export const getAdminDashboard = async (signal?: AbortSignal): Promise<AdminOverview> => {
+    const { data } = await api.get("/admin/overview", { signal });
     return data.data;
 };
 
-export const getAdminTeams = async (query?: AdminListQuery): Promise<AdminListResponse<AdminTeamRow>> => {
-    const { data } = await api.get(`/admin/teams?${buildAdminListParams(query).toString()}`);
+export const getAdminTeams = async (
+    query?: AdminListQuery,
+    signal?: AbortSignal,
+): Promise<AdminListResponse<AdminTeamRow>> => {
+    const { data } = await api.get(`/admin/teams?${buildAdminListParams(query).toString()}`, { signal });
     return data.data || { items: [], meta: { total: 0, page: 1, page_size: query?.page_size || 12 } };
 };
 
-export const getAdminProjects = async (): Promise<AdminProjectRow[]> => {
-    const { data } = await api.get("/admin/projects");
+export const getAdminProjects = async (signal?: AbortSignal): Promise<AdminProjectRow[]> => {
+    const { data } = await api.get("/admin/projects", { signal });
     return data.data || [];
 };
 
-export const getAdminUsers = async (query?: AdminListQuery): Promise<AdminListResponse<AdminUserRow>> => {
-    const { data } = await api.get(`/admin/users?${buildAdminListParams(query).toString()}`);
+export const getAdminUsers = async (
+    query?: AdminListQuery,
+    signal?: AbortSignal,
+): Promise<AdminListResponse<AdminUserRow>> => {
+    const { data } = await api.get(`/admin/users?${buildAdminListParams(query).toString()}`, { signal });
     return data.data || { items: [], meta: { total: 0, page: 1, page_size: query?.page_size || 12 } };
 };
 
-export const getAdminPayments = async (query?: AdminListQuery): Promise<AdminListResponse<AdminPaymentTransaction>> => {
-    const { data } = await api.get(`/admin/payments?${buildAdminListParams(query).toString()}`);
+export const getAdminPayments = async (
+    query?: AdminListQuery,
+    signal?: AbortSignal,
+): Promise<AdminListResponse<AdminPaymentTransaction>> => {
+    const { data } = await api.get(`/admin/payments?${buildAdminListParams(query).toString()}`, { signal });
     return data.data || { items: [], meta: { total: 0, page: 1, page_size: query?.page_size || 12 } };
 };
 
-export const getAdminPlans = async (query?: AdminListQuery): Promise<AdminListResponse<AdminPlan>> => {
-    const { data } = await api.get(`/admin/plans?${buildAdminListParams(query).toString()}`);
+export const getAdminPlans = async (
+    query?: AdminListQuery,
+    signal?: AbortSignal,
+): Promise<AdminListResponse<AdminPlan>> => {
+    const { data } = await api.get(`/admin/plans?${buildAdminListParams(query).toString()}`, { signal });
     return data.data || { items: [], meta: { total: 0, page: 1, page_size: query?.page_size || 12 } };
+};
+
+// AI Usage Report (Phase 3 of AI Usage Report feature).
+//
+// AdminAIUsageQuery extends AdminListQuery with time-range and team-filter
+// parameters. The backend default range is 30 days ending in Asia/Jakarta
+// time when from/to are omitted.
+
+type AdminAIUsageQuery = AdminListQuery & {
+    from?: string;     // ISO 8601
+    to?: string;       // ISO 8601
+    team_id?: string;
+    granularity?: AdminAIUsageGranularity;
+};
+
+const buildAIUsageParams = (query?: AdminAIUsageQuery) => {
+    const params = buildAdminListParams(query);
+    if (!query) return params;
+    if (query.from) params.set("from", query.from);
+    if (query.to) params.set("to", query.to);
+    if (query.team_id) params.set("team_id", query.team_id);
+    if (query.granularity) params.set("granularity", query.granularity);
+    return params;
+};
+
+export const getAdminAIUsageSummary = async (
+    query?: AdminAIUsageQuery,
+    signal?: AbortSignal,
+): Promise<AdminAIUsageSummary> => {
+    const { data } = await api.get(`/admin/ai-usage/summary?${buildAIUsageParams(query).toString()}`, { signal });
+    return data.data;
+};
+
+export const getAdminAIUsageByTeam = async (
+    query?: AdminAIUsageQuery,
+    signal?: AbortSignal,
+): Promise<AdminListResponse<AdminAIUsageTeamRow>> => {
+    const { data } = await api.get(`/admin/ai-usage/teams?${buildAIUsageParams(query).toString()}`, { signal });
+    return data.data || { items: [], meta: { total: 0, page: 1, page_size: query?.page_size || 12 } };
+};
+
+export const getAdminAIUsageByUser = async (
+    query?: AdminAIUsageQuery,
+    signal?: AbortSignal,
+): Promise<AdminListResponse<AdminAIUsageUserRow>> => {
+    const { data } = await api.get(`/admin/ai-usage/users?${buildAIUsageParams(query).toString()}`, { signal });
+    return data.data || { items: [], meta: { total: 0, page: 1, page_size: query?.page_size || 12 } };
+};
+
+export const getAdminAIUsageByFeature = async (
+    query?: AdminAIUsageQuery,
+    signal?: AbortSignal,
+): Promise<AdminAIUsageFeatureRow[]> => {
+    const { data } = await api.get(`/admin/ai-usage/features?${buildAIUsageParams(query).toString()}`, { signal });
+    return data.data || [];
+};
+
+export const getAdminAIUsageTimeseries = async (
+    query?: AdminAIUsageQuery,
+    signal?: AbortSignal,
+): Promise<AdminAIUsageTimeseries> => {
+    const { data } = await api.get(`/admin/ai-usage/timeseries?${buildAIUsageParams(query).toString()}`, { signal });
+    return data.data || { granularity: "day", points: [], from: "", to: "" };
 };
 
 export const impersonateUser = async (userId: string): Promise<{ user: User; tokens: AuthResponse["tokens"]; impersonation?: AdminImpersonationState }> => {

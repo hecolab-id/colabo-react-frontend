@@ -2,42 +2,33 @@
 
 import { useEffect, useState } from "react";
 import { getAdminPayments } from "@/lib/api";
-import { AdminPaymentTransaction } from "@/lib/types";
-import { EmptyState, Metric, PaginationControls, Panel, SearchField, StatusPill, formatCurrencyIdr, formatDate, formatNumber } from "@/components/admin/admin-ui";
+import { AdminListResponse, AdminPaymentTransaction } from "@/lib/types";
+import { EmptyState, Metric, PaginationControls, Panel, SearchField, SkeletonRows, StatusPill, formatCurrencyIdr, formatDate, formatNumber } from "@/components/admin/admin-ui";
+import { useAdminQuery } from "@/lib/hooks/use-admin-query";
+
+const REFRESHING_CLASS = "opacity-60 transition-opacity duration-200";
+const STEADY_CLASS = "transition-opacity duration-200";
 
 type PaymentFilter = "ALL" | "SUCCESS" | "FAILED" | "PENDING";
 
 export default function AdminPaymentsPage() {
-    const [loading, setLoading] = useState(true);
-    const [payments, setPayments] = useState<AdminPaymentTransaction[]>([]);
     const [paymentFilter, setPaymentFilter] = useState<PaymentFilter>("ALL");
     const [query, setQuery] = useState("");
     const [page, setPage] = useState(1);
     const pageSize = 15;
-    const [total, setTotal] = useState(0);
 
-    useEffect(() => {
-        const loadData = async () => {
-            try {
-                setLoading(true);
-                const response = await getAdminPayments({
-                    q: query,
-                    page,
-                    page_size: pageSize,
-                    status: paymentFilter,
-                });
-                setPayments(response?.items || []);
-                setTotal(response?.meta?.total || 0);
-            } catch (error) {
-                console.error("Failed to load admin payments:", error);
-            } finally {
-                setLoading(false);
-            }
-        };
+    const paymentsQ = useAdminQuery<AdminListResponse<AdminPaymentTransaction>>(
+        (signal) =>
+            getAdminPayments(
+                { q: query, page, page_size: pageSize, status: paymentFilter },
+                signal,
+            ),
+        [query, page, paymentFilter],
+        "Couldn't load payments. Retry?",
+    );
 
-        void loadData();
-    }, [page, paymentFilter, query]);
-
+    const payments = paymentsQ.data?.items ?? [];
+    const total = paymentsQ.data?.meta.total ?? 0;
     const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
     useEffect(() => {
@@ -45,10 +36,6 @@ export default function AdminPaymentsPage() {
             setPage(totalPages);
         }
     }, [page, totalPages]);
-
-    if (loading) {
-        return <div className="rounded-[28px] border border-white/10 bg-[#111827]/60 p-8 text-sm text-slate-300">Loading payment history.</div>;
-    }
 
     return (
         <div className="space-y-4">
@@ -82,6 +69,12 @@ export default function AdminPaymentsPage() {
                     ))}
                 </div>
 
+                {paymentsQ.isInitialLoading ? (
+                    <SkeletonRows count={6} rowHeight={64} />
+                ) : paymentsQ.error ? (
+                    <EmptyState message={paymentsQ.error} />
+                ) : (
+                <div className={paymentsQ.isRefreshing ? REFRESHING_CLASS : STEADY_CLASS}>
                 <div className="hidden lg:block">
                     <div className="overflow-x-auto">
                         <table className="min-w-[980px] text-sm">
@@ -155,6 +148,8 @@ export default function AdminPaymentsPage() {
                         ))
                     )}
                 </div>
+                </div>
+                )}
 
                 <div className="mt-4">
                     <PaginationControls page={page} totalPages={totalPages} totalItems={total} label="payments" onChange={setPage} />
