@@ -167,7 +167,7 @@ export default function MembersPage({ params }: { params: Promise<{ teamSlug: st
                                 {hasAdminPermission ? (
                                     <button
                                         onClick={() => setIsInviteModalOpen(true)}
-                                        className="inline-flex items-center gap-2 rounded-full bg-slate-900 px-5 py-3 text-[14px] font-semibold text-white shadow-sm transition-all hover:scale-[1.02] active:scale-[0.98]"
+                                        className="inline-flex items-center gap-2 rounded-full bg-primary-dark px-5 py-3 text-[14px] font-semibold text-white shadow-sm transition-all hover:bg-primary-dark-hover hover:scale-[1.02] active:scale-[0.98]"
                                     >
                                         <UserPlus className="h-[18px] w-[18px]" aria-hidden="true" />
                                         Invite Member
@@ -294,7 +294,7 @@ export default function MembersPage({ params }: { params: Promise<{ teamSlug: st
                                                     <div className="flex flex-wrap items-center gap-2">
                                                         <h3 className="text-[16px] font-semibold tracking-tight text-slate-900">{member.name}</h3>
                                                         {isOwner && (
-                                                            <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-900 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-white">
+                                                            <span className="inline-flex items-center gap-1.5 rounded-full bg-primary-dark px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-white">
                                                                 <Crown className="h-3 w-3" aria-hidden="true" />
                                                                 Owner
                                                             </span>

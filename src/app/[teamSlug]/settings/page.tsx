@@ -425,7 +425,7 @@ function TeamSettingsPageContent({ params }: { params: Promise<{ teamSlug: strin
                         </div>
                     </div>
 
-                    <aside className="flex flex-col justify-between rounded-[32px] bg-slate-900 p-8 text-white shadow-xl">
+                    <aside className="flex flex-col justify-between rounded-[32px] bg-primary-dark p-8 text-white shadow-[0_24px_54px_-32px_rgba(51,35,127,0.72)]">
                         <div>
                             <p className="text-[12px] font-medium uppercase tracking-wide text-slate-400">Current Plan</p>
                             <h2 className="mt-3 text-[22px] font-semibold text-white tracking-tight">
@@ -482,7 +482,7 @@ function TeamSettingsPageContent({ params }: { params: Promise<{ teamSlug: strin
                                 activeTab === tab.key
                                     ? tab.key === "danger"
                                         ? "bg-[var(--danger-fg)] text-white shadow-[0_18px_36px_-28px_rgba(179,66,66,0.6)]"
-                                        : "bg-slate-950 text-white shadow-[0_18px_36px_-28px_rgba(15,23,42,0.7)]"
+                                        : "bg-primary-dark text-white shadow-[0_18px_36px_-28px_rgba(51,35,127,0.62)]"
                                     : "text-slate-600 hover:bg-white hover:text-slate-950",
                             )}
                             aria-current={activeTab === tab.key ? "page" : undefined}
@@ -732,7 +732,7 @@ function TeamSettingsPageContent({ params }: { params: Promise<{ teamSlug: strin
                                 <div>
                                     <div className="flex items-center gap-2">
                                         <span className={`rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-wider ${
-                                            currentPlanIsActive ? "bg-slate-900 text-white" : "bg-slate-200 text-slate-600"
+                                            currentPlanIsActive ? "bg-primary-dark text-white" : "bg-slate-200 text-slate-600"
                                         }`}>
                                             {currentPlan?.name || (currentPlanIsActive ? "Paid" : "Free")}
                                         </span>
@@ -952,7 +952,7 @@ function TeamSettingsPageContent({ params }: { params: Promise<{ teamSlug: strin
                                         <p className="truncate text-[13px] text-slate-500">{member.email}</p>
                                     </div>
                                     {selectedNewOwner === member.id && (
-                                        <div className="flex h-5 w-5 items-center justify-center rounded-full bg-slate-900 text-white shadow-sm">
+                                        <div className="flex h-5 w-5 items-center justify-center rounded-full bg-primary-dark text-white shadow-sm">
                                             <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />
                                         </div>
                                     )}
@@ -978,7 +978,7 @@ function TeamSettingsPageContent({ params }: { params: Promise<{ teamSlug: strin
                                 type="button"
                                 onClick={handleTransferOwnership}
                                 disabled={!selectedNewOwner || transferOwnershipMutation.isPending}
-                                className="rounded-full bg-slate-900 px-5 py-2.5 text-[14px] font-bold text-white shadow-sm transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:hover:scale-100 focus-visible:outline-none"
+                                className="rounded-full bg-primary-dark px-5 py-2.5 text-[14px] font-bold text-white shadow-sm transition-all hover:bg-primary-dark-hover hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:hover:scale-100 focus-visible:outline-none"
                             >
                                 {transferOwnershipMutation.isPending ? "Transferring…" : "Confirm Transfer"}
                             </button>

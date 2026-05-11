@@ -59,7 +59,7 @@ export default function TeamActivityPage() {
                     </div>
                     <Link
                         href="/dashboard"
-                        className="inline-flex items-center gap-2 rounded-full bg-slate-900 px-5 py-2.5 text-[14px] font-semibold text-white transition-all hover:scale-[1.02] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 focus-visible:ring-offset-2"
+                        className="inline-flex items-center gap-2 rounded-full bg-primary-dark px-5 py-2.5 text-[14px] font-semibold text-white transition-all hover:bg-primary-dark-hover hover:scale-[1.02] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                     >
                         Back to Dashboard
                     </Link>

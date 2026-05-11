@@ -163,7 +163,7 @@ export function InstallPrompt() {
                                     <button
                                         type="button"
                                         onClick={handleInstall}
-                                        className="inline-flex items-center justify-center gap-2 rounded-2xl bg-slate-950 px-4 py-3 text-sm font-medium text-white transition hover:bg-slate-800"
+                                        className="inline-flex items-center justify-center gap-2 rounded-2xl bg-primary-dark px-4 py-3 text-sm font-medium text-white transition hover:bg-primary-dark-hover"
                                     >
                                         <Download className="h-4 w-4" />
                                         Install App

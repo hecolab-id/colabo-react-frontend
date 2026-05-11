@@ -55,7 +55,7 @@ function SidebarNavLink({
     isCollapsed: boolean;
 }) {
     const baseClasses = cn(
-        "flex h-[44px] items-center gap-3 rounded-[1rem] px-3.5 text-[14px] transition-all active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900/10",
+        "flex h-[44px] items-center gap-3 rounded-[1rem] px-3.5 text-[14px] transition-all active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20",
         isCollapsed && "justify-center px-0 h-10 rounded-[12px] w-10 mx-auto",
         item.disabled
             ? "cursor-default text-slate-400/50 hover:bg-transparent"
@@ -179,7 +179,7 @@ export function Sidebar({ isCollapsed = false, toggleSidebar, onOpenProjectModal
                                             key={project.id}
                                             href={projectHref}
                                             className={cn(
-                                                "flex h-9 items-center gap-3 rounded-[12px] px-4 text-[13px] transition-all active:scale-[0.98] outline-none focus-visible:ring-2 focus-visible:ring-slate-900/10",
+                                                "flex h-9 items-center gap-3 rounded-[12px] px-4 text-[13px] transition-all active:scale-[0.98] outline-none focus-visible:ring-2 focus-visible:ring-primary/20",
                                                 isActive
                                                     ? "border border-white bg-white text-slate-950 shadow-[0_10px_24px_rgba(15,23,42,0.08)] font-semibold"
                                                     : "text-slate-500 hover:bg-white/80 hover:text-slate-900 font-medium"
@@ -235,7 +235,7 @@ export function Sidebar({ isCollapsed = false, toggleSidebar, onOpenProjectModal
 
             <button
                 onClick={toggleSidebar}
-                className="absolute right-0 top-8 z-[70] grid h-8 w-8 translate-x-1/2 place-items-center rounded-full border border-white/80 bg-white text-slate-400 shadow-[0_12px_30px_rgba(15,23,42,0.14)] outline-none transition-all hover:scale-110 hover:bg-slate-50 hover:text-slate-900 focus-visible:ring-2 focus-visible:ring-slate-900/20"
+                className="absolute right-0 top-8 z-[70] grid h-8 w-8 translate-x-1/2 place-items-center rounded-full border border-white/80 bg-white text-slate-400 shadow-[0_12px_30px_rgba(15,23,42,0.14)] outline-none transition-all hover:scale-110 hover:bg-slate-50 hover:text-primary focus-visible:ring-2 focus-visible:ring-primary/20"
                 aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
                 title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
             >

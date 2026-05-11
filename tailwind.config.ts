@@ -9,6 +9,8 @@ const config: Config = {
         background: "var(--background)",
         foreground: "var(--foreground)",
         primary: "var(--primary)",
+        "primary-dark": "var(--primary-dark)",
+        "primary-dark-hover": "var(--primary-dark-hover)",
         "primary-foreground": "var(--primary-foreground)",
         secondary: "var(--secondary)",
         "secondary-foreground": "var(--secondary-foreground)",

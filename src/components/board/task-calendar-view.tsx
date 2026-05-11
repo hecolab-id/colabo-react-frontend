@@ -185,7 +185,7 @@ export function TaskCalendarView({ tasks, columns, initialTaskId, onUpdate, onDe
                                     className={cn(
                                         "min-h-11 w-full rounded-xl border border-white/70 p-1.5 text-left transition-all focus-visible:outline-none hover:scale-[1.02] active:scale-[0.98] md:min-h-[96px] md:rounded-[24px] md:p-3",
                                         isSelected
-                                            ? "border-slate-900 bg-slate-900 shadow-md"
+                                            ? "border-primary-dark bg-primary-dark shadow-md"
                                             : "bg-white/78 hover:bg-white",
                                         !isCurrentMonth && "opacity-45"
                                     )}

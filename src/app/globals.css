@@ -7,6 +7,8 @@
   --foreground: #172033;
 
   --primary: #6d5dfc;
+  --primary-dark: #272554;
+  --primary-dark-hover: #342f78;
   --primary-foreground: #ffffff;
   --secondary: #ffffff;
   --secondary-foreground: #172033;
@@ -75,6 +77,8 @@
   --foreground: #edf2fb;
 
   --primary: #b8adff;
+  --primary-dark: #8f86ff;
+  --primary-dark-hover: #a79fff;
   --primary-foreground: #101828;
   --secondary: #162033;
   --secondary-foreground: #edf2fb;

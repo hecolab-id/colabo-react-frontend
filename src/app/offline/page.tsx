@@ -19,7 +19,7 @@ export default function OfflinePage() {
                     <div className="mt-8 grid gap-4 sm:grid-cols-2">
                         <Link
                             href="/dashboard"
-                            className="rounded-2xl border border-slate-200 bg-slate-950 px-5 py-4 text-sm font-medium text-white transition hover:bg-slate-800"
+                            className="rounded-2xl border border-slate-200 bg-primary-dark px-5 py-4 text-sm font-medium text-white transition hover:bg-primary-dark-hover"
                         >
                             Open Dashboard
                         </Link>

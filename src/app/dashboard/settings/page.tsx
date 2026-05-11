@@ -421,7 +421,7 @@ export default function SettingsPage() {
                                         className={cn(
                                             "flex min-w-[11rem] items-center gap-3 rounded-[1.05rem] px-3 py-3 text-left transition-[background-color,color,box-shadow] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15 lg:min-w-0",
                                             isActive
-                                                ? "bg-slate-950 text-white shadow-[0_18px_36px_-28px_rgba(15,23,42,0.7)]"
+                                                ? "bg-primary-dark text-white shadow-[0_18px_36px_-28px_rgba(51,35,127,0.62)]"
                                                 : "text-slate-600 hover:bg-white hover:text-slate-950",
                                         )}
                                         aria-current={isActive ? "page" : undefined}

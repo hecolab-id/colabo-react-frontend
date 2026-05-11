@@ -22,7 +22,7 @@ export function AuthShell({
           <section className="hidden lg:block">
             <div className="max-w-[520px] space-y-6">
               <div className="inline-flex items-center gap-3 rounded-full border border-white/70 bg-white/68 px-4 py-2 text-[12px] font-semibold uppercase tracking-[0.24em] text-slate-500 shadow-[0_12px_30px_rgba(15,23,42,0.08)] backdrop-blur-xl">
-                <span className="h-2 w-2 rounded-full bg-slate-900" />
+                <span className="h-2 w-2 rounded-full bg-primary-dark" />
                 Colabo Workspace
               </div>
               <h1 className="font-space-grotesk text-[52px] font-semibold leading-[1.02] tracking-tight text-slate-950">
@@ -49,7 +49,7 @@ export function AuthShell({
           <Card className={cn("mx-auto w-full max-w-[560px]", className)}>
             <CardHeader className="pb-6">
               <div className="mb-6 flex items-center justify-center lg:justify-start">
-                <div className="flex h-16 w-16 items-center justify-center rounded-[1.7rem] bg-slate-950 shadow-[0_16px_40px_rgba(15,23,42,0.22)]">
+                <div className="flex h-16 w-16 items-center justify-center rounded-[1.7rem] bg-primary-dark shadow-[0_16px_40px_rgba(51,35,127,0.24)]">
                   <AppImage
                     src="/logo.webp"
                     alt="Colabo Logo"

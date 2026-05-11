@@ -66,7 +66,7 @@ export default function NotificationsPage() {
                     <button
                         type="button"
                         onClick={handleMarkAllRead}
-                        className="rounded-full border border-white/80 bg-white/78 px-4 py-2 text-sm font-medium text-slate-700 shadow-sm backdrop-blur-xl transition-colors hover:bg-slate-950 hover:text-white"
+                        className="rounded-full border border-white/80 bg-white/78 px-4 py-2 text-sm font-medium text-slate-700 shadow-sm backdrop-blur-xl transition-colors hover:bg-primary-dark hover:text-white"
                     >
                         Mark all read
                     </button>

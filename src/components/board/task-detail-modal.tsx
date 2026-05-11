@@ -1059,7 +1059,7 @@ export function TaskDetailModal({ task, projectColumns: initialProjectColumns, o
                                     onClick={() => scrollToSection(id)}
                                     className={cn(
                                         "shrink-0 touch-manipulation rounded-full px-3 py-1.5 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15",
-                                        activeMobileSection === id ? "bg-slate-950 text-white" : "border border-slate-200 bg-slate-100 text-slate-600"
+                                        activeMobileSection === id ? "bg-primary-dark text-white" : "border border-slate-200 bg-slate-100 text-slate-600"
                                     )}
                                 >
                                     {label}

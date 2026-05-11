@@ -82,7 +82,7 @@ export function PlanPackageDialog({
                                 <div className="border-b border-slate-200/80 px-6 py-5 sm:px-8">
                                     <div className="flex items-start justify-between gap-4">
                                         <div>
-                                            <div className="inline-flex items-center gap-2 rounded-full bg-slate-900 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-white">
+                                            <div className="inline-flex items-center gap-2 rounded-full bg-primary-dark px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-white">
                                                 <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
                                                 Package Plan
                                             </div>
@@ -118,7 +118,7 @@ export function PlanPackageDialog({
                                                 onClick={() => onSelectPlan(plan.id)}
                                                 className={`rounded-[24px] border p-6 text-left shadow-sm transition ${
                                                     isSelected
-                                                        ? "border-slate-900 bg-slate-950 text-white"
+                                                        ? "border-primary-dark bg-primary-dark text-white"
                                                         : "border-slate-200 bg-white hover:border-slate-300"
                                                 }`}
                                             >
@@ -182,7 +182,7 @@ export function PlanPackageDialog({
                                                 type="button"
                                                 onClick={onConfirm}
                                                 disabled={isLoading || !canCheckout}
-                                                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-slate-950 px-4 py-3 text-sm font-medium text-white transition hover:bg-slate-800 disabled:opacity-50"
+                                                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-primary-dark px-4 py-3 text-sm font-medium text-white transition hover:bg-primary-dark-hover disabled:opacity-50"
                                             >
                                                 <CreditCard className="h-4 w-4" aria-hidden="true" />
                                                 {isLoading ? "Preparing checkout..." : "Continue to checkout"}

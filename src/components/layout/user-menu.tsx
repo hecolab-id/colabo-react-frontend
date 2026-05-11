@@ -25,7 +25,7 @@ export function UserMenu() {
         <Menu as="div" className="relative ml-2 py-4">
             <Menu.Button className="relative hover:cursor-pointer flex items-center justify-center rounded-full bg-white focus:outline-none transition-transform hover:scale-105 active:scale-95">
                 <span className="sr-only">Open user menu</span>
-                <div className="h-9 w-9 rounded-full overflow-hidden border border-black/5 shadow-sm ring-2 ring-transparent transition-all focus-visible:ring-slate-900">
+                <div className="h-9 w-9 rounded-full overflow-hidden border border-black/5 shadow-sm ring-2 ring-transparent transition-all focus-visible:ring-primary/30">
                     <Image
                         src={user.avatar_url || "https://ui-avatars.com/api/?background=f8fafc&color=0f172a&name=" + encodeURIComponent(user.name || "U")}
                         alt={user.name || "User"}

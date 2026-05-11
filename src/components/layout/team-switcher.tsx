@@ -29,7 +29,7 @@ export function TeamSwitcher({ isCollapsed = false }: TeamSwitcherProps) {
             <button
                 onClick={() => setIsOpen(!isOpen)}
                 className={cn(
-                    "flex h-[58px] w-full items-center gap-3 rounded-[1.15rem] border border-white/75 bg-white/72 px-3 py-2.5 shadow-[0_14px_36px_rgba(15,23,42,0.08)] backdrop-blur-xl transition-all hover:border-white hover:bg-white hover:cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900/10",
+                    "flex h-[58px] w-full items-center gap-3 rounded-[1.15rem] border border-white/75 bg-white/72 px-3 py-2.5 shadow-[0_14px_36px_rgba(15,23,42,0.08)] backdrop-blur-xl transition-all hover:border-white hover:bg-white hover:cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20",
                     isCollapsed && "justify-center px-0"
                 )}
                 title={isCollapsed ? `Switch team: ${currentTeam.name}` : ""}
@@ -71,7 +71,7 @@ export function TeamSwitcher({ isCollapsed = false }: TeamSwitcherProps) {
                                 >
                                     <div className={cn(
                                         "w-7 h-7 rounded-[10px] flex items-center justify-center font-bold text-[11px] flex-shrink-0",
-                                        team.id === currentTeam.id ? "bg-slate-900 text-white" : "bg-slate-100 text-slate-600"
+                                        team.id === currentTeam.id ? "bg-primary-dark text-white" : "bg-slate-100 text-slate-600"
                                     )}>
                                         {team.name.charAt(0)}
                                     </div>

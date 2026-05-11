@@ -187,7 +187,7 @@ export function TeamActivityOverviewPanel({ teamSlug, children }: TeamActivityOv
                     >
                         Project Insights
                         {activeTab === "insights" && (
-                            <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-slate-900 rounded-t-full" />
+                            <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary-dark rounded-t-full" />
                         )}
                     </button>
                     <button
@@ -198,7 +198,7 @@ export function TeamActivityOverviewPanel({ teamSlug, children }: TeamActivityOv
                     >
                         Detailed Log
                         {activeTab === "activity" && (
-                            <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-slate-900 rounded-t-full" />
+                            <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary-dark rounded-t-full" />
                         )}
                     </button>
                 </div>
@@ -295,7 +295,7 @@ function StartHereCard({ overview }: { overview: TeamActivityOverview }) {
             <div className="flex flex-col gap-5 md:flex-row md:items-start md:justify-between">
                 <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-2">
-                        <span className="inline-flex items-center rounded-full bg-slate-900 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-white">
+                        <span className="inline-flex items-center rounded-full bg-primary-dark px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-white">
                             Start Here
                         </span>
                         <span className="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
@@ -325,7 +325,7 @@ function StartHereCard({ overview }: { overview: TeamActivityOverview }) {
 
                 {recommendation.href ? (
                     <div className="shrink-0">
-                        <span className="inline-flex items-center gap-2 rounded-full bg-slate-900 px-5 py-2.5 text-[14px] font-semibold text-white shadow-sm transition-transform hover:scale-[1.02] active:scale-[0.98]">
+                        <span className="inline-flex items-center gap-2 rounded-full bg-primary-dark px-5 py-2.5 text-[14px] font-semibold text-white shadow-sm transition-transform hover:scale-[1.02] active:scale-[0.98]">
                             Open Task
                             <ArrowRight className="h-4 w-4" aria-hidden="true" />
                         </span>

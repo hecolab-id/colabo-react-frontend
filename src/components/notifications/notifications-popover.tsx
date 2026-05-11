@@ -52,7 +52,7 @@ export function NotificationsPopover() {
         <div className="relative">
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="relative h-9 w-9 flex items-center justify-center rounded-full text-slate-400 transition-all hover:bg-slate-50 hover:text-slate-900 hover:scale-105 active:scale-95 hover:cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-slate-900"
+                className="relative h-9 w-9 flex items-center justify-center rounded-full text-slate-400 transition-all hover:bg-slate-50 hover:text-primary hover:scale-105 active:scale-95 hover:cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
             >
                 <Bell className="w-[20px] h-[20px]" />
                 {unreadCount > 0 && (
@@ -69,7 +69,7 @@ export function NotificationsPopover() {
                             {unreadCount > 0 && (
                                 <button
                                     onClick={handleMarkAllRead}
-                                    className="text-[13px] font-medium text-slate-500 hover:text-slate-900 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 rounded-md px-2 py-0.5"
+                                    className="text-[13px] font-medium text-slate-500 hover:text-primary transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 rounded-md px-2 py-0.5"
                                 >
                                     Mark all read
                                 </button>
@@ -104,7 +104,7 @@ export function NotificationsPopover() {
                                                 )}
                                             >
                                                 {!notification.read_at && (
-                                                    <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-slate-900 rounded-r-full" />
+                                                    <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-primary-dark rounded-r-full" />
                                                 )}
                                                 <div className="flex-1 space-y-1.5">
                                                     <div className="flex items-center gap-2">
@@ -137,7 +137,7 @@ export function NotificationsPopover() {
                                                 )}
                                             >
                                                 {!notification.read_at && (
-                                                    <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-slate-900 rounded-r-full" />
+                                                    <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-primary-dark rounded-r-full" />
                                                 )}
                                                 <div className="flex-1 space-y-1.5">
                                                     <div className="flex items-center gap-2">

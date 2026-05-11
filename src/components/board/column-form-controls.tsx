@@ -165,7 +165,7 @@ export function ColumnColorPicker({
                         type="button"
                         onClick={() => onChange(preset.color)}
                         className={cn(
-                            "h-9 rounded-full border transition-[transform,box-shadow,border-color] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900/10",
+                            "h-9 rounded-full border transition-[transform,box-shadow,border-color] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20",
                             value === preset.color
                                 ? "scale-105 border-white shadow-[0_0_0_2px_rgba(15,23,42,0.72),0_10px_20px_rgba(15,23,42,0.12)]"
                                 : "border-white/80 shadow-sm hover:scale-105",

@@ -55,36 +55,48 @@ const bucketMeta: Record<DashboardActionBucketId, { label: string; summary: stri
 function getSeverityClasses(severity: DashboardActionSeverity) {
     if (severity === "critical") {
         return {
-            card: "border-rose-100/50 bg-rose-50/30",
-            badge: "bg-rose-100/50 text-rose-700",
-            accent: "text-rose-600",
-            iconBg: "bg-rose-100/50 text-rose-600",
+            row: "border-rose-200/70 bg-rose-50/45 hover:border-rose-300/80",
+            badge: "border-rose-200 bg-rose-100/70 text-rose-800",
+            accent: "text-rose-700",
+            rail: "bg-rose-600",
+            iconBg: "bg-rose-100 text-rose-700",
+            command: "border-rose-500 bg-rose-600 text-white shadow-[0_20px_50px_rgba(225,29,72,0.20)]",
+            commandMuted: "text-rose-100",
         };
     }
 
     if (severity === "warning") {
         return {
-            card: "border-amber-100/50 bg-amber-50/30",
-            badge: "bg-amber-100/50 text-amber-700",
+            row: "border-amber-200/70 bg-amber-50/45 hover:border-amber-300/80",
+            badge: "border-amber-200 bg-amber-100/70 text-amber-800",
             accent: "text-amber-700",
-            iconBg: "bg-amber-100/50 text-amber-600",
+            rail: "bg-amber-500",
+            iconBg: "bg-amber-100 text-amber-700",
+            command: "border-amber-500 bg-primary-dark text-white shadow-[0_20px_50px_rgba(51,35,127,0.24)]",
+            commandMuted: "text-amber-100",
         };
     }
 
     if (severity === "stable") {
         return {
-            card: "border-emerald-100/50 bg-emerald-50/30",
-            badge: "bg-emerald-100/50 text-emerald-700",
+            row: "border-emerald-200/70 bg-emerald-50/45 hover:border-emerald-300/80",
+            badge: "border-emerald-200 bg-emerald-100/70 text-emerald-800",
             accent: "text-emerald-700",
-            iconBg: "bg-emerald-100/50 text-emerald-600",
+            rail: "bg-emerald-500",
+            iconBg: "bg-emerald-100 text-emerald-700",
+            command: "border-emerald-500 bg-primary-dark text-white shadow-[0_20px_50px_rgba(51,35,127,0.24)]",
+            commandMuted: "text-emerald-100",
         };
     }
 
     return {
-        card: "border-black/5 bg-white",
-        badge: "bg-slate-100 text-slate-700",
+        row: "border-slate-200 bg-white hover:border-slate-300",
+        badge: "border-slate-200 bg-slate-100 text-slate-700",
         accent: "text-slate-700",
+        rail: "bg-slate-400",
         iconBg: "bg-slate-100 text-slate-600",
+        command: "border-primary-dark bg-primary-dark text-white shadow-[0_20px_50px_rgba(51,35,127,0.24)]",
+        commandMuted: "text-slate-300",
     };
 }
 
@@ -93,6 +105,14 @@ function getMetricToneClasses(tone: DashboardActionSeverity) {
     if (tone === "warning") return "text-amber-600";
     if (tone === "stable") return "text-emerald-600";
     return "text-slate-900";
+}
+
+function getBucketTone(bucket: DashboardActionBucketId, count: number): DashboardActionSeverity {
+    if (count <= 0) return "neutral";
+    if (bucket === "needs_attention") return "critical";
+    if (bucket === "due_soon" || bucket === "blocked") return "warning";
+    if (bucket === "ready_to_resume") return "stable";
+    return "neutral";
 }
 
 function formatDueDate(value?: string | null) {
@@ -106,43 +126,43 @@ function DashboardActionLink({ item }: { item: DashboardActionItem }) {
     return (
         <Link
             href={item.href}
-            className={`group block rounded-[20px] border shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5 active:scale-[0.98] active:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 ${styles.card} p-5`}
+            className={`group relative block overflow-hidden rounded-2xl border transition-all hover:-translate-y-0.5 hover:bg-white hover:shadow-[0_16px_32px_rgba(15,23,42,0.08)] active:translate-y-0 active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/25 ${styles.row}`}
         >
-            <div className="flex items-start gap-4">
-                <div className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${styles.iconBg}`}>
-                    <AlertTriangle className="h-4 w-4" aria-hidden="true" />
-                </div>
+            <div className={`absolute inset-y-0 left-0 w-1 ${styles.rail}`} aria-hidden="true" />
+            <div className="grid gap-3 p-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center sm:gap-5 sm:pl-5">
+                <div className="flex min-w-0 items-start gap-3">
+                    <div className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl ${styles.iconBg}`}>
+                        <AlertTriangle className="h-4 w-4" aria-hidden="true" />
+                    </div>
 
-                <div className="min-w-0 flex-1">
-                    <div className="flex flex-wrap items-center gap-2">
-                        <h4 className="min-w-0 flex-1 truncate text-base font-medium text-slate-900">
+                    <div className="min-w-0 flex-1">
+                        <div className="flex min-w-0 flex-wrap items-center gap-2">
+                            {item.projectCode && (
+                                <span className="rounded-md border border-slate-200 bg-white px-2 py-0.5 font-mono text-[11px] font-semibold text-slate-500">
+                                    {item.projectCode}
+                                </span>
+                            )}
+                            {item.statusLabel && (
+                                <span className={`rounded-md border px-2 py-0.5 text-[11px] font-semibold ${styles.badge}`}>
+                                    {item.statusLabel}
+                                </span>
+                            )}
+                        </div>
+                        <h4 className="mt-2 min-w-0 truncate text-[15px] font-semibold tracking-tight text-slate-950">
                             {item.title}
                         </h4>
-                        {item.statusLabel && (
-                            <span className={`rounded-full px-2.5 py-0.5 text-[11px] font-medium ${styles.badge}`}>
-                                {item.statusLabel}
-                            </span>
-                        )}
-                    </div>
-
-                    <p className="mt-1 text-sm text-slate-500 line-clamp-2">{item.reason}</p>
-
-                    <div className="mt-4 flex flex-wrap items-center gap-3 text-[13px] text-slate-500">
-                        {item.projectCode && (
-                            <span className="font-mono text-slate-400">
-                                {item.projectCode}
-                            </span>
-                        )}
-                        {item.projectCode && <span className="h-1 w-1 rounded-full bg-slate-300" />}
-                        <span className="inline-flex items-center gap-1.5">
-                            <CalendarDays className="h-4 w-4 text-slate-400" aria-hidden="true" />
-                            {formatDueDate(item.dueAt)}
-                        </span>
+                        <p className="mt-1 line-clamp-2 text-sm leading-5 text-slate-500">{item.reason}</p>
                     </div>
                 </div>
 
-                <div className="ml-2 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-50 opacity-0 transition-all group-hover:opacity-100">
-                    <ArrowRight className="h-4 w-4 text-slate-400" aria-hidden="true" />
+                <div className="flex items-center justify-between gap-3 border-t border-slate-200/70 pt-3 text-[13px] text-slate-500 sm:border-t-0 sm:pt-0">
+                    <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
+                        <CalendarDays className="h-4 w-4 text-slate-400" aria-hidden="true" />
+                        {formatDueDate(item.dueAt)}
+                    </span>
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 transition-colors group-hover:border-primary-dark group-hover:bg-primary-dark group-hover:text-white">
+                        <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                    </div>
                 </div>
             </div>
         </Link>
@@ -150,52 +170,165 @@ function DashboardActionLink({ item }: { item: DashboardActionItem }) {
 }
 
 function DashboardPriorityActionLink({ item, label }: { item: DashboardActionItem; label: string }) {
-    const isCritical = item.severity === "critical";
+    const styles = getSeverityClasses(item.severity);
 
     return (
         <Link
             href={item.href}
-            className={`group flex flex-col justify-between overflow-hidden rounded-[22px] md:flex-row md:items-center ${
-                isCritical 
-                ? "bg-rose-600 text-white shadow-lg shadow-rose-600/16" 
-                : "bg-slate-950 text-white shadow-lg shadow-slate-900/16"
-            } p-4 transition-all hover:scale-[1.005] active:scale-[0.99] sm:p-5`}
+            className={`group relative grid overflow-hidden rounded-2xl border p-4 transition-all hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.99] sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center sm:gap-6 sm:p-5 ${styles.command}`}
         >
-            <div className="flex-1">
-                <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest ${
-                    isCritical ? "bg-white/20 text-white" : "bg-white/10 text-slate-300"
-                }`}>
+            <div className="absolute inset-y-0 left-0 w-1.5 bg-white/55" aria-hidden="true" />
+            <div className="min-w-0 pl-1">
+                <span className="inline-flex items-center gap-1.5 rounded-md border border-white/15 bg-white/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest text-white">
                     <AlertTriangle className="h-3.5 w-3.5" aria-hidden="true" />
                     {label}
                 </span>
                 <h3 className="mt-2 line-clamp-2 text-balance text-lg font-bold tracking-tight text-white sm:text-xl">
                     {item.title}
                 </h3>
-                <p className={`mt-1 line-clamp-2 text-sm ${isCritical ? "text-rose-100" : "text-slate-300"}`}>
+                <p className={`mt-1 line-clamp-2 text-sm ${styles.commandMuted}`}>
                     {item.reason}
                 </p>
-                
-                <div className="mt-4 flex flex-wrap items-center gap-2">
+
+                <div className="mt-4 flex flex-wrap items-center gap-2 text-[13px]">
                     {item.projectCode && (
-                        <span className={`rounded-lg px-3 py-1.5 font-mono text-[13px] ${isCritical ? 'bg-rose-700 text-rose-100' : 'bg-white/10 text-slate-300'}`}>
+                        <span className="rounded-md border border-white/15 bg-white/10 px-3 py-1.5 font-mono text-white/85">
                             {item.projectCode}
                         </span>
                     )}
-                    <span className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[13px] ${isCritical ? 'bg-rose-700 text-rose-100' : 'bg-white/10 text-slate-300'}`}>
+                    <span className="inline-flex items-center gap-1.5 rounded-md border border-white/15 bg-white/10 px-3 py-1.5 text-white/85">
                         <CalendarDays className="h-4 w-4 opacity-70" aria-hidden="true" />
                         {formatDueDate(item.dueAt)}
                     </span>
                 </div>
             </div>
 
-            <div className="mt-4 flex shrink-0 items-center justify-end md:mt-0">
-                <div className="flex items-center gap-3 pr-2">
-                    <span className="font-bold uppercase tracking-widest text-[11px] text-white/90 md:hidden">Execute Task</span>
-                    <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full ${
-                        isCritical ? "bg-white text-rose-600" : "bg-white text-slate-900"
-                    } shadow-sm group-hover:scale-110 transition-transform`}>
-                        <ArrowRight className="h-5 w-5" aria-hidden="true" />
+            <div className="mt-4 flex shrink-0 items-center justify-between gap-3 border-t border-white/10 pt-4 sm:mt-0 sm:border-t-0 sm:pt-0">
+                <span className="font-bold uppercase tracking-widest text-[11px] text-white/80 sm:hidden">Execute Task</span>
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white text-slate-950 shadow-sm transition-transform group-hover:translate-x-0.5">
+                    <ArrowRight className="h-5 w-5" aria-hidden="true" />
+                </div>
+            </div>
+        </Link>
+    );
+}
+
+function ProjectResumeLink({ project }: { project: DashboardOverview["projects"][number] }) {
+    return (
+        <Link
+            href={project.href}
+            className="group block rounded-2xl border border-slate-200 bg-white p-4 transition-all hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-[0_16px_32px_rgba(15,23,42,0.08)] active:translate-y-0 active:scale-[0.99]"
+        >
+            <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                    <span className="rounded-md border border-slate-200 bg-slate-50 px-2 py-1 font-mono text-[11px] font-semibold text-slate-500">
+                        {project.key}
+                    </span>
+                    <h3 className="mt-3 truncate text-[15px] font-semibold tracking-tight text-slate-950">
+                        {project.name}
+                    </h3>
+                </div>
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-slate-500 transition-colors group-hover:border-primary-dark group-hover:bg-primary-dark group-hover:text-white">
+                    <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                </div>
+            </div>
+
+            <p className="mt-2 min-h-[40px] line-clamp-2 text-sm leading-5 text-slate-500">{project.note}</p>
+
+            <div className="mt-5 h-1.5 overflow-hidden rounded-full bg-slate-200" aria-hidden="true">
+                <div
+                    className="h-full rounded-full bg-primary-dark transition-[width]"
+                    style={{ width: `${project.completionRate}%` }}
+                />
+            </div>
+
+            <div className="mt-4 grid grid-cols-3 gap-3 border-t border-slate-200 pt-4">
+                <div>
+                    <p className="text-[11px] font-semibold uppercase text-slate-400">Open</p>
+                    <p className="mt-1 text-lg font-semibold text-slate-950">{numberFormatter.format(project.activeTaskCount)}</p>
+                </div>
+                <div>
+                    <p className="text-[11px] font-semibold uppercase text-slate-400">Done</p>
+                    <p className="mt-1 text-lg font-semibold text-slate-950">{numberFormatter.format(project.completedCount)}</p>
+                </div>
+                <div className="text-right">
+                    <p className="text-[11px] font-semibold uppercase text-slate-400">Rate</p>
+                    <p className="mt-1 text-lg font-semibold text-slate-950">{numberFormatter.format(project.completionRate)}%</p>
+                </div>
+            </div>
+        </Link>
+    );
+}
+
+function MobileProjectResumeLink({ project }: { project: DashboardOverview["projects"][number] }) {
+    return (
+        <Link
+            href={project.href}
+            className="group block rounded-2xl border border-slate-200 bg-white p-3.5 active:scale-[0.99]"
+        >
+            <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                        <span className="rounded-md bg-slate-100 px-2 py-1 font-mono text-[11px] font-semibold text-slate-500">
+                            {project.key}
+                        </span>
+                        <span className="text-xs font-medium text-slate-400">
+                            {numberFormatter.format(project.activeTaskCount)} open
+                        </span>
                     </div>
+                    <h3 className="mt-2 truncate text-[15px] font-semibold tracking-tight text-slate-950">
+                        {project.name}
+                    </h3>
+                    <p className="mt-1 line-clamp-1 text-[13px] text-slate-500">{project.note}</p>
+                </div>
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary-dark text-white">
+                    <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                </div>
+            </div>
+
+            <div className="mt-3 flex items-center gap-3">
+                <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-slate-200" aria-hidden="true">
+                    <div
+                        className="h-full rounded-full bg-primary-dark"
+                        style={{ width: `${project.completionRate}%` }}
+                    />
+                </div>
+                <span className="w-10 text-right text-xs font-semibold text-slate-500">
+                    {numberFormatter.format(project.completionRate)}%
+                </span>
+            </div>
+        </Link>
+    );
+}
+
+function MobileUrgentActionLink({ item }: { item: DashboardActionItem }) {
+    const styles = getSeverityClasses(item.severity);
+
+    return (
+        <Link
+            href={item.href}
+            className="relative block overflow-hidden rounded-2xl border border-slate-200 bg-white p-3.5 pl-4 active:scale-[0.99]"
+        >
+            <div className={`absolute inset-y-0 left-0 w-1 ${styles.rail}`} aria-hidden="true" />
+            <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0 flex-1">
+                    <div className="flex min-w-0 items-center gap-2">
+                        {item.projectCode && (
+                            <span className="rounded-md bg-slate-100 px-2 py-0.5 font-mono text-[11px] font-semibold text-slate-500">
+                                {item.projectCode}
+                            </span>
+                        )}
+                        <span className={`truncate text-xs font-semibold ${styles.accent}`}>
+                            {formatDueDate(item.dueAt)}
+                        </span>
+                    </div>
+                    <h3 className="mt-2 truncate text-[14px] font-semibold tracking-tight text-slate-950">
+                        {item.title}
+                    </h3>
+                    <p className="mt-1 line-clamp-1 text-[13px] text-slate-500">{item.reason}</p>
+                </div>
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-500">
+                    <ArrowRight className="h-4 w-4" aria-hidden="true" />
                 </div>
             </div>
         </Link>
@@ -291,137 +424,275 @@ export default function DashboardPage() {
     const projects = dashboardOverview?.projects || [];
     const healthMetrics = dashboardOverview?.healthMetrics || [];
     const showUpgradeModule = !!dashboardOverview?.utility.showUpgrade && !!dashboardOverview.utility.upgradeHref;
+    const mobileUrgentItems = [
+        ...(actionBuckets?.needs_attention || []),
+        ...(actionBuckets?.due_soon || []),
+        ...(actionBuckets?.blocked || []),
+    ].filter((item) => item.href !== recommendedAction?.href || item.title !== recommendedAction?.title).slice(0, 3);
 
     return (
-        <div className="min-h-screen space-y-4 overflow-x-hidden pb-28 font-sans md:space-y-6 md:pb-16">
+        <div className="min-h-screen overflow-x-hidden pb-32 font-sans md:pb-16">
             <InstallPrompt />
             <MobilePremiumPrompt team={currentTeam || null} />
 
-            <div className="grid gap-4 pt-3 md:pt-4 xl:grid-cols-[1fr_320px] xl:gap-6 wrap">
-                {/* Main Action Hub */}
-                <div className="min-w-0 space-y-4 md:space-y-6">
-                    {/* Team Health - Moved up for mobile visibility */}
-                    {healthMetrics.length > 0 && (
-                        <section className="rounded-[24px] border border-black/5 bg-white p-4 shadow-sm md:p-5">
-                            <div className="mb-3 flex items-center justify-between gap-4 md:mb-4">
-                                <h2 className="text-lg md:text-xl font-semibold tracking-tight text-slate-900">Workspace Signals</h2>
+            <div className="grid gap-4 pt-3 md:pt-4 xl:grid-cols-[minmax(0,1fr)_320px] xl:gap-5">
+                <div className="min-w-0 space-y-5">
+                    <section className="space-y-3 sm:hidden">
+                        <div className="rounded-2xl border border-slate-200 bg-white p-4">
+                            <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-slate-400">
+                                Workspace
+                            </p>
+                            <div className="mt-1 flex items-center justify-between gap-3">
+                                <h1 className="min-w-0 truncate text-[22px] font-semibold tracking-tight text-slate-950">
+                                    {dashboardOverview?.workspace.teamName || currentTeam?.name || "Workspace"}
+                                </h1>
                                 <Link
                                     href="/my-tasks"
-                                    className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-black/10 bg-white px-3 py-2 text-xs font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 active:scale-95"
+                                    className="inline-flex h-9 shrink-0 items-center justify-center rounded-xl bg-primary-dark px-3 text-xs font-semibold text-white active:scale-[0.98]"
                                 >
-                                    All Tasks
-                                    <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+                                    My Tasks
                                 </Link>
                             </div>
+                        </div>
 
-                            <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 scrollbar-hide sm:mx-0 sm:px-0 md:grid md:grid-cols-4 md:pb-0">
-                                {healthMetrics.map((metric) => (
-                                    <div key={metric.id} className="w-36 shrink-0 rounded-[16px] border border-black/5 bg-slate-50 p-3 md:w-auto md:p-4">
-                                        <p className="text-xs font-medium text-slate-500">{metric.label}</p>
-                                        <div className={`mt-1.5 text-2xl font-semibold tracking-tight md:text-[28px] ${getMetricToneClasses(metric.tone)}`}>
-                                            {numberFormatter.format(metric.value)}
-                                            <span className="text-sm md:text-lg font-medium text-slate-400 ml-0.5">{metric.suffix || ""}</span>
-                                        </div>
-                                        <p className="mt-1 truncate text-[11px] text-slate-400 md:text-xs">{metric.context}</p>
+                        {startHereItem && (
+                            <Link
+                                href={startHereItem.href}
+                                className={`relative block overflow-hidden rounded-2xl border p-4 active:scale-[0.99] ${getSeverityClasses(startHereItem.severity).command}`}
+                            >
+                                <div className="absolute inset-y-0 left-0 w-1.5 bg-white/55" aria-hidden="true" />
+                                <div className="pl-1">
+                                    <span className="inline-flex items-center gap-1.5 rounded-md border border-white/15 bg-white/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest text-white">
+                                        <AlertTriangle className="h-3.5 w-3.5" aria-hidden="true" />
+                                        Start Here
+                                    </span>
+                                    <h2 className="mt-2 line-clamp-2 text-[17px] font-bold tracking-tight text-white">
+                                        {startHereItem.title}
+                                    </h2>
+                                    <div className="mt-3 flex items-center justify-between gap-3">
+                                        <p className={`line-clamp-1 text-[13px] ${getSeverityClasses(startHereItem.severity).commandMuted}`}>
+                                            {startHereItem.reason}
+                                        </p>
+                                        <ArrowRight className="h-5 w-5 shrink-0 text-white" aria-hidden="true" />
                                     </div>
-                                ))}
+                                </div>
+                            </Link>
+                        )}
+                    </section>
+
+                    <section className="hidden overflow-hidden rounded-[18px] border border-slate-300 bg-[linear-gradient(180deg,#ffffff_0%,#f8fafc_100%)] shadow-[0_18px_44px_rgba(15,23,42,0.08)] sm:block">
+                        <div className="border-b border-slate-200 bg-white/85 px-4 py-3 sm:px-5">
+                            <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                                <div className="min-w-0">
+                                    <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">
+                                        Command Center
+                                    </p>
+                                    <h1 className="mt-1 truncate text-2xl font-semibold tracking-tight text-slate-950 md:text-3xl">
+                                        {dashboardOverview?.workspace.teamName || currentTeam?.name || "Workspace"}
+                                    </h1>
+                                </div>
+                                <Link
+                                    href="/my-tasks"
+                                    className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-700 transition hover:border-slate-400 hover:bg-slate-50 active:scale-[0.98] sm:w-auto"
+                                >
+                                    All Tasks
+                                    <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                                </Link>
                             </div>
-                        </section>
-                    )}
+                        </div>
+
+                        <div className="grid gap-0 xl:grid-cols-[minmax(0,1fr)_360px]">
+                            <div className="border-b border-slate-200 p-4 sm:p-5 xl:border-b-0 xl:border-r">
+                                {startHereItem ? (
+                                    <DashboardPriorityActionLink item={startHereItem} label="Start Here" />
+                                ) : (
+                                    <div className="rounded-2xl border border-slate-200 bg-white p-5">
+                                        <h2 className="text-lg font-semibold tracking-tight text-slate-950">
+                                            No urgent interventions right now
+                                        </h2>
+                                        <p className="mt-1 text-sm text-slate-500">
+                                            Your queue looks clear. Use this moment to resume a project or review assigned tasks.
+                                        </p>
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="grid grid-cols-2 divide-x divide-y divide-slate-200 sm:grid-cols-4 xl:grid-cols-2">
+                                {bucketOrder.map((bucket) => {
+                                    const meta = bucketMeta[bucket];
+                                    const count = actionBuckets?.[bucket]?.length || 0;
+                                    const tone = getBucketTone(bucket, count);
+                                    const styles = getSeverityClasses(tone);
+
+                                    return (
+                                        <div key={bucket} className="min-h-[126px] bg-white/65 p-4">
+                                            <div className="flex items-center justify-between gap-3">
+                                                <meta.icon className={`h-4 w-4 ${styles.accent}`} aria-hidden="true" />
+                                                <span className={`h-2 w-2 rounded-full ${styles.rail}`} aria-hidden="true" />
+                                            </div>
+                                            <div className={`mt-4 text-3xl font-semibold tracking-tight ${getMetricToneClasses(tone)}`}>
+                                                {count}
+                                            </div>
+                                            <p className="mt-1 text-[12px] font-semibold text-slate-700">{meta.label}</p>
+                                            <p className="mt-0.5 line-clamp-1 text-[11px] text-slate-400">{meta.summary}</p>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
+                        {healthMetrics.length > 0 && (
+                            <div className="border-t border-slate-200 bg-primary-dark px-4 py-3 sm:px-5">
+                                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                                    {healthMetrics.map((metric) => (
+                                        <div key={metric.id} className="min-w-0 border-l border-white/10 pl-3">
+                                            <p className="truncate text-[11px] font-bold uppercase tracking-[0.16em] text-slate-400">{metric.label}</p>
+                                            <div className={`mt-1 text-xl font-semibold tracking-tight ${metric.tone === "critical" ? "text-rose-300" : metric.tone === "warning" ? "text-amber-300" : metric.tone === "stable" ? "text-emerald-300" : "text-white"}`}>
+                                                {numberFormatter.format(metric.value)}
+                                                <span className="ml-0.5 text-sm font-medium text-slate-400">{metric.suffix || ""}</span>
+                                            </div>
+                                            <p className="mt-1 truncate text-xs text-slate-400">{metric.context}</p>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                    </section>
 
                     {projects.length > 0 ? (
                         <>
-                            <section className="rounded-[24px] border border-black/5 bg-white p-4 shadow-sm md:p-5">
-                                <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-                                    <div>
-                                        <h2 className="text-lg font-semibold tracking-tight text-slate-900 md:text-xl">
-                                            Intervention Queue
-                                        </h2>
-                                        <p className="mt-1 text-sm text-slate-500">
-                                            Start at the top, clear the issue, then move down.
-                                        </p>
-                                    </div>
-                                </div>
-
-                                <div className="mb-5 grid grid-cols-2 gap-2 lg:grid-cols-4">
-                                    {bucketOrder.map((bucket) => {
-                                        const meta = bucketMeta[bucket];
-                                        const count = actionBuckets?.[bucket]?.length || 0;
-                                        const isCritical = bucket === "needs_attention" && count > 0;
-                                        const isWarning = bucket === "due_soon" && count > 0;
-
-                                        return (
-                                            <div
-                                                key={bucket}
-                                                className={`flex flex-col justify-between rounded-[16px] border p-3 transition-colors ${
-                                                    isCritical
-                                                        ? "border-rose-500/30 bg-rose-50/50 shadow-sm shadow-rose-100"
-                                                        : isWarning
-                                                        ? "border-amber-500/30 bg-amber-50/50 shadow-sm shadow-amber-100"
-                                                        : "border-black/5 bg-slate-50/50"
-                                                }`}
+                            <div className="space-y-4 sm:hidden">
+                                <section className="rounded-2xl border border-slate-200 bg-white">
+                                    <div className="flex items-center justify-between gap-3 border-b border-slate-200 px-4 py-3">
+                                        <div className="min-w-0">
+                                            <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-slate-400">
+                                                Resume Work
+                                            </p>
+                                            <h2 className="mt-0.5 truncate text-lg font-semibold tracking-tight text-slate-950">
+                                                Open a project
+                                            </h2>
+                                        </div>
+                                        {currentTeam && (
+                                            <button
+                                                type="button"
+                                                onClick={() => setIsProjectModalOpen(true)}
+                                                className="inline-flex h-9 shrink-0 items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 active:scale-[0.98]"
                                             >
-                                                <div className="flex items-center gap-1.5 text-[13px] font-medium">
-                                                    <meta.icon className={`h-3.5 w-3.5 ${isCritical ? "text-rose-600" : isWarning ? "text-amber-600" : "text-slate-400"}`} aria-hidden="true" />
-                                                    <span className={isCritical ? "text-rose-900 font-bold" : isWarning ? "text-amber-900 font-bold" : "text-slate-600"}>{meta.label}</span>
-                                                </div>
-                                                <div className={`mt-2 text-2xl font-semibold tracking-tight md:text-3xl ${isCritical ? "text-rose-600" : isWarning ? "text-amber-600" : "text-slate-900"}`}>
-                                                    {count}
-                                                </div>
+                                                <Plus className="h-3.5 w-3.5" aria-hidden="true" />
+                                                New
+                                            </button>
+                                        )}
+                                    </div>
+
+                                    <div className="grid gap-2.5 p-3">
+                                        {projects.map((project) => (
+                                            <MobileProjectResumeLink key={project.id} project={project} />
+                                        ))}
+                                    </div>
+                                </section>
+
+                                <section className="rounded-2xl border border-slate-200 bg-white">
+                                    <div className="flex items-center justify-between gap-3 border-b border-slate-200 px-4 py-3">
+                                        <div>
+                                            <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-slate-400">
+                                                Urgent Tasks
+                                            </p>
+                                            <h2 className="mt-0.5 text-lg font-semibold tracking-tight text-slate-950">
+                                                Quick check
+                                            </h2>
+                                        </div>
+                                        <Link
+                                            href="/my-tasks"
+                                            className="text-xs font-semibold text-slate-500 active:text-slate-900"
+                                        >
+                                            View all
+                                        </Link>
+                                    </div>
+
+                                    <div className="grid gap-2.5 p-3">
+                                        {mobileUrgentItems.length > 0 ? (
+                                            mobileUrgentItems.map((item) => (
+                                                <MobileUrgentActionLink key={item.id} item={item} />
+                                            ))
+                                        ) : (
+                                            <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-5 text-center">
+                                                <CheckCircle2 className="mx-auto h-6 w-6 text-emerald-500" aria-hidden="true" />
+                                                <h3 className="mt-2 text-sm font-semibold text-slate-950">Your queue is clear</h3>
+                                                <p className="mt-1 text-xs leading-5 text-slate-500">
+                                                    No urgent task needs attention right now.
+                                                </p>
                                             </div>
-                                        );
-                                    })}
+                                        )}
+                                    </div>
+                                </section>
+                            </div>
+
+                            <div className="hidden space-y-5 sm:block">
+                            <section className="rounded-[18px] border border-slate-300 bg-white">
+                                <div className="flex flex-col gap-2 border-b border-slate-200 px-4 py-4 sm:flex-row sm:items-end sm:justify-between sm:px-5">
+                                    <div>
+                                        <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">
+                                            Intervention Queue
+                                        </p>
+                                        <h2 className="mt-1 text-xl font-semibold tracking-tight text-slate-950">
+                                            Start at the top, clear the issue, then move down.
+                                        </h2>
+                                    </div>
                                 </div>
 
-                                {startHereItem && (
-                                    <div className="mb-5">
-                                        <DashboardPriorityActionLink item={startHereItem} label="START HERE" />
-                                    </div>
-                                )}
+                                <div className="p-4 sm:p-5">
+                                    {!hasAnyActions ? (
+                                        <EmptyState
+                                            className="rounded-2xl border-slate-200 bg-slate-50 shadow-none"
+                                            icon={<CheckCircle2 className="h-6 w-6 text-emerald-500" />}
+                                            title="Your queue is clear"
+                                            description="There's nothing competing for your attention right now. You can safely explore supporting work below."
+                                        />
+                                    ) : (
+                                        <div className="space-y-5">
+                                            {bucketOrder.map((bucket) => {
+                                                const items = (actionBuckets?.[bucket] || []).filter((item) => item.href !== recommendedAction?.href || item.title !== recommendedAction?.title);
+                                                if (items.length === 0) return null;
+                                                const meta = bucketMeta[bucket];
 
-                                {!hasAnyActions ? (
-                                    <EmptyState
-                                        icon={<CheckCircle2 className="h-6 w-6 text-emerald-500" />}
-                                        title="Your queue is clear"
-                                        description="There's nothing competing for your attention right now. You can safely explore supporting work below."
-                                    />
-                                ) : (
-                                    <div className="space-y-6 md:space-y-8">
-                                        {bucketOrder.map((bucket) => {
-                                            const items = (actionBuckets?.[bucket] || []).filter((item) => item.href !== recommendedAction?.href || item.title !== recommendedAction?.title);
-                                            if (items.length === 0) return null;
-
-                                            return (
-                                                <section key={bucket}>
-                                                    <div className="flex items-center gap-3 mb-3 md:mb-4">
-                                                        <h3 className="text-xs md:text-sm font-semibold uppercase tracking-widest text-slate-400">{bucketMeta[bucket].label}</h3>
-                                                    </div>
-                                                    <div className="grid gap-3">
-                                                        {items.map((item) => (
-                                                            <DashboardActionLink key={item.id} item={item} />
-                                                        ))}
-                                                    </div>
-                                                </section>
-                                            );
-                                        })}
-                                    </div>
-                                )}
+                                                return (
+                                                    <section key={bucket}>
+                                                        <div className="mb-2 flex items-center justify-between gap-3">
+                                                            <div className="flex items-center gap-2">
+                                                                <meta.icon className="h-4 w-4 text-slate-400" aria-hidden="true" />
+                                                                <h3 className="text-[12px] font-bold uppercase tracking-[0.16em] text-slate-500">{meta.label}</h3>
+                                                            </div>
+                                                            <span className="text-xs font-semibold text-slate-400">{items.length}</span>
+                                                        </div>
+                                                        <div className="grid gap-2">
+                                                            {items.map((item) => (
+                                                                <DashboardActionLink key={item.id} item={item} />
+                                                            ))}
+                                                        </div>
+                                                    </section>
+                                                );
+                                            })}
+                                        </div>
+                                    )}
+                                </div>
                             </section>
 
-                            <section className="rounded-[32px] border border-black/5 bg-white p-6 md:p-8 shadow-sm">
-                                <div className="mb-6 md:mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+                            <section className="rounded-[18px] border border-slate-300 bg-white">
+                                <div className="flex flex-col gap-3 border-b border-slate-200 px-4 py-4 sm:flex-row sm:items-end sm:justify-between sm:px-5">
                                     <div>
-                                        <h2 className="text-xl md:text-2xl font-semibold tracking-tight text-slate-900">Resume Work</h2>
-                                        <p className="mt-1 text-sm text-slate-500">
-                                            Safe re-entry points into your projects.
+                                        <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">
+                                            Resume Work
                                         </p>
+                                        <h2 className="mt-1 text-xl font-semibold tracking-tight text-slate-950">
+                                            Safe re-entry points into your projects.
+                                        </h2>
                                     </div>
 
                                     {currentTeam && (
                                         <button
                                             type="button"
                                             onClick={() => setIsProjectModalOpen(true)}
-                                            className="inline-flex items-center justify-center gap-2 rounded-full border border-black/10 bg-white px-4 py-2.5 md:py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50 active:scale-95 shadow-sm w-full sm:w-auto"
+                                            className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-700 transition hover:border-slate-400 hover:bg-slate-50 active:scale-[0.98] sm:w-auto"
                                         >
                                             <Plus className="h-4 w-4" aria-hidden="true" />
                                             New
@@ -429,50 +700,18 @@ export default function DashboardPage() {
                                     )}
                                 </div>
 
-                                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                                <div className="grid gap-3 p-4 sm:p-5 md:grid-cols-2 2xl:grid-cols-3">
                                     {projects.map((project) => (
-                                        <Link
-                                            key={project.id}
-                                            href={project.href}
-                                            className="group rounded-[24px] border border-black/5 bg-slate-50/50 p-5 md:p-6 transition-all hover:bg-white hover:shadow-md hover:border-black/5 hover:-translate-y-1 block"
-                                        >
-                                            <div className="flex items-start justify-between gap-3">
-                                                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white shadow-sm border border-black/5 text-sm font-semibold text-slate-900 group-hover:bg-slate-900 group-hover:text-white transition-colors">
-                                                    {project.key.charAt(0)}
-                                                </div>
-                                                <span className="rounded-lg bg-white border border-black/5 shadow-sm px-2.5 py-1 text-xs font-mono text-slate-500">
-                                                    {project.key}
-                                                </span>
-                                            </div>
-
-                                            <h3 className="mt-4 text-base font-medium text-slate-900">
-                                                {project.name}
-                                            </h3>
-                                            <p className="mt-1 text-sm text-slate-500 line-clamp-2 min-h-[40px]">{project.note}</p>
-
-                                            <div className="mt-6 flex items-center justify-between">
-                                                <div>
-                                                    <p className="text-[11px] font-medium text-slate-400">Open</p>
-                                                    <div className="mt-0.5 text-lg font-semibold text-slate-900">
-                                                        {numberFormatter.format(project.activeTaskCount)}
-                                                    </div>
-                                                </div>
-                                                <div>
-                                                    <p className="text-[11px] font-medium text-slate-400 text-right">Done</p>
-                                                    <div className="mt-0.5 text-lg font-semibold text-slate-900 text-right">
-                                                        {numberFormatter.format(project.completionRate)}%
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </Link>
+                                        <ProjectResumeLink key={project.id} project={project} />
                                     ))}
                                 </div>
                             </section>
+                            </div>
                         </>
                     ) : (
                         <EmptyState
                             size="hero"
-                            className="shadow-sm animate-in fade-in duration-500"
+                            className="animate-in rounded-[18px] border-slate-300 bg-white shadow-none fade-in duration-500"
                             icon={<FolderKanban className="h-10 w-10 text-slate-400" />}
                             title="No projects yet"
                             description="You don't have any projects in this workspace yet. Create your first project to start organizing work, collaborating with your team, and tracking delivery."
@@ -480,7 +719,7 @@ export default function DashboardPage() {
                                 <button
                                     type="button"
                                     onClick={() => setIsProjectModalOpen(true)}
-                                    className="inline-flex items-center justify-center gap-2 rounded-full bg-slate-900 px-8 py-4 text-[16px] font-semibold text-white transition hover:bg-slate-800 hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-black/10"
+                                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary-dark px-6 py-3 text-[15px] font-semibold text-white transition hover:bg-primary-dark-hover active:scale-[0.98]"
                                 >
                                     <Plus className="h-5 w-5" aria-hidden="true" />
                                     Create your first project
@@ -490,15 +729,14 @@ export default function DashboardPage() {
                     )}
                 </div>
 
-                {/* Right Aside */}
-                <aside className="space-y-6">
-                    <section className="rounded-[32px] border border-black/5 bg-white p-6 shadow-sm">
-                        <div className="mb-5 flex items-center justify-between">
-                            <h2 className="text-base font-semibold tracking-tight text-slate-900">Workspaces</h2>
+                <aside className="hidden space-y-4 sm:block">
+                    <section className="rounded-[18px] border border-slate-300 bg-white">
+                        <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3">
+                            <h2 className="text-sm font-semibold tracking-tight text-slate-950">Workspaces</h2>
                             <Users className="h-4 w-4 text-slate-400" aria-hidden="true" />
                         </div>
 
-                        <div className="space-y-2">
+                        <div className="space-y-1 p-2">
                             {teams.map((team, index) => (
                                 <button
                                     key={team.id}
@@ -507,16 +745,16 @@ export default function DashboardPage() {
                                         setTeam(team);
                                         router.push("/dashboard");
                                     }}
-                                    className={`flex w-full items-center gap-3 rounded-[20px] p-2.5 transition active:scale-[0.98] ${
+                                    className={`flex w-full items-center gap-3 rounded-xl p-2.5 transition active:scale-[0.98] ${
                                         currentTeam?.id === team.id
-                                            ? "bg-slate-900 text-white shadow-md"
+                                            ? "bg-primary-dark text-white shadow-[0_16px_32px_-24px_rgba(51,35,127,0.65)]"
                                             : "bg-transparent text-slate-700 hover:bg-slate-50"
                                     }`}
                                 >
-                                    <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl text-sm font-semibold ${
+                                    <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-sm font-semibold ${
                                         currentTeam?.id === team.id
-                                            ? "bg-white/20 text-white"
-                                            : "bg-white shadow-sm border border-black/5 text-slate-900"
+                                            ? "bg-white/15 text-white"
+                                            : "border border-slate-200 bg-white text-slate-900"
                                     }`}>
                                         {team.name.charAt(0)}
                                     </div>
@@ -530,14 +768,14 @@ export default function DashboardPage() {
                                         </div>
                                     </div>
 
-                                    {currentTeam?.id === team.id && <CheckCircle2 className="h-4 w-4 shrink-0 text-white mr-2" aria-hidden="true" />}
+                                    {currentTeam?.id === team.id && <CheckCircle2 className="mr-1 h-4 w-4 shrink-0 text-white" aria-hidden="true" />}
                                 </button>
                             ))}
                         </div>
                     </section>
 
                     {showUpgradeModule && (
-                        <section className="rounded-[32px] border border-black/5 bg-slate-50 p-6">
+                        <section className="rounded-[18px] border border-slate-300 bg-slate-50 p-4">
                             <h3 className="text-sm font-semibold tracking-tight text-slate-900">
                                 {dashboardOverview?.utility.planName || "Current plan"} Capacity
                             </h3>
@@ -546,7 +784,7 @@ export default function DashboardPage() {
                             </p>
                             <Link
                                 href={dashboardOverview?.utility.upgradeHref || "#"}
-                                className="mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-slate-900 hover:text-slate-600 transition"
+                                className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-slate-900 transition hover:text-slate-600"
                             >
                                 Review plan options
                                 <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />

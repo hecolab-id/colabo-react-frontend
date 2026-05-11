@@ -56,7 +56,7 @@ export default function CreateTeamPage() {
             <section className="overflow-hidden rounded-[2rem] border border-white/75 bg-white/78 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur-2xl">
                 <div className="border-b border-black/5 px-5 py-5 sm:px-7">
                     <div className="flex items-start gap-3">
-                        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[1.15rem] border border-black/5 bg-slate-950 text-white shadow-[0_14px_30px_rgba(15,23,42,0.16)]">
+                        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[1.15rem] border border-black/5 bg-primary-dark text-white shadow-[0_14px_30px_rgba(51,35,127,0.22)]">
                             <UsersRound className="h-5 w-5" aria-hidden="true" />
                         </div>
                         <div className="min-w-0">

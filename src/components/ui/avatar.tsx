@@ -14,7 +14,7 @@ const avatarVariants = cva(
                 xl: "h-16 w-16 text-lg",
             },
             tone: {
-                ink: "bg-slate-900 text-white",
+                ink: "bg-primary-dark text-white",
                 tint: "bg-[var(--accent)] text-[var(--primary)]",
             },
             ringed: {

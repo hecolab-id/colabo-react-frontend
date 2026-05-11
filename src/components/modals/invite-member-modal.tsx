@@ -145,7 +145,7 @@ export function InviteMemberModal({ isOpen, onClose, teamId, currentCount, maxCo
                                     <button
                                         onClick={handleGenerate}
                                         disabled={createInviteMutation.isPending || isLimitReached || !inviteEmail.trim()}
-                                        className="w-full rounded-full bg-slate-900 px-6 py-3.5 text-[14px] font-semibold text-white shadow-sm transition-all hover:bg-slate-800 hover:scale-[1.02] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
+                                        className="w-full rounded-full bg-primary-dark px-6 py-3.5 text-[14px] font-semibold text-white shadow-sm transition-all hover:bg-primary-dark-hover hover:scale-[1.02] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
                                     >
                                         {isLimitReached ? "Limit Reached" : (createInviteMutation.isPending ? "Sending…" : "Send Invitation")}
                                     </button>

@@ -19,12 +19,12 @@ export function ProjectCard({ project, teamSlug, canDelete = false, onDelete }: 
         <article className="group relative min-h-[220px] overflow-hidden rounded-[24px] border border-black/5 bg-slate-50/50 p-5 shadow-sm transition-[background-color,border-color,box-shadow,transform] hover:-translate-y-1 hover:border-black/5 hover:bg-white hover:shadow-md md:p-6">
             <Link
                 href={`/${teamSlug}/${project.slug}`}
-                className="absolute inset-0 z-10 rounded-[24px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 focus-visible:ring-offset-2"
+                className="absolute inset-0 z-10 rounded-[24px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                 aria-label={`Open ${project.name}`}
             />
 
             <div className="relative mb-5 flex items-start justify-between gap-3">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-black/5 bg-white text-sm font-semibold text-slate-900 shadow-sm transition-colors group-hover:bg-slate-900 group-hover:text-white">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-black/5 bg-white text-sm font-semibold text-slate-900 shadow-sm transition-colors group-hover:bg-primary-dark group-hover:text-white">
                     {project.key.charAt(0)}
                 </div>
                 <div className="relative z-20 flex items-center gap-2">
@@ -66,7 +66,7 @@ export function ProjectCard({ project, teamSlug, canDelete = false, onDelete }: 
 
             <div className="mb-5 h-1.5 overflow-hidden rounded-full bg-slate-200/80" aria-hidden="true">
                 <div
-                    className="h-full rounded-full bg-slate-900 transition-[width]"
+                    className="h-full rounded-full bg-primary-dark transition-[width]"
                     style={{ width: `${completionRate}%` }}
                 />
             </div>

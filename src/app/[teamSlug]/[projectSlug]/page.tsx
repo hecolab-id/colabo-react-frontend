@@ -347,7 +347,6 @@ function ProjectSlugPageContent({ params }: { params: Promise<{ teamSlug: string
                         viewMode={viewMode}
                         onViewChange={setViewMode}
                         onOpenControls={() => setIsMobileControlsOpen((prev) => !prev)}
-                        onAddTask={() => openCreateTask()}
                         isControlsOpen={isMobileControlsOpen}
                         hasActiveControls={hasVisibleFilters || sortOption !== "default"}
                         controlsCount={activeFilterCount + (sortOption === "default" ? 0 : 1)}
@@ -358,7 +357,7 @@ function ProjectSlugPageContent({ params }: { params: Promise<{ teamSlug: string
                             isOpen={isMobileControlsOpen}
                             title="Controls"
                             description="Manage sorting, filters, and project actions."
-                            className="fixed inset-x-4 bottom-[calc(env(safe-area-inset-bottom)+154px)] z-[55]"
+                            className="fixed inset-x-4 bottom-[calc(env(safe-area-inset-bottom)+184px)] z-[55]"
                         >
                             <ProjectControlsContent
                                 columns={columns}

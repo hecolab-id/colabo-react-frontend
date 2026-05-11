@@ -70,7 +70,7 @@ export function Header({
                             <button
                                 type="button"
                                 onClick={onOpenProjectMembers}
-                                className="inline-flex h-9 items-center gap-2 rounded-full border border-black/5 bg-white/70 px-3 text-[13px] font-semibold text-slate-600 shadow-sm transition-all hover:bg-white hover:text-slate-950 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900"
+                                className="inline-flex h-9 items-center gap-2 rounded-full border border-black/5 bg-white/70 px-3 text-[13px] font-semibold text-slate-600 shadow-sm transition-all hover:bg-white hover:text-slate-950 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
                             >
                                 <Users className="h-4 w-4" aria-hidden="true" />
                                 Members
@@ -97,7 +97,7 @@ export function Header({
 
                 <button
                     onClick={() => setIsTeamModalOpen(true)}
-                    className="hidden h-10 w-10 items-center justify-center rounded-full border border-transparent bg-white/60 text-slate-400 shadow-sm transition-all hover:border-white hover:bg-white hover:text-slate-900 hover:scale-105 active:scale-95 md:inline-flex focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900"
+                    className="hidden h-10 w-10 items-center justify-center rounded-full border border-transparent bg-white/60 text-slate-400 shadow-sm transition-all hover:border-white hover:bg-white hover:text-primary hover:scale-105 active:scale-95 md:inline-flex focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
                     title="Team Members"
                     aria-label="Open team members"
                 >

@@ -147,7 +147,7 @@ export function CreateProjectModal({ isOpen, onClose, onSubmit, currentCount, ma
                                 event.preventDefault();
                                 setIsPrivate((current) => !current);
                             }}
-                            className="w-full cursor-pointer rounded-[1.5rem] border border-black/5 bg-white/80 p-4 text-left shadow-[0_16px_36px_-30px_rgba(15,23,42,0.4)] transition-[border-color,background-color,box-shadow] hover:border-slate-200 hover:bg-white aria-disabled:cursor-not-allowed aria-disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900/15"
+                            className="w-full cursor-pointer rounded-[1.5rem] border border-black/5 bg-white/80 p-4 text-left shadow-[0_16px_36px_-30px_rgba(15,23,42,0.4)] transition-[border-color,background-color,box-shadow] hover:border-slate-200 hover:bg-white aria-disabled:cursor-not-allowed aria-disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20"
                         >
                             <div className="flex items-center justify-between gap-4">
                                 <div>

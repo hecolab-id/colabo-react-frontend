@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect } from "react";
 import Link from "@/components/app-link";
 import { usePathname, useRouter } from "@/lib/navigation";
 import {
@@ -9,14 +9,12 @@ import {
     CheckCircle2,
     FolderKanban,
     LayoutDashboard,
-    Menu,
     Plus,
     Settings,
     Users,
     X,
 } from "lucide-react";
 import { isPaidSubscription } from "@/lib/billing";
-import { useProjects } from "@/lib/hooks/use-project";
 import { useStore } from "@/lib/store";
 import { Team } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -25,7 +23,6 @@ import { SidebarUsageIndicator } from "./sidebar-usage";
 interface MobileNavProps {
     isOpen: boolean;
     onClose: () => void;
-    onOpenProjectModal?: () => void;
 }
 
 interface MobileNavLinkItem {
@@ -62,7 +59,7 @@ function TeamPicker({
                     <p className="text-[12px] font-medium uppercase tracking-wide text-slate-500">Workspace</p>
                     <h2 className="mt-1 text-[17px] font-semibold text-slate-900 tracking-tight">Active Context</h2>
                 </div>
-                <div className="flex h-11 w-11 items-center justify-center rounded-[18px] bg-slate-900 text-[15px] font-semibold text-white shadow-sm">
+                <div className="flex h-11 w-11 items-center justify-center rounded-[18px] bg-primary-dark text-[15px] font-semibold text-white shadow-sm">
                     {currentTeam.name.charAt(0)}
                 </div>
             </div>
@@ -80,7 +77,7 @@ function TeamPicker({
                                 : "bg-transparent text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium"
                         )}
                     >
-                        <div className={cn("flex h-9 w-9 items-center justify-center rounded-[14px] text-[13px] font-bold shadow-sm", currentTeam.id === team.id ? "bg-slate-900 text-white" : "bg-slate-200 text-slate-600")}>
+                        <div className={cn("flex h-9 w-9 items-center justify-center rounded-[14px] text-[13px] font-bold shadow-sm", currentTeam.id === team.id ? "bg-primary-dark text-white" : "bg-slate-200 text-slate-600")}>
                             {team.name.charAt(0)}
                         </div>
                         <div className="min-w-0 flex-1">
@@ -115,7 +112,7 @@ function MobileSheetNavLink({
             className={cn(
                 "flex touch-manipulation items-center gap-3.5 rounded-[20px] px-4 py-3.5 text-[15px] transition-all active:scale-[0.98] outline-none",
                 isActive
-                    ? "bg-slate-900 text-white font-semibold shadow-[0_8px_20px_-8px_rgba(0,0,0,0.3)]"
+                    ? "bg-primary-dark text-white font-semibold shadow-[0_8px_20px_-8px_rgba(51,35,127,0.45)]"
                     : "bg-transparent text-slate-600 font-medium hover:bg-slate-50 hover:text-slate-900"
             )}
         >
@@ -129,71 +126,103 @@ export function MobileBottomNav({
     isOpen,
     onOpen,
     onClose,
+    onOpenCreateTask,
 }: {
     isOpen: boolean;
     onOpen: () => void;
     onClose: () => void;
+    onOpenCreateTask?: () => void;
 }) {
     const pathname = usePathname();
     const currentTeam = useStore((state) => state.currentTeam);
 
-    const items = [
-        { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard, active: pathname === "/dashboard" },
-        { name: "My Tasks", href: "/my-tasks", icon: CheckCircle2, active: pathname === "/my-tasks" },
-        {
-            name: "Projects",
-            href: currentTeam ? `/${currentTeam.slug}` : "",
-            icon: FolderKanban,
-            active: currentTeam ? pathname === `/${currentTeam.slug}` || pathname.startsWith(`/${currentTeam.slug}/`) : false,
-            disabled: !currentTeam,
-        },
-    ];
+    const projectsHref = currentTeam ? `/${currentTeam.slug}` : "";
+    const isProjectsActive = currentTeam ? pathname === `/${currentTeam.slug}` || pathname.startsWith(`/${currentTeam.slug}/`) : false;
 
     return (
         <nav
             aria-label="Mobile navigation"
-            className="fixed inset-x-0 bottom-0 z-40 border-t border-black/5 bg-white/95 px-2 pb-[calc(env(safe-area-inset-bottom)+0.25rem)] pt-2 backdrop-blur-xl md:hidden"
+            className="fixed inset-x-0 bottom-0 z-40 border-t border-black/5 bg-white/95 px-2 pb-[calc(env(safe-area-inset-bottom)+0.35rem)] pt-2 backdrop-blur-xl md:hidden"
         >
-            <div className="mx-auto grid max-w-xl grid-cols-4 gap-1">
-                {items.map((item) =>
-                    item.disabled ? (
-                        <div
-                            key={item.name}
-                            className="flex min-h-[48px] flex-col items-center justify-center gap-1 rounded-xl px-2 text-[10px] font-medium text-slate-300 pointer-events-none"
-                        >
-                            <item.icon className="h-[22px] w-[22px]" aria-hidden="true" />
-                            <span>{item.name}</span>
-                        </div>
-                    ) : (
-                        <Link
-                            key={item.name}
-                            href={item.href}
-                            className={cn(
-                                "flex min-h-[48px] touch-manipulation flex-col items-center justify-center gap-1 px-2 text-[10px] transition-all active:scale-95 outline-none",
-                                item.active
-                                    ? "text-slate-900 font-semibold"
-                                    : "text-slate-400 font-medium hover:text-slate-600"
-                            )}
-                        >
-                            <item.icon className={cn("h-[22px] w-[22px]", item.active && "drop-shadow-sm")} aria-hidden="true" />
-                            <span>{item.name}</span>
-                        </Link>
-                    )
+            <div className="mx-auto grid max-w-xl grid-cols-5 items-end gap-1">
+                <Link
+                    href="/dashboard"
+                    className={cn(
+                        "flex min-h-[50px] touch-manipulation flex-col items-center justify-center gap-1 rounded-xl px-1 text-[10px] transition-all active:scale-95 outline-none",
+                        pathname === "/dashboard"
+                            ? "text-slate-900 font-semibold"
+                            : "text-slate-400 font-medium hover:text-slate-600"
+                    )}
+                >
+                    <LayoutDashboard className={cn("h-[21px] w-[21px]", pathname === "/dashboard" && "drop-shadow-sm")} aria-hidden="true" />
+                    <span>Home</span>
+                </Link>
+
+                <Link
+                    href="/my-tasks"
+                    className={cn(
+                        "flex min-h-[50px] touch-manipulation flex-col items-center justify-center gap-1 rounded-xl px-1 text-[10px] transition-all active:scale-95 outline-none",
+                        pathname === "/my-tasks"
+                            ? "text-slate-900 font-semibold"
+                            : "text-slate-400 font-medium hover:text-slate-600"
+                    )}
+                >
+                    <CheckCircle2 className={cn("h-[21px] w-[21px]", pathname === "/my-tasks" && "drop-shadow-sm")} aria-hidden="true" />
+                    <span>Tasks</span>
+                </Link>
+
+                <button
+                    type="button"
+                    onClick={onOpenCreateTask}
+                    disabled={!currentTeam || !onOpenCreateTask}
+                    aria-label="Create task"
+                    className={cn(
+                        "relative -mt-5 flex min-h-[66px] touch-manipulation flex-col items-center justify-end gap-1 rounded-2xl px-1 pb-0.5 text-[10px] font-semibold outline-none transition-all active:scale-95",
+                        currentTeam && onOpenCreateTask ? "text-primary" : "pointer-events-none text-slate-300"
+                    )}
+                >
+                    <span className={cn(
+                        "grid h-14 w-14 place-items-center rounded-2xl text-white shadow-[0_18px_34px_rgba(109,93,252,0.28)] ring-4 ring-white",
+                        currentTeam && onOpenCreateTask ? "bg-primary" : "bg-slate-300"
+                    )}>
+                        <Plus className="h-7 w-7" aria-hidden="true" />
+                    </span>
+                    <span>Create</span>
+                </button>
+
+                {currentTeam ? (
+                    <Link
+                        href={projectsHref}
+                        className={cn(
+                            "flex min-h-[50px] touch-manipulation flex-col items-center justify-center gap-1 rounded-xl px-1 text-[10px] transition-all active:scale-95 outline-none",
+                            isProjectsActive
+                                ? "text-slate-900 font-semibold"
+                                : "text-slate-400 font-medium hover:text-slate-600"
+                        )}
+                    >
+                        <FolderKanban className={cn("h-[21px] w-[21px]", isProjectsActive && "drop-shadow-sm")} aria-hidden="true" />
+                        <span>Projects</span>
+                    </Link>
+                ) : (
+                    <div className="flex min-h-[50px] flex-col items-center justify-center gap-1 rounded-xl px-1 text-[10px] font-medium text-slate-300 pointer-events-none">
+                        <FolderKanban className="h-[21px] w-[21px]" aria-hidden="true" />
+                        <span>Projects</span>
+                    </div>
                 )}
 
                 <button
                     type="button"
                     onClick={isOpen ? onClose : onOpen}
-                    aria-label={isOpen ? "Close navigation menu" : "Open navigation menu"}
+                    aria-label={isOpen ? "Close workspace menu" : "Open workspace menu"}
                     className={cn(
-                        "flex min-h-[48px] touch-manipulation flex-col items-center justify-center gap-1 px-2 text-[10px] transition-all active:scale-95 outline-none",
+                        "flex min-h-[50px] touch-manipulation flex-col items-center justify-center gap-1 rounded-xl px-1 text-[10px] transition-all active:scale-95 outline-none",
                         isOpen
                             ? "text-slate-900 font-semibold"
                             : "text-slate-400 font-medium hover:text-slate-600"
                     )}
                 >
-                    <Menu className={cn("h-[22px] w-[22px]", isOpen && "drop-shadow-sm")} aria-hidden="true" />
-                    <span>More</span>
+                    <Users className={cn("h-[21px] w-[21px]", isOpen && "drop-shadow-sm")} aria-hidden="true" />
+                    <span>Workspace</span>
                 </button>
             </div>
         </nav>
@@ -203,7 +232,6 @@ export function MobileBottomNav({
 export function MobileNavSheet({
     isOpen,
     onClose,
-    onOpenProjectModal,
 }: MobileNavProps) {
     const pathname = usePathname();
     const router = useRouter();
@@ -211,7 +239,6 @@ export function MobileNavSheet({
     const currentTeam = useStore((state) => state.currentTeam);
     const currentUser = useStore((state) => state.user);
     const setTeam = useStore((state) => state.setTeam);
-    const { data: projects = [] } = useProjects(currentTeam?.slug || "");
 
     useEffect(() => {
         if (!isOpen) return;
@@ -232,23 +259,15 @@ export function MobileNavSheet({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [pathname]);
 
-    const personalNav: MobileNavLinkItem[] = [
-        { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-        { name: "My Tasks", href: "/my-tasks", icon: CheckCircle2 },
-    ];
-
     const isOwner = !!currentTeam && !!currentUser && currentTeam.owner_id === currentUser.id;
 
     const teamNav: MobileNavLinkItem[] = currentTeam
         ? [
-            { name: "Projects", href: `/${currentTeam.slug}`, icon: FolderKanban },
             { name: "Activity", href: `/${currentTeam.slug}/activity`, icon: Activity },
             { name: "Members", href: `/${currentTeam.slug}/members`, icon: Users },
             ...(isOwner ? [{ name: "Team Settings", href: `/${currentTeam.slug}/settings`, icon: Settings }] : []),
         ]
         : [];
-
-    const recentProjects = useMemo(() => projects.slice(0, 5), [projects]);
 
     const handleNavigate = () => {
         onClose();
@@ -274,115 +293,37 @@ export function MobileNavSheet({
             <section
                 aria-hidden={!isOpen}
                 className={cn(
-                    "fixed inset-x-0 bottom-0 z-50 max-h-[88dvh] overflow-hidden rounded-t-[32px] bg-white shadow-[0_-22px_60px_rgba(0,0,0,0.15)] transition-transform duration-300 md:hidden",
+                    "fixed inset-x-0 bottom-0 z-50 max-h-[78dvh] overflow-hidden rounded-t-[28px] bg-white shadow-[0_-22px_60px_rgba(0,0,0,0.15)] transition-transform duration-300 md:hidden",
                     isOpen ? "translate-y-0" : "translate-y-full"
                 )}
             >
-                <div className="flex items-center justify-between border-b border-black/5 px-6 py-5">
+                <div className="flex items-center justify-between border-b border-black/5 px-5 py-4">
                     <div>
-                        <h2 className="text-[19px] font-semibold text-slate-900 tracking-tight">Navigation</h2>
+                        <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400">Current Context</p>
+                        <h2 className="mt-0.5 text-[19px] font-semibold text-slate-900 tracking-tight">Workspace</h2>
                     </div>
                     <button
                         type="button"
                         onClick={onClose}
-                        aria-label="Close navigation menu"
+                        aria-label="Close workspace menu"
                         className="flex h-9 w-9 touch-manipulation items-center justify-center rounded-full bg-slate-100 text-slate-500 transition-all active:scale-90 outline-none"
                     >
                         <X className="h-[18px] w-[18px]" aria-hidden="true" />
                     </button>
                 </div>
 
-                <div className="max-h-[calc(88dvh-80px)] overflow-y-auto overflow-x-hidden px-4 py-5 [overscroll-behavior:contain]">
-                    <div className="space-y-6 pb-[calc(env(safe-area-inset-bottom)+1rem)]">
+                <div className="max-h-[calc(78dvh-74px)] overflow-y-auto overflow-x-hidden px-4 py-4 [overscroll-behavior:contain]">
+                    <div className="space-y-4 pb-[calc(env(safe-area-inset-bottom)+1rem)]">
                         <TeamPicker teams={teams} currentTeam={currentTeam} onSelect={handleSelectTeam} />
 
-                        <div className="space-y-3">
-                            <MobileSectionLabel>Personal</MobileSectionLabel>
-                            <div className="space-y-2">
-                                {personalNav.map((item) => (
-                                    <MobileSheetNavLink
-                                        key={item.name}
-                                        item={item}
-                                        isActive={pathname === item.href}
-                                        onNavigate={handleNavigate}
-                                    />
-                                ))}
-                            </div>
-                        </div>
-
                         {currentTeam && (
-                            <div className="space-y-3">
-                                <div className="rounded-[28px] border border-black/5 bg-slate-50 p-5">
-                                    <div className="mb-4 flex items-center justify-between gap-3">
-                                        <div>
-                                            <p className="text-[12px] font-medium uppercase tracking-wide text-slate-500">Recent Projects</p>
-                                        </div>
-
-                                        {onOpenProjectModal && (
-                                            <button
-                                                type="button"
-                                                onClick={() => {
-                                                    onClose();
-                                                    onOpenProjectModal();
-                                                }}
-                                                aria-label="Create a new project"
-                                                className="flex h-9 w-9 touch-manipulation items-center justify-center rounded-[14px] bg-white text-slate-900 shadow-sm border border-black/5 transition-all active:scale-95 outline-none"
-                                            >
-                                                <Plus className="h-[18px] w-[18px]" aria-hidden="true" />
-                                            </button>
-                                        )}
-                                    </div>
-
-                                    <div className="space-y-1.5">
-                                        {recentProjects.map((project) => {
-                                            const href = `/${currentTeam.slug}/${project.slug}`;
-                                            const isActive = pathname.startsWith(href);
-
-                                            return (
-                                                <Link
-                                                    key={project.id}
-                                                    href={href}
-                                                    onClick={handleNavigate}
-                                                    className={cn(
-                                                        "flex touch-manipulation items-center gap-3.5 rounded-[20px] px-4 py-3 text-[15px] transition-all active:scale-[0.98] outline-none",
-                                                        isActive
-                                                            ? "bg-white text-slate-900 font-semibold border border-black/5 shadow-sm"
-                                                            : "bg-transparent text-slate-600 font-medium hover:bg-slate-100 hover:text-slate-900"
-                                                    )}
-                                                >
-                                                    <FolderKanban className="h-[18px] w-[18px] shrink-0 opacity-70" aria-hidden="true" />
-                                                    <span className="min-w-0 flex-1 truncate">{project.name}</span>
-                                                </Link>
-                                            );
-                                        })}
-
-                                        {recentProjects.length === 0 && (
-                                            <div className="rounded-[20px] border border-dashed border-slate-300 bg-white/50 px-4 py-5 text-[14px] font-medium text-slate-500 text-center">
-                                                No active projects yet.
-                                            </div>
-                                        )}
-
-                                        {projects.length > 5 && (
-                                            <div className="pt-2">
-                                                <Link
-                                                    href={`/${currentTeam.slug}`}
-                                                    onClick={handleNavigate}
-                                                    className="flex w-full min-h-[44px] items-center justify-center rounded-[20px] text-[13px] font-semibold text-slate-500 bg-white border border-black/5 shadow-sm transition hover:text-slate-900 active:scale-95"
-                                                >
-                                                    Reveal all folders
-                                                </Link>
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-
-                                <MobileSectionLabel>Current Team</MobileSectionLabel>
+                            <div className="space-y-4">
+                                <div className="space-y-2">
+                                    <MobileSectionLabel>Workspace Links</MobileSectionLabel>
                                 <div className="space-y-2">
                                     {teamNav.map((item) => {
                                         const isActive =
-                                            item.name === "Projects"
-                                                ? pathname === `/${currentTeam.slug}` || pathname.startsWith(`/${currentTeam.slug}/`)
-                                                : pathname === item.href || pathname.startsWith(`${item.href}/`);
+                                            pathname === item.href || pathname.startsWith(`${item.href}/`);
 
                                         return (
                                             <MobileSheetNavLink
@@ -394,8 +335,9 @@ export function MobileNavSheet({
                                         );
                                     })}
                                 </div>
+                                </div>
 
-                                <div className="rounded-[28px] border border-black/5 bg-slate-50 p-5 mt-2">
+                                <div className="rounded-[24px] border border-black/5 bg-slate-50 p-4">
                                     <MobileSectionLabel>Utility</MobileSectionLabel>
                                     <div className="mt-3">
                                         {isOwner && !isPaidSubscription(currentTeam.subscription?.status) ? (

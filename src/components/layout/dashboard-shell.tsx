@@ -5,7 +5,7 @@ import { useParams, useRouter } from "@/lib/navigation";
 import { Sidebar } from "./sidebar";
 import { BrainSidebar } from "./brain-sidebar";
 import { Header } from "./header";
-import { Plus, Sparkles } from "lucide-react";
+import { Sparkles } from "lucide-react";
 import { MobileBottomNav, MobileNavSheet } from "./mobile-nav";
 import { useProject, useProjectBySlugs, useProjects } from "@/lib/hooks/use-project";
 import { AITaskGenerator } from "@/components/modals/ai-task-generator";
@@ -42,7 +42,6 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
     const teamSlug = params?.teamSlug as string | undefined;
     const projectSlug = params?.projectSlug as string | undefined;
     const legacyProjectId = params?.id as string | undefined;
-    const isProjectRoute = Boolean(projectSlug || legacyProjectId);
     const { data: projectBySlug, refetch: refetchProjectBySlug } = useProjectBySlugs(teamSlug || "", projectSlug || "");
     const { data: projectById, refetch: refetchProjectById } = useProject(legacyProjectId || "");
     const { data: teamProjects = [] } = useProjects(currentTeam?.slug || "");
@@ -182,35 +181,24 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
             <MobileNavSheet
                 isOpen={isMobileNavOpen}
                 onClose={() => setIsMobileNavOpen(false)}
-                onOpenProjectModal={() => setIsProjectModalOpen(true)}
             />
             <MobileBottomNav
                 isOpen={isMobileNavOpen}
                 onOpen={() => setIsMobileNavOpen(true)}
                 onClose={() => setIsMobileNavOpen(false)}
+                onOpenCreateTask={() => {
+                    setCreateTaskSuccessMessage(null);
+                    setIsCreateTaskModalOpen(true);
+                }}
             />
 
             {!isBrainOpen && (
                 <button
                     onClick={() => setIsBrainOpen(true)}
-                    className="fixed bottom-6 right-6 z-40 hidden rounded-full bg-slate-950 p-3 text-white shadow-[0_18px_36px_rgba(15,23,42,0.22)] transition-all hover:cursor-pointer hover:scale-110 active:scale-95 md:flex"
+                    className="fixed bottom-6 right-6 z-40 hidden rounded-full bg-primary-dark p-3 text-white shadow-[0_18px_36px_rgba(51,35,127,0.26)] transition-all hover:cursor-pointer hover:bg-primary-dark-hover hover:scale-110 active:scale-95 md:flex"
                     aria-label="Open Project Brain"
                 >
                     <Sparkles className="h-5 w-5" aria-hidden="true" />
-                </button>
-            )}
-
-            {currentTeam && !isProjectRoute && (
-                <button
-                    type="button"
-                    onClick={() => {
-                        setCreateTaskSuccessMessage(null);
-                        setIsCreateTaskModalOpen(true);
-                    }}
-                    className="fixed bottom-[86px] right-4 z-40 flex h-[52px] w-[52px] items-center justify-center rounded-full bg-primary text-primary-foreground shadow-[0_18px_36px_rgba(109,93,252,0.24)] transition-all hover:cursor-pointer hover:scale-105 active:scale-95 md:hidden"
-                    aria-label="Create task"
-                >
-                    <Plus className="h-6 w-6" aria-hidden="true" />
                 </button>
             )}
 

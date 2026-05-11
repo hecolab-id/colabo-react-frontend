@@ -144,7 +144,7 @@ export function MobilePremiumPrompt({ team }: { team: Team | null }) {
                                     <button
                                         type="button"
                                         onClick={openPlans}
-                                        className="inline-flex items-center justify-center gap-2 rounded-2xl bg-slate-950 px-4 py-3 text-sm font-medium text-white transition hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300"
+                                        className="inline-flex items-center justify-center gap-2 rounded-2xl bg-primary-dark px-4 py-3 text-sm font-medium text-white transition hover:bg-primary-dark-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
                                     >
                                         Explore plans
                                         <ArrowRight className="h-4 w-4" aria-hidden="true" />

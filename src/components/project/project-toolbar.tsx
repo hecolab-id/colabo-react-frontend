@@ -1,4 +1,5 @@
-import { CalendarDays, ChevronsUpDown, Columns, FolderCog, List, Plus, SlidersHorizontal, Trash2, Users } from "lucide-react";
+import { Listbox, ListboxButton, ListboxOption, ListboxOptions } from "@headlessui/react";
+import { CalendarDays, Check, ChevronsUpDown, Columns, FolderCog, List, SlidersHorizontal, Trash2, Users } from "lucide-react";
 import type { RefObject, ReactNode } from "react";
 import type { Column, Task } from "@/lib/types";
 import type { DueDateFilter, TaskSortOption } from "@/lib/task-ui";
@@ -72,7 +73,6 @@ export function ProjectMobileActionBar({
     viewMode,
     onViewChange,
     onOpenControls,
-    onAddTask,
     isControlsOpen,
     hasActiveControls,
     controlsCount,
@@ -80,7 +80,6 @@ export function ProjectMobileActionBar({
     viewMode: ProjectViewMode;
     onViewChange: (mode: ProjectViewMode) => void;
     onOpenControls: () => void;
-    onAddTask: () => void;
     isControlsOpen: boolean;
     hasActiveControls: boolean;
     controlsCount: number;
@@ -90,9 +89,10 @@ export function ProjectMobileActionBar({
         list: "List",
         calendar: "Calendar",
     };
+    const viewOptions: ProjectViewMode[] = ["board", "list", "calendar"];
 
     return (
-        <div className="fixed inset-x-4 bottom-[calc(env(safe-area-inset-bottom)+78px)] z-[55] mx-auto flex h-[64px] max-w-sm items-center gap-2 rounded-[1.65rem] border border-white/80 bg-white/88 p-2 shadow-[0_22px_50px_-28px_rgba(15,23,42,0.38)] backdrop-blur-2xl md:hidden">
+        <div className="fixed inset-x-4 bottom-[calc(env(safe-area-inset-bottom)+108px)] z-[55] mx-auto flex h-[64px] max-w-sm items-center gap-2 rounded-[1.65rem] border border-white/80 bg-white/88 p-2 shadow-[0_22px_50px_-28px_rgba(15,23,42,0.38)] backdrop-blur-2xl md:hidden">
             <button
                 type="button"
                 onClick={onOpenControls}
@@ -112,29 +112,37 @@ export function ProjectMobileActionBar({
                 ) : null}
             </button>
 
-            <label className="relative flex h-12 min-w-0 flex-1 items-center justify-center rounded-[1.25rem] border border-slate-200/80 bg-white px-4 text-slate-950 shadow-[inset_0_1px_0_rgba(255,255,255,0.8),0_10px_22px_-20px_rgba(15,23,42,0.34)]">
-                <span className="pointer-events-none truncate pr-7 text-[17px] font-semibold">{viewLabels[viewMode]}</span>
-                <ChevronsUpDown className="pointer-events-none absolute right-4 h-5 w-5 text-slate-700" aria-hidden="true" />
-                <select
-                    value={viewMode}
-                    onChange={(event) => onViewChange(event.target.value as ProjectViewMode)}
-                    aria-label="Change project view"
-                    className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
-                >
-                    <option value="board">Board</option>
-                    <option value="list">List</option>
-                    <option value="calendar">Calendar</option>
-                </select>
-            </label>
+            <Listbox value={viewMode} onChange={onViewChange}>
+                <div className="relative min-w-0 flex-1">
+                    <ListboxButton className="relative flex h-12 w-full touch-manipulation items-center justify-center rounded-[1.25rem] border border-slate-200/80 bg-white px-4 text-slate-950 shadow-[inset_0_1px_0_rgba(255,255,255,0.8),0_10px_22px_-20px_rgba(15,23,42,0.34)] outline-none transition-[border-color,box-shadow] active:scale-[0.99] focus-visible:border-primary/30 focus-visible:ring-2 focus-visible:ring-primary/20">
+                        <span className="truncate pr-7 text-[17px] font-semibold">{viewLabels[viewMode]}</span>
+                        <ChevronsUpDown className="absolute right-4 h-5 w-5 text-slate-700" aria-hidden="true" />
+                    </ListboxButton>
 
-            <button
-                type="button"
-                onClick={onAddTask}
-                aria-label="Add task"
-                className="flex h-12 w-14 shrink-0 touch-manipulation items-center justify-center rounded-[1.25rem] bg-gradient-to-br from-primary to-[#8f7cff] text-primary-foreground shadow-[0_16px_30px_-18px_rgba(109,93,252,0.72)] transition-[transform,box-shadow,filter] hover:brightness-[1.03] active:scale-95"
-            >
-                <Plus className="h-7 w-7 stroke-[2.5]" aria-hidden="true" />
-            </button>
+                    <ListboxOptions
+                        anchor="bottom"
+                        className="z-[80] mt-2 w-[var(--button-width)] rounded-[1.15rem] border border-slate-200 bg-white/96 p-1.5 shadow-[0_18px_40px_-24px_rgba(15,23,42,0.45)] backdrop-blur-xl focus:outline-none"
+                    >
+                        {viewOptions.map((option) => (
+                            <ListboxOption
+                                key={option}
+                                value={option}
+                                className={({ focus, selected }) => cn(
+                                    "flex min-h-11 cursor-pointer select-none items-center justify-between rounded-xl px-3 text-sm font-semibold transition-colors",
+                                    selected ? "bg-primary-dark text-white" : focus ? "bg-slate-100 text-slate-950" : "text-slate-600",
+                                )}
+                            >
+                                {({ selected }) => (
+                                    <>
+                                        <span>{viewLabels[option]}</span>
+                                        {selected ? <Check className="h-4 w-4" aria-hidden="true" /> : null}
+                                    </>
+                                )}
+                            </ListboxOption>
+                        ))}
+                    </ListboxOptions>
+                </div>
+            </Listbox>
         </div>
     );
 }
