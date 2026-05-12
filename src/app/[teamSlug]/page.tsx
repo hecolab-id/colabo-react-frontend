@@ -189,7 +189,7 @@ export default function TeamDashboardPage() {
                     </div>
                     <Link
                         href="/dashboard"
-                        className="inline-flex items-center gap-2 rounded-full bg-primary-dark px-5 py-2.5 text-[14px] font-semibold text-white transition-all hover:bg-primary-dark-hover hover:scale-[1.02] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                        className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-primary-dark px-5 text-[14px] font-semibold text-white transition-all hover:bg-primary-dark-hover hover:scale-[1.02] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 sm:h-10"
                     >
                         Back to Dashboard
                     </Link>
@@ -345,7 +345,7 @@ export default function TeamDashboardPage() {
                         <button
                             type="button"
                             onClick={() => setIsModalOpen(true)}
-                            className="mt-8 inline-flex w-full items-center justify-center gap-2 rounded-full bg-white px-5 py-3.5 text-[15px] font-semibold text-slate-900 transition-all hover:scale-[1.02] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 shadow-sm"
+                            className="mt-8 inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-white px-5 text-[15px] font-semibold text-slate-900 transition-all hover:scale-[1.02] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 shadow-sm"
                         >
                             <Plus className="h-[18px] w-[18px]" aria-hidden="true" />
                             New Project

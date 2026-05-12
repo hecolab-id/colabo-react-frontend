@@ -167,7 +167,7 @@ export default function MembersPage({ params }: { params: Promise<{ teamSlug: st
                                 {hasAdminPermission ? (
                                     <button
                                         onClick={() => setIsInviteModalOpen(true)}
-                                        className="inline-flex items-center gap-2 rounded-full bg-primary-dark px-5 py-3 text-[14px] font-semibold text-white shadow-sm transition-all hover:bg-primary-dark-hover hover:scale-[1.02] active:scale-[0.98]"
+                                        className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-primary-dark px-5 text-[14px] font-semibold text-white shadow-sm transition-all hover:bg-primary-dark-hover hover:scale-[1.02] active:scale-[0.98] sm:h-11"
                                     >
                                         <UserPlus className="h-[18px] w-[18px]" aria-hidden="true" />
                                         Invite Member
@@ -175,7 +175,7 @@ export default function MembersPage({ params }: { params: Promise<{ teamSlug: st
                                 ) : (
                                     <button
                                         onClick={() => setShowLeaveConfirm(true)}
-                                        className="inline-flex items-center gap-2 rounded-full border border-red-200 bg-red-50 px-5 py-3 text-[14px] font-semibold text-red-600 transition-colors hover:bg-red-100 active:scale-[0.98]"
+                                        className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-red-200 bg-red-50 px-5 text-[14px] font-semibold text-red-600 transition-colors hover:bg-red-100 active:scale-[0.98] sm:h-11"
                                     >
                                         <LogOut className="h-[18px] w-[18px]" aria-hidden="true" />
                                         Leave Team
@@ -430,17 +430,17 @@ export default function MembersPage({ params }: { params: Promise<{ teamSlug: st
                         <p className="mt-2 text-sm leading-6 text-muted-foreground">
                             Remove <span className="font-medium text-foreground">{memberToRemove.name}</span> from <span className="font-medium text-foreground">{team.name}</span>. They will lose access to team workspaces, projects, and future updates immediately.
                         </p>
-                        <div className="mt-6 flex flex-wrap justify-end gap-3">
+                        <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
                             <button
                                 onClick={() => setMemberToRemove(null)}
-                                className="rounded-xl bg-muted px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted/80"
+                                className="inline-flex h-12 items-center justify-center rounded-xl bg-muted px-4 text-sm font-medium text-foreground transition-colors hover:bg-muted/80 sm:h-10"
                             >
                                 Cancel
                             </button>
                             <button
                                 onClick={confirmRemoveMember}
                                 disabled={removeMemberMutation.isPending}
-                                className="inline-flex items-center gap-2 rounded-xl bg-[var(--danger-fg)] px-4 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+                                className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-[var(--danger-fg)] px-4 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50 sm:h-10"
                             >
                                 {removeMemberMutation.isPending ? "Removing…" : "Remove Member"}
                             </button>
@@ -456,18 +456,18 @@ export default function MembersPage({ params }: { params: Promise<{ teamSlug: st
                         <p className="mt-2 text-sm leading-6 text-muted-foreground">
                             Leaving <span className="font-medium text-foreground">{team.name}</span> removes your access to its projects, members, and future activity. A team admin can invite you back later.
                         </p>
-                        <div className="mt-6 flex flex-wrap justify-end gap-3">
+                        <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
                             <button
                                 onClick={() => setShowLeaveConfirm(false)}
                                 disabled={isLeaving}
-                                className="rounded-xl bg-muted px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted/80 disabled:opacity-50"
+                                className="inline-flex h-12 items-center justify-center rounded-xl bg-muted px-4 text-sm font-medium text-foreground transition-colors hover:bg-muted/80 disabled:opacity-50 sm:h-10"
                             >
                                 Stay
                             </button>
                             <button
                                 onClick={handleLeaveTeam}
                                 disabled={isLeaving}
-                                className="inline-flex items-center gap-2 rounded-xl bg-[var(--danger-fg)] px-4 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+                                className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-[var(--danger-fg)] px-4 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50 sm:h-10"
                             >
                                 {isLeaving ? "Leaving…" : "Leave Team"}
                                 {!isLeaving && <ArrowRight className="h-4 w-4" aria-hidden="true" />}

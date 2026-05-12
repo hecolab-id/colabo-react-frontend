@@ -92,7 +92,7 @@ export function ProjectMobileActionBar({
     const viewOptions: ProjectViewMode[] = ["board", "list", "calendar"];
 
     return (
-        <div className="fixed inset-x-4 bottom-[calc(env(safe-area-inset-bottom)+108px)] z-[55] mx-auto flex h-[64px] max-w-sm items-center gap-2 rounded-[1.65rem] border border-white/80 bg-white/88 p-2 shadow-[0_22px_50px_-28px_rgba(15,23,42,0.38)] backdrop-blur-2xl md:hidden">
+        <div className="fixed inset-x-4 bottom-[calc(env(safe-area-inset-bottom)+108px)] z-30 mx-auto flex h-[64px] max-w-sm items-center gap-2 rounded-[1.65rem] border border-white/80 bg-white/88 p-2 shadow-[0_22px_50px_-28px_rgba(15,23,42,0.38)] backdrop-blur-2xl md:hidden">
             <button
                 type="button"
                 onClick={onOpenControls}
@@ -121,7 +121,7 @@ export function ProjectMobileActionBar({
 
                     <ListboxOptions
                         anchor="bottom"
-                        className="z-[80] mt-2 w-[var(--button-width)] rounded-[1.15rem] border border-slate-200 bg-white/96 p-1.5 shadow-[0_18px_40px_-24px_rgba(15,23,42,0.45)] backdrop-blur-xl focus:outline-none"
+                        className="z-[36] mt-2 w-[var(--button-width)] rounded-[1.15rem] border border-slate-200 bg-white/96 p-1.5 shadow-[0_18px_40px_-24px_rgba(15,23,42,0.45)] backdrop-blur-xl focus:outline-none"
                     >
                         {viewOptions.map((option) => (
                             <ListboxOption

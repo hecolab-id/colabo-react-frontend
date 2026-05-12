@@ -449,7 +449,7 @@ function TeamSettingsPageContent({ params }: { params: Promise<{ teamSlug: strin
                                 setShowPlanDialog(true);
                             }}
                             disabled={billingLoading}
-                            className="mt-8 inline-flex w-full items-center justify-center gap-2 rounded-full bg-white px-5 py-3.5 text-[15px] font-semibold text-slate-900 shadow-sm transition-all hover:scale-[1.02] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 disabled:opacity-60"
+                            className="mt-8 inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-white px-5 text-[15px] font-semibold text-slate-900 shadow-sm transition-all hover:scale-[1.02] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 disabled:opacity-60"
                         >
                             <CreditCard className="h-[18px] w-[18px]" aria-hidden="true" />
                             {billingLoading
@@ -970,7 +970,7 @@ function TeamSettingsPageContent({ params }: { params: Promise<{ teamSlug: strin
                             <button
                                 type="button"
                                 onClick={() => setShowTransferModal(false)}
-                                className="rounded-full px-5 py-2.5 text-[14px] font-bold text-slate-500 transition-all hover:bg-slate-100 hover:text-slate-900 focus-visible:outline-none"
+                                className="inline-flex h-12 items-center justify-center rounded-full px-5 text-[14px] font-bold text-slate-500 transition-all hover:bg-slate-100 hover:text-slate-900 focus-visible:outline-none sm:h-10"
                             >
                                 Cancel
                             </button>
@@ -978,7 +978,7 @@ function TeamSettingsPageContent({ params }: { params: Promise<{ teamSlug: strin
                                 type="button"
                                 onClick={handleTransferOwnership}
                                 disabled={!selectedNewOwner || transferOwnershipMutation.isPending}
-                                className="rounded-full bg-primary-dark px-5 py-2.5 text-[14px] font-bold text-white shadow-sm transition-all hover:bg-primary-dark-hover hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:hover:scale-100 focus-visible:outline-none"
+                                className="inline-flex h-12 items-center justify-center rounded-full bg-primary-dark px-5 text-[14px] font-bold text-white shadow-sm transition-all hover:bg-primary-dark-hover hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:hover:scale-100 focus-visible:outline-none sm:h-10"
                             >
                                 {transferOwnershipMutation.isPending ? "Transferring…" : "Confirm Transfer"}
                             </button>

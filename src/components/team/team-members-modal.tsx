@@ -141,7 +141,7 @@ export function TeamMembersModal({ team, currentUser, onClose, onUpdate }: TeamM
                             <button
                                 onClick={handleInviteMember}
                                 disabled={isInviting || !inviteEmail.trim()}
-                                className="rounded-full bg-primary-dark px-6 py-3 text-[13px] font-semibold text-white shadow-sm transition-all hover:bg-primary-dark-hover hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:hover:scale-100"
+                                className="inline-flex h-12 items-center justify-center rounded-full bg-primary-dark px-6 text-[13px] font-semibold text-white shadow-sm transition-all hover:bg-primary-dark-hover hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:hover:scale-100"
                             >
                                 {isInviting ? "Sending..." : "Invite"}
                             </button>

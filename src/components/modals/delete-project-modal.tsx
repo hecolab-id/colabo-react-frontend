@@ -96,10 +96,10 @@ export function DeleteProjectModal({ isOpen, onClose, onConfirm, project }: Dele
                                     </div>
                                 </div>
 
-                                <div className="mt-6 flex justify-end gap-3">
+                                <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
                                     <button
                                         type="button"
-                                        className="inline-flex justify-center rounded-lg border border-border bg-background px-4 py-2 text-sm font-medium text-foreground hover:bg-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                                        className="inline-flex h-12 items-center justify-center rounded-xl border border-border bg-background px-4 text-sm font-medium text-foreground hover:bg-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 sm:h-10"
                                         onClick={onClose}
                                         disabled={isDeleting}
                                     >
@@ -107,7 +107,7 @@ export function DeleteProjectModal({ isOpen, onClose, onConfirm, project }: Dele
                                     </button>
                                     <button
                                         type="button"
-                                        className="inline-flex justify-center rounded-lg border border-transparent bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                                        className="inline-flex h-12 items-center justify-center rounded-xl border border-transparent bg-red-600 px-4 text-sm font-medium text-white hover:bg-red-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 sm:h-10"
                                         onClick={handleConfirm}
                                         disabled={!isMatch || isDeleting}
                                     >
