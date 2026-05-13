@@ -23,6 +23,7 @@ import { SortableColumn } from "./sortable-column";
 import { TaskCard } from "./task-card";
 import { TaskDetailModal } from "./task-detail-modal";
 import { Plus, GripVertical } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface KanbanBoardProps {
     initialTasks: TaskLite[];
@@ -117,12 +118,26 @@ export function KanbanBoard({ initialTasks, columns, initialTaskId, onAddTask, o
     const lastDragOverKeyRef = useRef<string | null>(null);
     const dragOverFrameRef = useRef<number | null>(null);
     const pendingDragOverRef = useRef<{ activeId: string; overId: string } | null>(null);
+    const [isMobileViewport, setIsMobileViewport] = useState(false);
 
     // Sync tasks only when the incoming task contents actually change.
     // This prevents parent re-renders from snapping an optimistic drag
     // back to stale props before the mutation cache catches up.
     useEffect(() => {
         setHasMounted(true);
+    }, []);
+
+    useEffect(() => {
+        if (typeof window === "undefined") {
+            return;
+        }
+
+        const mediaQuery = window.matchMedia("(max-width: 767px)");
+        const updateViewport = () => setIsMobileViewport(mediaQuery.matches);
+
+        updateViewport();
+        mediaQuery.addEventListener("change", updateViewport);
+        return () => mediaQuery.removeEventListener("change", updateViewport);
     }, []);
 
     useEffect(() => {
@@ -146,8 +161,8 @@ export function KanbanBoard({ initialTasks, columns, initialTaskId, onAddTask, o
         }),
         useSensor(TouchSensor, {
             activationConstraint: {
-                delay: 180,
-                tolerance: 8,
+                delay: 300,
+                tolerance: 12,
             },
         }),
         useSensor(KeyboardSensor, {
@@ -224,13 +239,21 @@ export function KanbanBoard({ initialTasks, columns, initialTaskId, onAddTask, o
     const isBoardDragging = isTaskDragging || isColumnDragging;
     const autoScrollOptions = useMemo(() => ({
         activator: AutoScrollActivator.Pointer,
-        acceleration: isTaskDragging ? 1.45 : 6,
-        interval: isTaskDragging ? 18 : 10,
+        acceleration: isTaskDragging
+            ? (isMobileViewport ? 0.48 : 1.45)
+            : (isMobileViewport ? 2.4 : 6),
+        interval: isTaskDragging
+            ? (isMobileViewport ? 34 : 18)
+            : (isMobileViewport ? 20 : 10),
         threshold: {
-            x: isTaskDragging ? 0.08 : 0.2,
-            y: isTaskDragging ? 0.14 : 0.18,
+            x: isTaskDragging
+                ? (isMobileViewport ? 0.24 : 0.08)
+                : (isMobileViewport ? 0.26 : 0.2),
+            y: isTaskDragging
+                ? (isMobileViewport ? 0.2 : 0.14)
+                : 0.18,
         },
-    }), [isTaskDragging]);
+    }), [isMobileViewport, isTaskDragging]);
 
     const handleDragStart = useCallback((event: DragStartEvent) => {
         const { active } = event;
@@ -510,7 +533,10 @@ export function KanbanBoard({ initialTasks, columns, initialTaskId, onAddTask, o
             >
                 <div
                     data-board-dragging={isBoardDragging ? "true" : undefined}
-                    className="flex h-[calc(100dvh-16rem)] min-h-[24rem] snap-x snap-mandatory gap-3 overflow-x-auto overscroll-x-contain scroll-px-3 pl-3 pr-6 pb-4 touch-pan-x [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden md:h-[calc(100vh-140px)] md:min-h-[28rem] md:gap-5 md:px-0 md:snap-none"
+                    className={cn(
+                        "flex h-[calc(100dvh-16rem)] min-h-[24rem] snap-x snap-mandatory gap-3 overflow-x-auto overscroll-x-contain scroll-px-3 pl-3 pr-6 pb-4 touch-pan-x [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden md:h-[calc(100vh-140px)] md:min-h-[28rem] md:gap-5 md:px-0 md:snap-none",
+                        isBoardDragging && "snap-none"
+                    )}
                 >
                     {sortedColumns.map((column) => (
                         <SortableColumn

@@ -43,13 +43,50 @@ export function Header({
     }, [loadTeams]);
 
     return (
-        <header className={`sticky top-0 z-30 items-center justify-between border-b border-white/70 bg-white/76 px-4 shadow-[0_10px_30px_rgba(15,23,42,0.04)] backdrop-blur-2xl transition-all md:flex md:h-[74px] md:px-6 ${isMobileProjectRoute ? "hidden md:flex" : "flex h-16"}`}>
-            <div className="min-w-0">
-                <p className="text-sm font-semibold text-slate-900 tracking-tight md:hidden">{mobileTitle}</p>
-                <p className="truncate text-xs text-slate-500 md:hidden">
-                    {team?.name || "Your workspace"}
-                </p>
-            </div>
+        <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-white/70 bg-white/76 px-4 shadow-[0_10px_30px_rgba(15,23,42,0.04)] backdrop-blur-2xl transition-all md:h-[74px] md:px-6">
+            {isMobileProjectRoute ? (
+                <div className="flex min-w-0 flex-1 items-center gap-3 md:hidden">
+                    <div className="min-w-0 flex-1">
+                        <p className="truncate text-[15px] font-semibold tracking-tight text-slate-950">
+                            {projectTitle || "Project"}
+                        </p>
+                        <p className="truncate text-xs text-slate-500">
+                            {team?.name || "Workspace"}
+                        </p>
+                    </div>
+
+                    <div className="flex shrink-0 items-center gap-1.5">
+                        {projectSettingsHref ? (
+                            <Link
+                                href={projectSettingsHref}
+                                className="inline-flex h-10 w-10 touch-manipulation items-center justify-center rounded-full border border-black/5 bg-white/78 text-slate-500 shadow-sm transition-all active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+                                aria-label="View project details"
+                                title="View project"
+                            >
+                                <FolderCog className="h-[18px] w-[18px]" aria-hidden="true" />
+                            </Link>
+                        ) : null}
+                        {onOpenProjectMembers ? (
+                            <button
+                                type="button"
+                                onClick={onOpenProjectMembers}
+                                className="inline-flex h-10 w-10 touch-manipulation items-center justify-center rounded-full border border-black/5 bg-white/78 text-slate-500 shadow-sm transition-all active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+                                aria-label="Show project members"
+                                title="Members"
+                            >
+                                <Users className="h-[18px] w-[18px]" aria-hidden="true" />
+                            </button>
+                        ) : null}
+                    </div>
+                </div>
+            ) : (
+                <div className="min-w-0">
+                    <p className="text-sm font-semibold text-slate-900 tracking-tight md:hidden">{mobileTitle}</p>
+                    <p className="truncate text-xs text-slate-500 md:hidden">
+                        {team?.name || "Your workspace"}
+                    </p>
+                </div>
+            )}
 
             <div className="hidden min-w-0 md:block">
                 {projectTitle ? (
@@ -80,7 +117,7 @@ export function Header({
                 ) : null}
             </div>
 
-            <div className="ml-auto flex items-center gap-1.5 md:gap-3">
+            <div className={`ml-auto items-center gap-1.5 md:flex md:gap-3 ${isMobileProjectRoute ? "hidden" : "flex"}`}>
                 {team && onOpenCreateTask && (
                     <button
                         type="button"

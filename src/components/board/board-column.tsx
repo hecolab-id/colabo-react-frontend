@@ -168,7 +168,7 @@ const BoardColumnBase = forwardRef<HTMLDivElement, BoardColumnProps>(({
                     virtual.containerRef.current = node;
                 }}
                 data-column-type={columnType}
-                className="kanban-column-body flex-1 overflow-y-auto overscroll-y-contain rounded-[1.05rem] border border-slate-200/65 bg-[linear-gradient(180deg,rgba(248,250,252,0.78),rgba(241,245,249,0.66))] p-2 touch-pan-y shadow-[inset_0_1px_0_rgba(255,255,255,0.78)] [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+                className="kanban-column-body flex-1 overflow-y-auto overscroll-y-contain bg-transparent px-0.5 pb-1 pt-0.5 touch-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden md:touch-pan-y"
             >
                 <SortableContext items={sortableItems} strategy={verticalListSortingStrategy}>
                     {shouldVirtualize ? (
@@ -186,7 +186,7 @@ const BoardColumnBase = forwardRef<HTMLDivElement, BoardColumnProps>(({
                             ))}
                         </div>
                     ) : (
-                        <div className="space-y-3">
+                        <div className="space-y-2.5">
                             {visibleTasks.map(({ task }) => (
                                 <div key={task.id} className="min-w-0" onClick={() => onTaskClick?.(task.id)}>
                                     <TaskCard task={task} sortable={!isColumnDragging} elevated />
