@@ -43,7 +43,7 @@ export function Header({
     }, [loadTeams]);
 
     return (
-        <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-white/70 bg-white/76 px-4 shadow-[0_10px_30px_rgba(15,23,42,0.04)] backdrop-blur-2xl transition-all md:h-[74px] md:px-6">
+        <header className="sticky top-0 z-30 flex min-h-16 items-center justify-between border-b border-white/70 bg-white/76 px-4 py-2 pt-[calc(env(safe-area-inset-top)+0.5rem)] shadow-[0_10px_30px_rgba(15,23,42,0.04)] backdrop-blur-2xl transition-all md:h-[74px] md:min-h-0 md:px-6 md:py-0 md:pt-0">
             {isMobileProjectRoute ? (
                 <div className="flex min-w-0 flex-1 items-center gap-3 md:hidden">
                     <div className="min-w-0 flex-1">

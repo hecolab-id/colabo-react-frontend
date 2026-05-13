@@ -461,7 +461,7 @@ function ProjectSlugPageContent({ params }: { params: Promise<{ teamSlug: string
             </div>
 
             {/* Task View */}
-            <div className="min-h-0 flex-1 overflow-hidden rounded-[1.6rem] border border-white/65 bg-white/55 p-2 shadow-[0_22px_56px_rgba(15,23,42,0.06)] backdrop-blur-xl md:p-3">
+            <div className="min-h-0 flex-1 overflow-hidden rounded-[1.6rem] border border-white/65 bg-white/55 p-3 shadow-[0_22px_56px_rgba(15,23,42,0.06)] backdrop-blur-xl md:p-3">
                 <Suspense fallback={<div className="flex h-64 items-center justify-center text-muted-foreground">Loading workspace…</div>}>
                     {viewMode === "board" ? (
                         <KanbanBoard

@@ -148,8 +148,8 @@ function TaskCardSurface({
             <div className="flex items-start justify-between gap-3">
                 <span
                     className={cn(
-                        "rounded-full px-2.5 py-1 text-[11px] uppercase tracking-[0.14em]",
-                        task.priority === "HIGH" ? "font-bold shadow-[0_10px_24px_-18px_rgba(199,51,99,0.65)]" : "font-semibold",
+                        "rounded-full px-2 py-0.5 text-[9.5px] uppercase tracking-[0.1em] md:px-2.5 md:py-1 md:text-[11px] md:tracking-[0.14em]",
+                        task.priority === "HIGH" ? "font-bold md:shadow-[0_10px_24px_-18px_rgba(199,51,99,0.65)]" : "font-semibold",
                         priority.badgeClassName
                     )}
                 >
