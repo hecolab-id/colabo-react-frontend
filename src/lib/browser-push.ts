@@ -47,6 +47,35 @@ export async function ensureBrowserPushSubscription(vapidPublicKey: string): Pro
     };
 }
 
+export async function requestBrowserPushPermissionAndSubscribe(vapidPublicKey: string): Promise<BrowserPushSubscriptionInput | null> {
+    if (!isBrowserPushSupported() || !vapidPublicKey) {
+        return null;
+    }
+
+    if (Notification.permission === "default") {
+        const permission = await Notification.requestPermission();
+        if (permission !== "granted") {
+            return null;
+        }
+    }
+
+    return ensureBrowserPushSubscription(vapidPublicKey);
+}
+
+export async function hasCurrentBrowserPushSubscription(): Promise<boolean> {
+    if (!isBrowserPushSupported()) {
+        return false;
+    }
+
+    try {
+        const registration = await navigator.serviceWorker.ready;
+        const subscription = await registration.pushManager.getSubscription();
+        return Boolean(subscription);
+    } catch {
+        return false;
+    }
+}
+
 export async function removeBrowserPushSubscription(): Promise<string | null> {
     if (!isBrowserPushSupported()) {
         return null;

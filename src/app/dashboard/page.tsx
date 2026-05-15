@@ -126,44 +126,38 @@ function DashboardActionLink({ item }: { item: DashboardActionItem }) {
     return (
         <Link
             href={item.href}
-            className={`group relative block overflow-hidden rounded-2xl border transition-all hover:-translate-y-0.5 hover:bg-white hover:shadow-[0_16px_32px_rgba(15,23,42,0.08)] active:translate-y-0 active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/25 ${styles.row}`}
+            className="group grid min-h-[4.7rem] grid-cols-[2.25rem_minmax(0,1fr)] items-center gap-3 px-4 py-2.5 transition-colors hover:bg-slate-50/80 active:bg-slate-100/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary/25 md:grid-cols-[2.25rem_minmax(0,1fr)_10.5rem_2rem] md:px-5"
         >
-            <div className={`absolute inset-y-0 left-0 w-1 ${styles.rail}`} aria-hidden="true" />
-            <div className="grid gap-3 p-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center sm:gap-5 sm:pl-5">
-                <div className="flex min-w-0 items-start gap-3">
-                    <div className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl ${styles.iconBg}`}>
-                        <AlertTriangle className="h-4 w-4" aria-hidden="true" />
-                    </div>
+            <div className="flex h-full items-center justify-center" aria-hidden="true">
+                <span className={`h-2.5 w-2.5 rounded-full ${styles.rail}`} />
+            </div>
 
-                    <div className="min-w-0 flex-1">
-                        <div className="flex min-w-0 flex-wrap items-center gap-2">
-                            {item.projectCode && (
-                                <span className="rounded-md border border-slate-200 bg-white px-2 py-0.5 font-mono text-[11px] font-semibold text-slate-500">
-                                    {item.projectCode}
-                                </span>
-                            )}
-                            {item.statusLabel && (
-                                <span className={`rounded-md border px-2 py-0.5 text-[11px] font-semibold ${styles.badge}`}>
-                                    {item.statusLabel}
-                                </span>
-                            )}
-                        </div>
-                        <h4 className="mt-2 min-w-0 truncate text-[15px] font-semibold tracking-tight text-slate-950">
-                            {item.title}
-                        </h4>
-                        <p className="mt-1 line-clamp-2 text-sm leading-5 text-slate-500">{item.reason}</p>
-                    </div>
+            <div className="min-w-0">
+                <div className="flex min-w-0 flex-wrap items-center gap-2">
+                    {item.projectCode && (
+                        <span className="rounded border border-slate-200 bg-white px-1.5 py-0.5 font-mono text-[10px] font-semibold text-slate-500">
+                            {item.projectCode}
+                        </span>
+                    )}
+                    {item.statusLabel && (
+                        <span className={`rounded border px-1.5 py-0.5 text-[10px] font-semibold ${styles.badge}`}>
+                            {item.statusLabel}
+                        </span>
+                    )}
                 </div>
+                <h4 className="mt-1.5 min-w-0 truncate text-[15px] font-semibold tracking-tight text-slate-950">
+                    {item.title}
+                </h4>
+                <p className="mt-0.5 line-clamp-1 text-sm leading-5 text-slate-500">{item.reason}</p>
+            </div>
 
-                <div className="flex items-center justify-between gap-3 border-t border-slate-200/70 pt-3 text-[13px] text-slate-500 sm:border-t-0 sm:pt-0">
-                    <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
-                        <CalendarDays className="h-4 w-4 text-slate-400" aria-hidden="true" />
-                        {formatDueDate(item.dueAt)}
-                    </span>
-                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 transition-colors group-hover:border-primary-dark group-hover:bg-primary-dark group-hover:text-white">
-                        <ArrowRight className="h-4 w-4" aria-hidden="true" />
-                    </div>
-                </div>
+            <div className="col-start-2 flex items-center gap-1.5 text-[13px] font-medium text-slate-500 md:col-start-auto md:justify-end">
+                <CalendarDays className="h-4 w-4 text-slate-400" aria-hidden="true" />
+                <span className="whitespace-nowrap">{formatDueDate(item.dueAt)}</span>
+            </div>
+
+            <div className="hidden h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition-colors group-hover:bg-primary-dark group-hover:text-white md:flex">
+                <ArrowRight className="h-4 w-4" aria-hidden="true" />
             </div>
         </Link>
     );
@@ -628,43 +622,57 @@ export default function DashboardPage() {
                             </div>
 
                             <div className="hidden space-y-5 sm:block">
-                            <section className="rounded-[18px] border border-slate-300 bg-white">
-                                <div className="flex flex-col gap-2 border-b border-slate-200 px-4 py-4 sm:flex-row sm:items-end sm:justify-between sm:px-5">
-                                    <div>
-                                        <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">
-                                            Intervention Queue
-                                        </p>
-                                        <h2 className="mt-1 text-xl font-semibold tracking-tight text-slate-950">
-                                            Start at the top, clear the issue, then move down.
-                                        </h2>
+                            <section className="overflow-hidden rounded-[18px] border border-slate-300 bg-white shadow-[0_18px_44px_-42px_rgba(15,23,42,0.42)]">
+                                <div className="border-b border-slate-200 bg-white px-4 py-4 sm:px-5">
+                                    <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+                                        <div>
+                                            <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">
+                                                Intervention Queue
+                                            </p>
+                                            <h2 className="mt-1 text-lg font-semibold tracking-tight text-slate-950">
+                                                Priority worklist
+                                            </h2>
+                                        </div>
+                                        {hasAnyActions ? (
+                                            <span className="w-fit rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-[12px] font-semibold text-slate-500">
+                                                {bucketOrder.reduce((total, bucket) => total + (actionBuckets?.[bucket]?.length || 0), 0)} open
+                                            </span>
+                                        ) : null}
                                     </div>
                                 </div>
 
-                                <div className="p-4 sm:p-5">
+                                <div>
                                     {!hasAnyActions ? (
                                         <EmptyState
-                                            className="rounded-2xl border-slate-200 bg-slate-50 shadow-none"
+                                            className="m-5 rounded-2xl border-slate-200 bg-slate-50 shadow-none"
                                             icon={<CheckCircle2 className="h-6 w-6 text-emerald-500" />}
                                             title="Your queue is clear"
                                             description="There's nothing competing for your attention right now. You can safely explore supporting work below."
                                         />
                                     ) : (
-                                        <div className="space-y-5">
+                                        <div className="divide-y divide-slate-200">
                                             {bucketOrder.map((bucket) => {
                                                 const items = (actionBuckets?.[bucket] || []).filter((item) => item.href !== recommendedAction?.href || item.title !== recommendedAction?.title);
                                                 if (items.length === 0) return null;
                                                 const meta = bucketMeta[bucket];
+                                                const tone = getBucketTone(bucket, items.length);
+                                                const styles = getSeverityClasses(tone);
 
                                                 return (
                                                     <section key={bucket}>
-                                                        <div className="mb-2 flex items-center justify-between gap-3">
-                                                            <div className="flex items-center gap-2">
-                                                                <meta.icon className="h-4 w-4 text-slate-400" aria-hidden="true" />
-                                                                <h3 className="text-[12px] font-bold uppercase tracking-[0.16em] text-slate-500">{meta.label}</h3>
+                                                        <div className="grid grid-cols-[2.25rem_minmax(0,1fr)_auto] items-center gap-3 bg-slate-50/70 px-4 py-2.5 sm:px-5">
+                                                            <div className="flex items-center justify-center">
+                                                                <span className={`h-2.5 w-2.5 rounded-full ${styles.rail}`} aria-hidden="true" />
                                                             </div>
-                                                            <span className="text-xs font-semibold text-slate-400">{items.length}</span>
+                                                            <div className="flex min-w-0 items-center gap-2">
+                                                                <meta.icon className={`h-3.5 w-3.5 ${styles.accent}`} aria-hidden="true" />
+                                                                <div className="min-w-0">
+                                                                    <h3 className="truncate text-[11px] font-bold uppercase tracking-[0.15em] text-slate-600">{meta.label}</h3>
+                                                                </div>
+                                                            </div>
+                                                            <span className="rounded-md border border-slate-200 bg-white px-2 py-0.5 text-xs font-semibold text-slate-500">{items.length}</span>
                                                         </div>
-                                                        <div className="grid gap-2">
+                                                        <div className="divide-y divide-slate-200/80">
                                                             {items.map((item) => (
                                                                 <DashboardActionLink key={item.id} item={item} />
                                                             ))}

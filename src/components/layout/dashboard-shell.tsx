@@ -13,10 +13,10 @@ import { KeyboardShortcutsModal } from "@/components/modals/keyboard-shortcuts-m
 import { CreateProjectModal } from "@/components/modals/create-project-modal";
 import { CreateTaskFormValues, CreateTaskModal } from "@/components/modals/create-task-modal";
 import { ManageProjectMembersModal } from "@/components/modals/manage-project-members-modal";
-import { createProject, createTask } from "@/lib/api";
+import { createProject, createTask, getTeamBySlug } from "@/lib/api";
 import { useStore } from "@/lib/store";
 import { useUsage } from "@/lib/hooks/use-billing";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 export function DashboardShell({ children }: { children: React.ReactNode }) {
     const [isBrainOpen, setIsBrainOpen] = useState(false);
@@ -47,7 +47,16 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
     const { data: teamProjects = [] } = useProjects(currentTeam?.slug || "");
     const activeProject = projectBySlug ?? projectById;
     const projectId = activeProject?.id;
-    const availableGlobalAssignees = currentTeam?.members || [];
+    const shouldHydrateTeamMembers = !!currentTeam?.slug && (!currentTeam.members || currentTeam.members.length === 0);
+    const { data: hydratedCurrentTeam } = useQuery({
+        queryKey: ["teams", "detail", currentTeam?.slug],
+        queryFn: () => getTeamBySlug(currentTeam!.slug),
+        enabled: shouldHydrateTeamMembers,
+        staleTime: 5 * 60 * 1000,
+    });
+    const availableGlobalAssignees = hydratedCurrentTeam?.members?.length
+        ? hydratedCurrentTeam.members
+        : currentTeam?.members || [];
 
     const projectStats = useMemo(() => {
         const tasks = activeProject?.tasks;

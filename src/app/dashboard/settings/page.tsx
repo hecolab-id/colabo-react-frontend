@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import axios from "axios";
-import { ensureBrowserPushSubscription, isBrowserPushSupported, removeBrowserPushSubscription } from "@/lib/browser-push";
+import { isBrowserPushSupported, removeBrowserPushSubscription, requestBrowserPushPermissionAndSubscribe } from "@/lib/browser-push";
 import {
     useBrowserPushSettings,
     useDeleteBrowserPushSubscription,
@@ -349,15 +349,8 @@ export default function SettingsPage() {
             return;
         }
 
-        if (Notification.permission === "default") {
-            const permission = await Notification.requestPermission();
-            if (permission !== "granted") {
-                return;
-            }
-        }
-
-        if (Notification.permission === "granted" && nextSettings.vapid_public_key) {
-            const subscription = await ensureBrowserPushSubscription(nextSettings.vapid_public_key);
+        if ((Notification.permission === "default" || Notification.permission === "granted") && nextSettings.vapid_public_key) {
+            const subscription = await requestBrowserPushPermissionAndSubscribe(nextSettings.vapid_public_key);
             if (subscription) {
                 await saveBrowserPushSubscription.mutateAsync(subscription);
             }
