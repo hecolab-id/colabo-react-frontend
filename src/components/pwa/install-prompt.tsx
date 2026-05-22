@@ -126,7 +126,7 @@ export function InstallPrompt() {
                                         <p className="text-xs font-semibold uppercase tracking-[0.24em] text-sky-700">
                                             Install Colabo
                                         </p>
-                                        <Dialog.Title className="mt-3 font-space-grotesk text-3xl font-semibold tracking-tight text-slate-950">
+                                        <Dialog.Title className="mt-3 text-3xl font-semibold tracking-tight text-slate-950">
                                             Bring your workspace to the home screen.
                                         </Dialog.Title>
                                     </div>

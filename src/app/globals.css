@@ -6,9 +6,19 @@
   --background: #f4f7fb;
   --foreground: #172033;
 
-  --primary: #6d5dfc;
-  --primary-dark: #272554;
-  --primary-dark-hover: #342f78;
+  --primary-50: #f4f3ff;
+  --primary-100: #ebe9ff;
+  --primary-200: #d9d5ff;
+  --primary-300: #bdb5ff;
+  --primary-400: #9588ff;
+  --primary-500: #6d5dfc;
+  --primary-600: #5b4be7;
+  --primary-700: #493bbd;
+  --primary-800: #332b83;
+  --primary-900: #272554;
+  --primary: var(--primary-500);
+  --primary-dark: var(--primary-900);
+  --primary-dark-hover: var(--primary-800);
   --primary-foreground: #ffffff;
   --secondary: #ffffff;
   --secondary-foreground: #172033;
@@ -76,9 +86,19 @@
   --background: #0d1422;
   --foreground: #edf2fb;
 
-  --primary: #b8adff;
-  --primary-dark: #8f86ff;
-  --primary-dark-hover: #a79fff;
+  --primary-50: #211f3a;
+  --primary-100: #2b2850;
+  --primary-200: #3d3778;
+  --primary-300: #5a51b6;
+  --primary-400: #8f86ff;
+  --primary-500: #b8adff;
+  --primary-600: #c8c0ff;
+  --primary-700: #d8d1ff;
+  --primary-800: #e7e3ff;
+  --primary-900: #f4f3ff;
+  --primary: var(--primary-500);
+  --primary-dark: var(--primary-400);
+  --primary-dark-hover: var(--primary-600);
   --primary-foreground: #101828;
   --secondary: #162033;
   --secondary-foreground: #edf2fb;
@@ -135,7 +155,7 @@
 @layer base {
   html {
     color-scheme: light;
-    font-family: "SF Pro Text", "SF Pro Display", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    font-family: "Plus Jakarta Sans", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
   }
 
   html.admin-dark {

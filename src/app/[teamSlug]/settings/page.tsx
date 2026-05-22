@@ -390,7 +390,7 @@ function TeamSettingsPageContent({ params }: { params: Promise<{ teamSlug: strin
                         </div>
 
                         <div className="space-y-3">
-                            <h1 className="max-w-3xl text-balance font-space-grotesk text-[32px] font-semibold tracking-tight text-slate-950 md:text-[40px]">
+                            <h1 className="max-w-3xl text-balance text-[32px] font-semibold tracking-tight text-slate-950 md:text-[40px]">
                                 Settings for {team.name}
                             </h1>
                             <p className="max-w-2xl text-[15px] leading-relaxed text-slate-500 md:text-base">

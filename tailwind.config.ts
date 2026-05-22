@@ -8,7 +8,20 @@ const config: Config = {
       colors: {
         background: "var(--background)",
         foreground: "var(--foreground)",
-        primary: "var(--primary)",
+        primary: {
+          50: "var(--primary-50)",
+          100: "var(--primary-100)",
+          200: "var(--primary-200)",
+          300: "var(--primary-300)",
+          400: "var(--primary-400)",
+          500: "var(--primary-500)",
+          600: "var(--primary-600)",
+          700: "var(--primary-700)",
+          800: "var(--primary-800)",
+          900: "var(--primary-900)",
+          DEFAULT: "var(--primary)",
+          foreground: "var(--primary-foreground)"
+        },
         "primary-dark": "var(--primary-dark)",
         "primary-dark-hover": "var(--primary-dark-hover)",
         "primary-foreground": "var(--primary-foreground)",
@@ -41,13 +54,6 @@ const config: Config = {
           "ui-monospace",
           "SFMono-Regular",
           "monospace"
-        ],
-        "space-grotesk": [
-          "\"Space Grotesk\"",
-          "\"SF Pro Display\"",
-          "ui-sans-serif",
-          "system-ui",
-          "sans-serif"
         ]
       },
       boxShadow: {

@@ -126,14 +126,11 @@ function DashboardActionLink({ item }: { item: DashboardActionItem }) {
     return (
         <Link
             href={item.href}
-            className="group grid min-h-[4.7rem] grid-cols-[2.25rem_minmax(0,1fr)] items-center gap-3 px-4 py-2.5 transition-colors hover:bg-slate-50/80 active:bg-slate-100/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary/25 md:grid-cols-[2.25rem_minmax(0,1fr)_10.5rem_2rem] md:px-5"
+            className="group grid min-h-[3.9rem] grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-4 py-2.5 transition-colors hover:bg-slate-50/80 active:bg-slate-100/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary/25 md:px-5"
         >
-            <div className="flex h-full items-center justify-center" aria-hidden="true">
-                <span className={`h-2.5 w-2.5 rounded-full ${styles.rail}`} />
-            </div>
-
             <div className="min-w-0">
-                <div className="flex min-w-0 flex-wrap items-center gap-2">
+                <div className="flex min-w-0 items-center gap-2">
+                    <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${styles.rail}`} aria-hidden="true" />
                     {item.projectCode && (
                         <span className="rounded border border-slate-200 bg-white px-1.5 py-0.5 font-mono text-[10px] font-semibold text-slate-500">
                             {item.projectCode}
@@ -144,19 +141,18 @@ function DashboardActionLink({ item }: { item: DashboardActionItem }) {
                             {item.statusLabel}
                         </span>
                     )}
+                    <h4 className="min-w-0 truncate text-[14px] font-semibold tracking-tight text-slate-950">
+                        {item.title}
+                    </h4>
                 </div>
-                <h4 className="mt-1.5 min-w-0 truncate text-[15px] font-semibold tracking-tight text-slate-950">
-                    {item.title}
-                </h4>
-                <p className="mt-0.5 line-clamp-1 text-sm leading-5 text-slate-500">{item.reason}</p>
+                <p className="mt-1 line-clamp-1 pl-3.5 text-[13px] leading-5 text-slate-500">{item.reason}</p>
             </div>
 
-            <div className="col-start-2 flex items-center gap-1.5 text-[13px] font-medium text-slate-500 md:col-start-auto md:justify-end">
-                <CalendarDays className="h-4 w-4 text-slate-400" aria-hidden="true" />
-                <span className="whitespace-nowrap">{formatDueDate(item.dueAt)}</span>
-            </div>
-
-            <div className="hidden h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition-colors group-hover:bg-primary-dark group-hover:text-white md:flex">
+            <div className="flex items-center gap-3">
+                <span className="hidden items-center gap-1.5 whitespace-nowrap text-[12px] font-medium text-slate-400 md:inline-flex">
+                    <CalendarDays className="h-3.5 w-3.5" aria-hidden="true" />
+                    {formatDueDate(item.dueAt)}
+                </span>
                 <ArrowRight className="h-4 w-4" aria-hidden="true" />
             </div>
         </Link>
@@ -474,7 +470,7 @@ export default function DashboardPage() {
                         )}
                     </section>
 
-                    <section className="hidden overflow-hidden rounded-[18px] border border-slate-300 bg-[linear-gradient(180deg,#ffffff_0%,#f8fafc_100%)] shadow-[0_18px_44px_rgba(15,23,42,0.08)] sm:block">
+                    <section className="hidden overflow-hidden rounded-[18px] border border-slate-300 bg-[linear-gradient(180deg,#ffffff_0%,#f8fafc_100%)] shadow-[0_18px_44px_rgba(15,23,42,0.08)] sm:block mt-0">
                         <div className="border-b border-slate-200 bg-white/85 px-4 py-3 sm:px-5">
                             <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
                                 <div className="min-w-0">
@@ -536,16 +532,16 @@ export default function DashboardPage() {
                         </div>
 
                         {healthMetrics.length > 0 && (
-                            <div className="border-t border-slate-200 bg-primary-dark px-4 py-3 sm:px-5">
+                            <div className="border-t border-slate-200 bg-gray-50 px-4 py-3 sm:px-5">
                                 <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
                                     {healthMetrics.map((metric) => (
                                         <div key={metric.id} className="min-w-0 border-l border-white/10 pl-3">
-                                            <p className="truncate text-[11px] font-bold uppercase tracking-[0.16em] text-slate-400">{metric.label}</p>
-                                            <div className={`mt-1 text-xl font-semibold tracking-tight ${metric.tone === "critical" ? "text-rose-300" : metric.tone === "warning" ? "text-amber-300" : metric.tone === "stable" ? "text-emerald-300" : "text-white"}`}>
+                                            <p className="truncate text-[11px] font-bold uppercase tracking-[0.16em] text-slate-600">{metric.label}</p>
+                                            <div className={`mt-1 text-xl font-semibold tracking-tight ${metric.tone === "critical" ? "text-rose-500" : metric.tone === "warning" ? "text-amber-500" : metric.tone === "stable" ? "text-emerald-500" : "text-slate-700"}`}>
                                                 {numberFormatter.format(metric.value)}
-                                                <span className="ml-0.5 text-sm font-medium text-slate-400">{metric.suffix || ""}</span>
+                                                <span className="ml-0.5 text-sm font-medium text-slate-600">{metric.suffix || ""}</span>
                                             </div>
-                                            <p className="mt-1 truncate text-xs text-slate-400">{metric.context}</p>
+                                            <p className="mt-1 truncate text-xs text-slate-600">{metric.context}</p>
                                         </div>
                                     ))}
                                 </div>
@@ -623,20 +619,20 @@ export default function DashboardPage() {
 
                             <div className="hidden space-y-5 sm:block">
                             <section className="overflow-hidden rounded-[18px] border border-slate-300 bg-white shadow-[0_18px_44px_-42px_rgba(15,23,42,0.42)]">
-                                <div className="border-b border-slate-200 bg-white px-4 py-4 sm:px-5">
+                                <div className="border-b border-slate-200 bg-white px-4 py-3.5 sm:px-5">
                                     <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                                         <div>
                                             <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">
                                                 Intervention Queue
                                             </p>
-                                            <h2 className="mt-1 text-lg font-semibold tracking-tight text-slate-950">
-                                                Priority worklist
+                                            <h2 className="mt-1 text-[17px] font-semibold tracking-tight text-slate-950">
+                                                Priority signals
                                             </h2>
                                         </div>
                                         {hasAnyActions ? (
-                                            <span className="w-fit rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-[12px] font-semibold text-slate-500">
+                                            <Link href="/my-tasks" className="w-fit rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-[12px] font-semibold text-slate-500 transition-colors hover:border-primary-200 hover:bg-primary-50 hover:text-primary-700">
                                                 {bucketOrder.reduce((total, bucket) => total + (actionBuckets?.[bucket]?.length || 0), 0)} open
-                                            </span>
+                                            </Link>
                                         ) : null}
                                     </div>
                                 </div>
@@ -654,28 +650,33 @@ export default function DashboardPage() {
                                             {bucketOrder.map((bucket) => {
                                                 const items = (actionBuckets?.[bucket] || []).filter((item) => item.href !== recommendedAction?.href || item.title !== recommendedAction?.title);
                                                 if (items.length === 0) return null;
+                                                const visibleItems = items.slice(0, 2);
+                                                const overflowCount = Math.max(0, items.length - visibleItems.length);
                                                 const meta = bucketMeta[bucket];
                                                 const tone = getBucketTone(bucket, items.length);
                                                 const styles = getSeverityClasses(tone);
 
                                                 return (
                                                     <section key={bucket}>
-                                                        <div className="grid grid-cols-[2.25rem_minmax(0,1fr)_auto] items-center gap-3 bg-slate-50/70 px-4 py-2.5 sm:px-5">
-                                                            <div className="flex items-center justify-center">
-                                                                <span className={`h-2.5 w-2.5 rounded-full ${styles.rail}`} aria-hidden="true" />
-                                                            </div>
-                                                            <div className="flex min-w-0 items-center gap-2">
+                                                        <div className="flex items-center justify-between gap-3 bg-slate-50/70 px-4 py-2.5 sm:px-5">
+                                                            <div className="flex min-w-0 items-center gap-2.5">
+                                                                <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${styles.rail}`} aria-hidden="true" />
                                                                 <meta.icon className={`h-3.5 w-3.5 ${styles.accent}`} aria-hidden="true" />
                                                                 <div className="min-w-0">
                                                                     <h3 className="truncate text-[11px] font-bold uppercase tracking-[0.15em] text-slate-600">{meta.label}</h3>
                                                                 </div>
                                                             </div>
-                                                            <span className="rounded-md border border-slate-200 bg-white px-2 py-0.5 text-xs font-semibold text-slate-500">{items.length}</span>
+                                                            <span className="text-xs font-semibold text-slate-400">{items.length}</span>
                                                         </div>
                                                         <div className="divide-y divide-slate-200/80">
-                                                            {items.map((item) => (
+                                                            {visibleItems.map((item) => (
                                                                 <DashboardActionLink key={item.id} item={item} />
                                                             ))}
+                                                            {overflowCount > 0 ? (
+                                                                <Link href="/my-tasks" className="block px-4 py-2 text-[12px] font-semibold text-slate-400 transition-colors hover:bg-slate-50 hover:text-primary-700 sm:px-5">
+                                                                    View {overflowCount} more in My Tasks
+                                                                </Link>
+                                                            ) : null}
                                                         </div>
                                                     </section>
                                                 );
@@ -737,7 +738,7 @@ export default function DashboardPage() {
                     )}
                 </div>
 
-                <aside className="hidden space-y-4 sm:block">
+                <aside className="hidden space-y-4 sm:block mt-5">
                     <section className="rounded-[18px] border border-slate-300 bg-white">
                         <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3">
                             <h2 className="text-sm font-semibold tracking-tight text-slate-950">Workspaces</h2>

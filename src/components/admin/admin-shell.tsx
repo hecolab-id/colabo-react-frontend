@@ -93,7 +93,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
                             />
                             {!isCollapsed && (
                                 <div>
-                                    <p className="font-space-grotesk text-lg font-semibold text-foreground">Colabo Admin</p>
+                                    <p className=" text-lg font-semibold text-foreground">Colabo Admin</p>
                                     <p className="text-[11px] uppercase tracking-[0.22em] text-muted-foreground">Ops Console</p>
                                 </div>
                             )}
@@ -159,7 +159,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
                     >
                         <div className="mb-4 flex items-center justify-between">
                             <div>
-                                <p className="font-space-grotesk text-lg font-semibold text-foreground">Colabo Admin</p>
+                                <p className=" text-lg font-semibold text-foreground">Colabo Admin</p>
                                 <p className="text-[11px] uppercase tracking-[0.22em] text-muted-foreground">Ops Console</p>
                             </div>
                             <button
@@ -212,7 +212,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
 
                     <div className="min-w-0 flex-1">
                         <p className="text-[11px] uppercase tracking-[0.22em] text-muted-foreground">Admin Workspace</p>
-                        <h1 className="truncate font-space-grotesk text-xl font-semibold text-foreground sm:text-2xl">
+                        <h1 className="truncate text-xl font-semibold text-foreground sm:text-2xl">
                             Welcome back, {user?.name?.split(" ")[0] || "Owner"}
                         </h1>
                     </div>

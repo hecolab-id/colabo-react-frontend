@@ -365,7 +365,7 @@ function SummaryMetric({
                 <Icon className="h-4 w-4" aria-hidden="true" />
                 {label}
             </div>
-            <div className="mt-5 font-space-grotesk text-[40px] font-semibold tracking-tight text-slate-900 leading-none">{value}</div>
+            <div className="mt-5 text-[40px] font-semibold tracking-tight text-slate-900 leading-none">{value}</div>
             <p className="mt-3 text-[14px] leading-relaxed text-slate-500">{context}</p>
         </div>
     );

@@ -388,7 +388,7 @@ export default function SettingsPage() {
 
             <div className="space-y-6">
                 <div className="space-y-3">
-                    <h1 className="max-w-3xl text-balance font-space-grotesk text-[32px] font-semibold tracking-tight text-slate-900 md:text-[40px]">
+                    <h1 className="max-w-3xl text-balance text-[32px] font-semibold tracking-tight text-slate-900 md:text-[40px]">
                         Account Settings
                     </h1>
                     <p className="max-w-2xl text-[15px] leading-relaxed text-slate-500 md:text-base">
@@ -705,7 +705,7 @@ export default function SettingsPage() {
                                         {telegramConnectCode ? (
                                             <div className="space-y-3 rounded-[1.4rem] border border-white/80 bg-white/86 p-5 text-center shadow-[0_18px_40px_-34px_rgba(15,23,42,0.3)] backdrop-blur-2xl">
                                                 <div className="text-[12px] uppercase font-bold tracking-wide text-slate-400">Connect code</div>
-                                                <div className="font-space-grotesk text-[32px] font-semibold tracking-tight text-slate-900">{telegramConnectCode}</div>
+                                                <div className=" text-[32px] font-semibold tracking-tight text-slate-900">{telegramConnectCode}</div>
                                                 <div className="text-[14px] text-slate-500">Kirim ke bot: <span className="font-mono text-slate-900 font-bold bg-slate-100 px-1.5 py-0.5 rounded">/start {telegramConnectCode}</span></div>
                                                 {telegramCodeExpiresAt ? (
                                                     <div className="text-[12px] text-slate-400">Expires at: {new Date(telegramCodeExpiresAt).toLocaleString()}</div>

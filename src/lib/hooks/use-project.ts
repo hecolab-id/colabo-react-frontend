@@ -4,6 +4,7 @@ import {
     getProjectDetails,
     getProjectBySlugs,
     getProjectDocuments,
+    getProjectMeetingNotes,
     getProjectColumns,
     updateProject,
     createTask,
@@ -15,9 +16,15 @@ import {
     reorderColumns,
     deleteProject,
     createProjectDocument,
-    deleteProjectDocument
+    deleteProjectDocument,
+    createProjectMeetingNote,
+    updateProjectMeetingNote,
+    deleteProjectMeetingNote,
+    getProjectWeeklySummaries,
+    generateProjectWeeklySummary,
+    downloadProjectWeeklySummaryPdf
 } from "@/lib/api";
-import { Task, Column, Project, ProjectDocument } from "@/lib/types";
+import { Task, Column, Project, ProjectDocument, ProjectMeetingNote, WeeklyProjectSummary } from "@/lib/types";
 import { readSnapshot, writeSnapshot } from "@/lib/indexeddb-snapshot";
 
 type ProjectDetailCache = Project & {
@@ -93,6 +100,8 @@ export const projectKeys = {
     detailBySlugs: (teamSlug: string, projectSlug: string) => [...projectKeys.all, "detail", teamSlug, projectSlug] as const,
     columns: (id: string) => [...projectKeys.all, "columns", id] as const,
     documents: (id: string) => [...projectKeys.all, "documents", id] as const,
+    meetingNotes: (id: string) => [...projectKeys.all, "meeting-notes", id] as const,
+    weeklySummaries: (id: string) => [...projectKeys.all, "weekly-summaries", id] as const,
 };
 
 // Hooks
@@ -218,6 +227,81 @@ export function useDeleteProjectDocument(projectId: string) {
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: projectKeys.documents(projectId) });
         },
+    });
+}
+
+export function useProjectMeetingNotes(projectId: string) {
+    return useQuery({
+        queryKey: projectKeys.meetingNotes(projectId),
+        queryFn: () => getProjectMeetingNotes(projectId),
+        enabled: !!projectId,
+    });
+}
+
+export function useCreateProjectMeetingNote(projectId: string) {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: (payload: {
+            meeting_at: string;
+            content: string;
+        }) => createProjectMeetingNote(projectId, payload),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: projectKeys.meetingNotes(projectId) });
+        },
+    });
+}
+
+export function useUpdateProjectMeetingNote(projectId: string) {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: ({ noteId, payload }: {
+            noteId: string;
+            payload: {
+                meeting_at: string;
+                content: string;
+            };
+        }) => updateProjectMeetingNote(projectId, noteId, payload),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: projectKeys.meetingNotes(projectId) });
+        },
+    });
+}
+
+export function useDeleteProjectMeetingNote(projectId: string) {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: (noteId: string) => deleteProjectMeetingNote(projectId, noteId),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: projectKeys.meetingNotes(projectId) });
+        },
+    });
+}
+
+export function useProjectWeeklySummaries(projectId: string) {
+    return useQuery<WeeklyProjectSummary[]>({
+        queryKey: projectKeys.weeklySummaries(projectId),
+        queryFn: () => getProjectWeeklySummaries(projectId),
+        enabled: !!projectId,
+    });
+}
+
+export function useGenerateProjectWeeklySummary(projectId: string) {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: () => generateProjectWeeklySummary(projectId),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: projectKeys.weeklySummaries(projectId) });
+        },
+    });
+}
+
+export function useDownloadProjectWeeklySummaryPdf(projectId: string) {
+    return useMutation({
+        mutationFn: (summaryId: string) => downloadProjectWeeklySummaryPdf(projectId, summaryId),
     });
 }
 

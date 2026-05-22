@@ -56,7 +56,7 @@ export default function NotificationsPage() {
                         <Bell className="h-6 w-6 text-primary" />
                     </div>
                     <div>
-                        <h1 className="font-space-grotesk text-3xl font-semibold tracking-tight text-foreground">Notifications</h1>
+                        <h1 className=" text-3xl font-semibold tracking-tight text-foreground">Notifications</h1>
                         <p className="text-sm text-muted-foreground">
                             Assignments, mentions, and updates that need your attention.
                         </p>

@@ -97,7 +97,7 @@ export function InviteMemberModal({ isOpen, onClose, teamId, currentCount, maxCo
                         >
                             <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-[32px] bg-white p-8 text-left align-middle shadow-2xl transition-all border border-black/5">
                                 <div className="flex items-center justify-between mb-8">
-                                    <Dialog.Title as="h3" className="font-space-grotesk text-[24px] font-semibold tracking-tight text-slate-900">
+                                    <Dialog.Title as="h3" className=" text-[24px] font-semibold tracking-tight text-slate-900">
                                         Invite Member
                                     </Dialog.Title>
                                     <button onClick={handleClose} className="rounded-full bg-slate-100 p-2 text-slate-400 transition-colors hover:bg-slate-200 hover:text-slate-700">

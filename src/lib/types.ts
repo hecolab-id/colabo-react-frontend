@@ -341,7 +341,8 @@ export type AdminAIUsageFeature =
     | "BRAIN_CHAT"
     | "GENERATE_TASKS"
     | "QUERY_INTENT"
-    | "MESSENGER_ASSISTANT";
+    | "MESSENGER_ASSISTANT"
+    | "WEEKLY_SUMMARY";
 
 export type AdminAIUsageSummary = {
     total_tokens: number;
@@ -481,6 +482,46 @@ export type ProjectDocument = {
     size_bytes?: number;
     uploaded_by_id: string;
     uploaded_by?: User;
+    created_at?: string;
+    updated_at?: string;
+};
+
+export type ProjectMeetingNote = {
+    id: string;
+    project_id: string;
+    meeting_at: string;
+    content: string;
+    created_by_id: string;
+    created_by?: User;
+    updated_by_id: string;
+    updated_by?: User;
+    created_at?: string;
+    updated_at?: string;
+};
+
+export type WeeklyProjectSummaryStatus = "PENDING" | "COMPLETED" | "FAILED";
+
+export type WeeklyProjectSummaryContent = {
+    executive_summary: string;
+    team_contributions?: string[];
+    completed_work?: string[];
+    in_progress_work?: string[];
+    risks_blockers?: string[];
+    next_steps?: string[];
+};
+
+export type WeeklyProjectSummary = {
+    id: string;
+    team_id: string;
+    project_id: string;
+    period_start: string;
+    period_end: string;
+    status: WeeklyProjectSummaryStatus;
+    summary_json: WeeklyProjectSummaryContent;
+    summary_text: string;
+    generated_at?: string;
+    emailed_at?: string;
+    error_message?: string;
     created_at?: string;
     updated_at?: string;
 };

@@ -39,7 +39,7 @@ export function ModalShell({
         <div className={cn("p-6 sm:p-8", bodyClassName)}>
           <div className="mb-8 flex items-start justify-between gap-4">
             <div className="min-w-0">
-              <h2 className="font-space-grotesk text-[24px] font-semibold tracking-tight text-slate-950 sm:text-[28px]">
+              <h2 className=" text-[24px] font-semibold tracking-tight text-slate-950 sm:text-[28px]">
                 {title}
               </h2>
               {description ? <p className="mt-1.5 text-sm leading-6 text-slate-500">{description}</p> : null}

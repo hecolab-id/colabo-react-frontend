@@ -102,7 +102,7 @@ export function MobilePremiumPrompt({ team }: { team: Team | null }) {
                                         <p className="text-xs font-semibold uppercase tracking-[0.24em] text-indigo-700">
                                             Colabo Premium
                                         </p>
-                                        <Dialog.Title className="mt-3 text-balance font-space-grotesk text-2xl font-semibold tracking-tight text-slate-950">
+                                        <Dialog.Title className="mt-3 text-balance text-2xl font-semibold tracking-tight text-slate-950">
                                             Unlock more room for your next projects.
                                         </Dialog.Title>
                                     </div>

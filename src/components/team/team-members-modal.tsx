@@ -107,7 +107,7 @@ export function TeamMembersModal({ team, currentUser, onClose, onUpdate }: TeamM
             >
                 {/* Header */}
                 <div className="flex justify-between items-center px-8 py-6 border-b border-black/5">
-                    <h2 className="font-space-grotesk text-[24px] font-semibold tracking-tight text-slate-900">Team Members</h2>
+                    <h2 className=" text-[24px] font-semibold tracking-tight text-slate-900">Team Members</h2>
                     <button onClick={onClose} className="rounded-full bg-slate-100 p-2 text-slate-400 transition-colors hover:bg-slate-200 hover:text-slate-700">
                         <X className="h-5 w-5" />
                     </button>

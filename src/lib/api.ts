@@ -1,5 +1,5 @@
 import axios from "axios";
-import { AuthResponse, Plan, Project, ProjectDocument, ProjectDocumentKind, Task, Team, Comment, Notification, User, ActivityLog, Column, Checklist, ChecklistItem, Role, TeamUsage, CommentMention, LinkPreview, MessengerConnection, NotificationPreference, MessengerPlatform, TeamMessengerPolicy, MessengerLinkToken, BrowserPushSettings, BrowserPushSubscriptionInput, AdminImpersonationState, AdminOverview, AdminPaymentTransaction, AdminPlan, AdminProjectRow, AdminTeamRow, AdminUserRow, AdminListResponse, AdminAIUsageSummary, AdminAIUsageTeamRow, AdminAIUsageUserRow, AdminAIUsageFeatureRow, AdminAIUsageGranularity, AdminAIUsageTimeseries, DashboardActionBucketId, DashboardActionItem, DashboardActionSeverity, DashboardHealthMetric, DashboardOverview, DashboardProjectSummary, DashboardRecommendedAction, PaginatedResult, TeamActivityItem, TeamActivityOverview, TeamInvite, TeamInvitePreview } from "./types";
+import { AuthResponse, Plan, Project, ProjectDocument, ProjectDocumentKind, ProjectMeetingNote, WeeklyProjectSummary, Task, Team, Comment, Notification, User, ActivityLog, Column, Checklist, ChecklistItem, Role, TeamUsage, CommentMention, LinkPreview, MessengerConnection, NotificationPreference, MessengerPlatform, TeamMessengerPolicy, MessengerLinkToken, BrowserPushSettings, BrowserPushSubscriptionInput, AdminImpersonationState, AdminOverview, AdminPaymentTransaction, AdminPlan, AdminProjectRow, AdminTeamRow, AdminUserRow, AdminListResponse, AdminAIUsageSummary, AdminAIUsageTeamRow, AdminAIUsageUserRow, AdminAIUsageFeatureRow, AdminAIUsageGranularity, AdminAIUsageTimeseries, DashboardActionBucketId, DashboardActionItem, DashboardActionSeverity, DashboardHealthMetric, DashboardOverview, DashboardProjectSummary, DashboardRecommendedAction, PaginatedResult, TeamActivityItem, TeamActivityOverview, TeamInvite, TeamInvitePreview } from "./types";
 import { recordNotificationPromptIntent } from "@/lib/notification-soft-prompt";
 
 export const API_ORIGIN = (import.meta.env.VITE_API_URL || "").replace(/\/$/, "");
@@ -410,6 +410,55 @@ export const createProjectDocument = async (
 
 export const deleteProjectDocument = async (projectId: string, documentId: string): Promise<void> => {
     await api.delete(`/projects/${projectId}/documents/${documentId}`);
+};
+
+export const getProjectMeetingNotes = async (projectId: string): Promise<ProjectMeetingNote[]> => {
+    const { data } = await api.get(`/projects/${projectId}/meeting-notes`);
+    return data.data;
+};
+
+export const createProjectMeetingNote = async (
+    projectId: string,
+    payload: {
+        meeting_at: string;
+        content: string;
+    },
+): Promise<ProjectMeetingNote> => {
+    const { data } = await api.post(`/projects/${projectId}/meeting-notes`, payload);
+    return data.data;
+};
+
+export const updateProjectMeetingNote = async (
+    projectId: string,
+    noteId: string,
+    payload: {
+        meeting_at: string;
+        content: string;
+    },
+): Promise<ProjectMeetingNote> => {
+    const { data } = await api.patch(`/projects/${projectId}/meeting-notes/${noteId}`, payload);
+    return data.data;
+};
+
+export const deleteProjectMeetingNote = async (projectId: string, noteId: string): Promise<void> => {
+    await api.delete(`/projects/${projectId}/meeting-notes/${noteId}`);
+};
+
+export const getProjectWeeklySummaries = async (projectId: string): Promise<WeeklyProjectSummary[]> => {
+    const { data } = await api.get(`/projects/${projectId}/weekly-summaries`);
+    return data.data;
+};
+
+export const generateProjectWeeklySummary = async (projectId: string): Promise<WeeklyProjectSummary> => {
+    const { data } = await api.post(`/projects/${projectId}/weekly-summaries/generate`);
+    return data.data;
+};
+
+export const downloadProjectWeeklySummaryPdf = async (projectId: string, summaryId: string): Promise<Blob> => {
+    const { data } = await api.get(`/projects/${projectId}/weekly-summaries/${summaryId}/pdf`, {
+        responseType: "blob",
+    });
+    return data;
 };
 
 export const inviteProjectMember = async (projectId: string, payload: { user_id?: string; email?: string }): Promise<void> => {

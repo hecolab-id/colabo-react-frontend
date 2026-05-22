@@ -27,6 +27,11 @@ export const FEATURE_LABELS: Record<
         description: "Telegram and WhatsApp bot responses",
         color: "#f43f5e",
     },
+    WEEKLY_SUMMARY: {
+        label: "Weekly Summary",
+        description: "Automatic and manual project weekly reports",
+        color: "#10b981",
+    },
 };
 
 // Stable rendering order, used both in the daily stack chart and in the
@@ -37,4 +42,5 @@ export const FEATURE_ORDER: AdminAIUsageFeature[] = [
     "GENERATE_TASKS",
     "QUERY_INTENT",
     "MESSENGER_ASSISTANT",
+    "WEEKLY_SUMMARY",
 ];

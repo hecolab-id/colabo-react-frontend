@@ -25,7 +25,7 @@ export function AuthShell({
                 <span className="h-2 w-2 rounded-full bg-primary-dark" />
                 Colabo Workspace
               </div>
-              <h1 className="font-space-grotesk text-[52px] font-semibold leading-[1.02] tracking-tight text-slate-950">
+              <h1 className=" text-[52px] font-semibold leading-[1.02] tracking-tight text-slate-950">
                 Project clarity for teams that need to move together.
               </h1>
               <p className="max-w-[430px] text-[17px] leading-7 text-slate-500">

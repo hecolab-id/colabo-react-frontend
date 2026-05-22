@@ -8,7 +8,7 @@ export default function OfflinePage() {
                     <p className="text-xs font-semibold uppercase tracking-[0.28em] text-sky-700">
                         Offline Mode
                     </p>
-                    <h1 className="mt-4 font-space-grotesk text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">
+                    <h1 className="mt-4 text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">
                         You&apos;re offline right now.
                     </h1>
                     <p className="mt-4 max-w-2xl text-base leading-7 text-slate-600">

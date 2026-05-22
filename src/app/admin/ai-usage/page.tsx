@@ -261,7 +261,7 @@ export default function AdminAIUsagePage() {
                 <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
                     AI Operations
                 </p>
-                <h2 className="font-space-grotesk text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
+                <h2 className=" text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
                     AI Token Usage
                 </h2>
                 <p className="max-w-2xl text-sm leading-6 text-muted-foreground">

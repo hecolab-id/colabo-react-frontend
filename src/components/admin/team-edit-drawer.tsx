@@ -71,7 +71,7 @@ export function TeamEditDrawer({ team, open, onClose, plans, draft, onChange, on
                         </p>
                         <h2
                             id="team-drawer-title"
-                            className="mt-1 truncate font-space-grotesk text-lg font-semibold tracking-tight text-foreground"
+                            className="mt-1 truncate text-lg font-semibold tracking-tight text-foreground"
                         >
                             {team?.name || "Team"}
                         </h2>

@@ -25,7 +25,7 @@ export function Panel({
                     {eyebrow ? (
                         <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">{eyebrow}</p>
                     ) : null}
-                    <h2 className="font-space-grotesk text-xl font-semibold tracking-tight text-foreground sm:text-2xl">{title}</h2>
+                    <h2 className=" text-xl font-semibold tracking-tight text-foreground sm:text-2xl">{title}</h2>
                     {subtitle ? <p className="max-w-2xl text-sm leading-6 text-muted-foreground">{subtitle}</p> : null}
                 </div>
                 {action ? <div className="shrink-0">{action}</div> : null}
@@ -48,7 +48,7 @@ export function HeroStat({
     return (
         <div className="rounded-[16px] border border-black/5 bg-white px-4 py-4">
             <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">{label}</p>
-            <p className="mt-2 font-space-grotesk text-2xl font-semibold tracking-tight text-foreground [font-variant-numeric:tabular-nums]">{value}</p>
+            <p className="mt-2 text-2xl font-semibold tracking-tight text-foreground [font-variant-numeric:tabular-nums]">{value}</p>
             <p className="mt-1 text-sm text-muted-foreground">{meta}</p>
         </div>
     );
@@ -67,7 +67,7 @@ export function SummaryCard({
     return (
         <div className="rounded-[16px] border border-black/5 bg-white px-4 py-4">
             <p className="text-sm text-muted-foreground">{title}</p>
-            <p className="mt-2 font-space-grotesk text-2xl font-semibold tracking-tight text-foreground [font-variant-numeric:tabular-nums] sm:text-3xl">{value}</p>
+            <p className="mt-2 text-2xl font-semibold tracking-tight text-foreground [font-variant-numeric:tabular-nums] sm:text-3xl">{value}</p>
             <p className="mt-1 text-sm text-muted-foreground">{meta}</p>
         </div>
     );
@@ -409,7 +409,7 @@ export function DonutSplit({ free, paid }: { free: number; paid: number }) {
             >
                 <div className="grid h-[124px] w-[124px] place-items-center rounded-full bg-white text-center">
                     <div>
-                        <div className="font-space-grotesk text-2xl font-semibold text-foreground [font-variant-numeric:tabular-nums]">{total}</div>
+                        <div className=" text-2xl font-semibold text-foreground [font-variant-numeric:tabular-nums]">{total}</div>
                         <div className="text-[11px] uppercase tracking-[0.22em] text-muted-foreground">Teams</div>
                     </div>
                 </div>

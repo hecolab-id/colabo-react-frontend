@@ -52,7 +52,7 @@ export default function TeamActivityPage() {
                         Workspace Missing
                     </div>
                     <div>
-                        <h1 className="font-space-grotesk text-3xl font-semibold text-slate-900 tracking-tight text-balance">Team not found</h1>
+                        <h1 className=" text-3xl font-semibold text-slate-900 tracking-tight text-balance">Team not found</h1>
                         <p className="mt-2 text-[15px] leading-relaxed text-slate-500">
                             The team “{params.teamSlug}” does not exist, or this account does not have access to it.
                         </p>
