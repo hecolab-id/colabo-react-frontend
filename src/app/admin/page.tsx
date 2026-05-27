@@ -2,16 +2,13 @@
 
 import { useMemo } from "react";
 import { getAdminDashboard, getAdminPayments, getAdminTeams } from "@/lib/api";
-import { AdminListResponse, AdminOverview, AdminPaymentTransaction, AdminTeamRow } from "@/lib/types";
+import { AdminListResponse, AdminOverview, AdminPaymentTransaction, AdminTeamRow, AdminTrendPoint } from "@/lib/types";
 import {
     DualBarChart,
     EmptyState,
-    HeroStat,
     Panel,
     Skeleton,
-    SkeletonHeroStatGrid,
     StackedTrend,
-    StatusPill,
     formatCurrencyIdr,
     formatNumber,
 } from "@/components/admin/admin-ui";
@@ -19,6 +16,31 @@ import { useAdminQuery } from "@/lib/hooks/use-admin-query";
 
 const REFRESHING_CLASS = "opacity-60 transition-opacity duration-200";
 const STEADY_CLASS = "transition-opacity duration-200";
+
+type StatusTone = "ok" | "warning" | "alert" | "neutral";
+
+const dateFormatter = new Intl.DateTimeFormat("id-ID", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+});
+
+function formatPercentDelta(latest: number, prev: number): string {
+    if (prev <= 0 && latest <= 0) return "tetap";
+    if (prev <= 0) return "baru";
+    const delta = ((latest - prev) / prev) * 100;
+    const sign = delta >= 0 ? "+" : "";
+    return `${sign}${delta.toFixed(0)}% vs bulan lalu`;
+}
+
+function tail<T>(arr: T[]): T | undefined {
+    return arr.length > 0 ? arr[arr.length - 1] : undefined;
+}
+
+function prevOfTail<T>(arr: T[]): T | undefined {
+    return arr.length > 1 ? arr[arr.length - 2] : undefined;
+}
 
 export default function AdminOverviewPage() {
     const overviewQ = useAdminQuery<AdminOverview>(
@@ -44,34 +66,45 @@ export default function AdminOverviewPage() {
             .map((team) => ({
                 ...team,
                 reasons: [
-                    team.whatsapp_status !== "CONNECTED" ? "WhatsApp bot disconnected" : null,
+                    team.whatsapp_status !== "CONNECTED" ? "WhatsApp bot terputus" : null,
                     team.subscription_status === "CANCELLED" || team.subscription_status === "EXPIRED"
                         ? `Subscription ${team.subscription_status?.toLowerCase()}`
                         : null,
-                    team.monthly_ai_tokens_used >= 500000 ? "High AI token usage this month" : null,
-                    team.project_count === 0 ? "No active projects yet" : null,
+                    team.monthly_ai_tokens_used >= 500000 ? "Penggunaan AI token tinggi bulan ini" : null,
+                    team.project_count === 0 ? "Belum ada project aktif" : null,
                 ].filter(Boolean) as string[],
             }))
             .filter((team) => team.reasons.length > 0)
-            .sort((left, right) => right.reasons.length - left.reasons.length)
-            .slice(0, 5);
+            .sort((left, right) => right.reasons.length - left.reasons.length);
     }, [teams]);
 
-    // The overview page renders the full layout once data is partial-ready,
-    // so the skeleton matches the final structure: hero grid + 2-column
-    // panel + chart panel. No more blocking spinner.
-    if (overviewQ.isInitialLoading || !overview) {
+    const visibleWatchlist = watchlistTeams.slice(0, 5);
+    const overflowWatchlist = Math.max(watchlistTeams.length - visibleWatchlist.length, 0);
+
+    const today = useMemo(() => dateFormatter.format(new Date()), []);
+
+    const isInitialLoading = overviewQ.isInitialLoading || !overview;
+
+    if (isInitialLoading) {
         if (overviewQ.error) {
-            return <EmptyState message={overviewQ.error} />;
+            return (
+                <div className="space-y-8">
+                    <StatusHeader date={today} tone="alert" message="Gagal memuat data. Refresh halaman." />
+                    <EmptyState message={overviewQ.error} />
+                </div>
+            );
         }
         return (
-            <div className="space-y-6">
-                <SkeletonHeroStatGrid count={4} />
-                <section className="grid gap-4 lg:grid-cols-[1.25fr_0.75fr]">
-                    <Skeleton height={280} rounded="2xl" className="border border-black/5 bg-white" />
+            <div className="space-y-8">
+                <StatusHeader date={today} tone="neutral" message="Memuat data" loading />
+                <section>
                     <Skeleton height={280} rounded="2xl" className="border border-black/5 bg-white" />
                 </section>
-                <Skeleton height={260} rounded="2xl" className="border border-black/5 bg-white" />
+                <section className="grid gap-4 md:grid-cols-2 lg:grid-cols-[2fr_2fr_1fr]">
+                    <Skeleton height={220} rounded="2xl" className="border border-black/5 bg-white" />
+                    <Skeleton height={220} rounded="2xl" className="border border-black/5 bg-white" />
+                    <Skeleton height={220} rounded="2xl" className="border border-black/5 bg-white" />
+                </section>
             </div>
         );
     }
@@ -79,94 +112,188 @@ export default function AdminOverviewPage() {
     const isRefreshing =
         overviewQ.isRefreshing || teamsQ.isRefreshing || paymentsQ.isRefreshing;
 
+    const watchlistCount = watchlistTeams.length;
+    const statusTone: StatusTone = watchlistCount === 0 ? "ok" : watchlistCount >= 3 ? "alert" : "warning";
+    const statusMessage =
+        watchlistCount === 0
+            ? "Semua team sehat"
+            : `${watchlistCount} team butuh perhatian`;
+
+    const revenueLatest = tail<AdminTrendPoint>(overview.revenue_trend);
+    const revenuePrev = prevOfTail<AdminTrendPoint>(overview.revenue_trend);
+    const mrrLatest = tail<AdminTrendPoint>(overview.mrr_trend);
+
+    const heroSummaryParts: string[] = [];
+    if (revenueLatest) {
+        heroSummaryParts.push(`${formatCurrencyIdr(revenueLatest.value)} bulan ini`);
+    }
+    if (mrrLatest) {
+        heroSummaryParts.push(`${formatCurrencyIdr(mrrLatest.value)} MRR`);
+    }
+    if (revenueLatest && revenuePrev) {
+        heroSummaryParts.push(formatPercentDelta(revenueLatest.value, revenuePrev.value));
+    }
+    const heroSummary = heroSummaryParts.join("  ·  ");
+
+    const paidCount = overview.free_vs_paid_ratio.paid;
+    const freeCount = overview.free_vs_paid_ratio.free;
+
     return (
-        <div className={`space-y-6 ${isRefreshing ? REFRESHING_CLASS : STEADY_CLASS}`}>
-            <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                <HeroStat
-                    label="Revenue this month"
-                    value={formatCurrencyIdr(overview.total_revenue_this_month)}
-                    meta="Display converted to IDR"
-                />
-                <HeroStat
-                    label="Active users"
-                    value={formatNumber(overview.total_active_users)}
-                    meta="Accounts ready to operate"
-                />
-                <HeroStat
-                    label="Active projects"
-                    value={formatNumber(overview.total_active_projects)}
-                    meta={`${formatNumber(overview.total_projects)} total tracked`}
-                />
-                <HeroStat
-                    label="Tracked payments"
-                    value={formatNumber(paymentTotal)}
-                    meta={watchlistTeams.length > 0 ? `${watchlistTeams.length} teams need attention` : "No urgent team alerts"}
-                />
-            </section>
-
-            <section className="grid gap-4 lg:grid-cols-[1.25fr_0.75fr]">
-                <Panel
-                    eyebrow="Growth"
-                    title="Free vs paid"
-                    subtitle={`Paid: ${formatNumber(overview.free_vs_paid_ratio.paid)} · Free: ${formatNumber(overview.free_vs_paid_ratio.free)}.`}
-                >
-                    <DualBarChart data={overview.daily_registrations} />
-                </Panel>
-
-                <Panel
-                    eyebrow="Watchlist"
-                    title="Teams needing attention"
-                    subtitle="Operational risk surfaced so the dashboard stays actionable."
-                >
-                    <div className="space-y-2.5">
-                        {watchlistTeams.length === 0 ? (
-                            <EmptyState message="No teams on the watchlist. Connection, subscription, and usage signals look stable." compact />
-                        ) : (
-                            watchlistTeams.map((team) => (
-                                <div key={team.id} className="rounded-[14px] border border-black/5 bg-white p-3.5">
-                                    <div className="flex items-start justify-between gap-3">
-                                        <div className="min-w-0">
-                                            <p className="truncate text-sm font-semibold text-foreground">{team.name}</p>
-                                            <p className="mt-0.5 truncate text-xs text-muted-foreground">
-                                                {team.owner_name} · {team.current_plan_name || "No plan assigned"}
-                                            </p>
-                                        </div>
-                                        <StatusPill
-                                            tone={team.whatsapp_status === "CONNECTED" ? "calm" : "alert"}
-                                            label={team.whatsapp_status === "CONNECTED" ? "Stable" : "Review"}
-                                        />
-                                    </div>
-                                    <div className="mt-2.5 flex flex-wrap gap-1.5">
-                                        {team.reasons.map((reason) => (
-                                            <span
-                                                key={`${team.id}-${reason}`}
-                                                className="rounded-full bg-[var(--accent)] px-2.5 py-0.5 text-[11px] font-medium text-primary"
-                                            >
-                                                {reason}
-                                            </span>
-                                        ))}
-                                    </div>
-                                </div>
-                            ))
-                        )}
-                    </div>
-                </Panel>
-            </section>
+        <div className={`space-y-8 ${isRefreshing ? REFRESHING_CLASS : STEADY_CLASS}`}>
+            <StatusHeader date={today} tone={statusTone} message={statusMessage} />
 
             <section>
                 <Panel
-                    eyebrow="Revenue"
-                    title="Monthly revenue and recurring run-rate"
-                    subtitle="The financial trend that matters most on the overview page."
+                    eyebrow="Revenue & MRR"
+                    title="Tren bulanan"
+                    subtitle={heroSummary || "Belum ada data revenue bulan ini."}
                 >
-                    <StackedTrend
-                        primary={overview.revenue_trend}
-                        secondary={overview.mrr_trend}
-                        primaryLabel="Incoming revenue"
-                        secondaryLabel="MRR"
-                    />
+                    {overview.revenue_trend.length > 0 ? (
+                        <StackedTrend
+                            primary={overview.revenue_trend}
+                            secondary={overview.mrr_trend}
+                            primaryLabel="Incoming revenue"
+                            secondaryLabel="MRR"
+                        />
+                    ) : (
+                        <EmptyState message="Belum ada transaksi yang tercatat bulan ini." compact />
+                    )}
                 </Panel>
             </section>
+
+            <section className="grid gap-4 md:grid-cols-2 lg:grid-cols-[2fr_2fr_1fr]">
+                <Panel eyebrow="Watchlist" title="Butuh perhatian">
+                    {visibleWatchlist.length === 0 ? (
+                        <EmptyState
+                            message="Tidak ada team yang butuh perhatian. Status sinyal stabil."
+                            compact
+                        />
+                    ) : (
+                        <ul className="-mx-2 space-y-0.5">
+                            {visibleWatchlist.map((team) => (
+                                <li key={team.id}>
+                                    <button
+                                        type="button"
+                                        className="group flex w-full items-start gap-3 rounded-[12px] px-2 py-2.5 text-left transition-colors hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+                                    >
+                                        <span
+                                            aria-hidden="true"
+                                            className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${
+                                                team.reasons.length >= 2 ? "bg-rose-500" : "bg-amber-500"
+                                            }`}
+                                        />
+                                        <span className="min-w-0 flex-1">
+                                            <span className="block truncate text-sm font-semibold text-foreground">
+                                                {team.name}
+                                            </span>
+                                            <span className="mt-0.5 block truncate text-xs text-muted-foreground">
+                                                {team.reasons.join(" · ")}
+                                            </span>
+                                        </span>
+                                        <span
+                                            aria-hidden="true"
+                                            className="mt-1 text-slate-300 transition-colors group-hover:text-slate-500"
+                                        >
+                                            ›
+                                        </span>
+                                    </button>
+                                </li>
+                            ))}
+                            {overflowWatchlist > 0 ? (
+                                <li className="px-2 pt-2 text-xs text-muted-foreground">
+                                    + {overflowWatchlist} team lainnya
+                                </li>
+                            ) : null}
+                        </ul>
+                    )}
+                </Panel>
+
+                <Panel eyebrow="Akuisisi" title="Free vs paid">
+                    {overview.daily_registrations.length > 0 ? (
+                        <>
+                            <DualBarChart data={overview.daily_registrations} />
+                            <p className="mt-4 text-xs text-muted-foreground">
+                                {formatNumber(paidCount)} berbayar · {formatNumber(freeCount)} gratis
+                            </p>
+                        </>
+                    ) : (
+                        <EmptyState message="Belum ada registrasi tercatat." compact />
+                    )}
+                </Panel>
+
+                <aside aria-label="Angka singkat" className="min-w-0">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                        Angka singkat
+                    </p>
+                    <dl className="mt-5 space-y-4">
+                        <QuickStat
+                            value={formatNumber(overview.total_active_users)}
+                            label="user aktif"
+                            hint={`${formatNumber(overview.total_active_projects)} project hidup`}
+                        />
+                        <QuickStat
+                            value={formatNumber(paymentTotal)}
+                            label="payment terlacak"
+                            hint={
+                                watchlistCount > 0
+                                    ? `${watchlistCount} team perlu di-review`
+                                    : "Operasional stabil"
+                            }
+                        />
+                    </dl>
+                </aside>
+            </section>
+        </div>
+    );
+}
+
+function StatusHeader({
+    date,
+    tone,
+    message,
+    loading = false,
+}: {
+    date: string;
+    tone: StatusTone;
+    message: string;
+    loading?: boolean;
+}) {
+    const dotClass =
+        tone === "ok"
+            ? "bg-emerald-500"
+            : tone === "warning"
+              ? "bg-amber-500"
+              : tone === "alert"
+                ? "bg-rose-500"
+                : "bg-slate-300";
+
+    return (
+        <header className="flex flex-wrap items-baseline gap-x-3 gap-y-1 border-b border-black/5 pb-4">
+            <h1 className="text-base font-semibold tracking-tight text-foreground">Overview</h1>
+            <span aria-hidden="true" className="text-sm text-slate-300">·</span>
+            <time className="text-sm text-muted-foreground" dateTime={new Date().toISOString()}>
+                {date}
+            </time>
+            <span aria-hidden="true" className="text-sm text-slate-300">·</span>
+            <p className="flex items-center gap-2 text-sm text-muted-foreground" role="status" aria-live="polite">
+                <span
+                    aria-hidden="true"
+                    className={`h-2 w-2 rounded-full ${dotClass} ${loading ? "motion-safe:animate-pulse" : ""}`}
+                />
+                {message}
+            </p>
+        </header>
+    );
+}
+
+function QuickStat({ value, label, hint }: { value: string; label: string; hint?: string }) {
+    return (
+        <div>
+            <p className="text-2xl font-semibold tracking-tight text-foreground [font-variant-numeric:tabular-nums]">
+                {value}
+            </p>
+            <p className="mt-0.5 text-sm text-muted-foreground">{label}</p>
+            {hint ? <p className="mt-1 text-xs text-muted-foreground/80">{hint}</p> : null}
         </div>
     );
 }
