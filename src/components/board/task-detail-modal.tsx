@@ -255,7 +255,11 @@ export function TaskDetailModal({ task, projectColumns: initialProjectColumns, o
 
     const [isEditingTitle, setIsEditingTitle] = useState(false);
     const [title, setTitle] = useState(task.title);
-    const titleRefiner = useAiTitleRefine({ value: title, onChange: setTitle, teamId: task.project?.team_id });
+    const titleRefiner = useAiTitleRefine({
+        value: title,
+        onChange: setTitle,
+        teamId: taskState.project?.team_id,
+    });
     const [isEditingDesc, setIsEditingDesc] = useState(false);
     const [description, setDescription] = useState(task.description || "");
     const [isAssigning, setIsAssigning] = useState(false);

@@ -41,7 +41,7 @@ export function useAiTitleRefine({
     const bannerTimerRef = useRef<number | null>(null);
 
     const canRefine = useMemo(
-        () => Boolean(teamId) && value.trim().length >= minLength && !isRefining,
+        () => isUsableTeamId(teamId) && value.trim().length >= minLength && !isRefining,
         [teamId, value, minLength, isRefining],
     );
 
@@ -245,4 +245,14 @@ export function AiTitleRefineBanner({ state, className }: { state: AiTitleRefine
 function truncate(text: string, limit: number) {
     if (text.length <= limit) return text;
     return `${text.slice(0, limit).trimEnd()}…`;
+}
+
+// Treat the all-zero UUID as "no team" because that is the value the Go backend
+// serializes for a Project struct that was never preloaded; sending it would
+// fail the plan-limit check with a confusing 500.
+const NIL_UUID = "00000000-0000-0000-0000-000000000000";
+
+function isUsableTeamId(value?: string): value is string {
+    if (!value) return false;
+    return value !== NIL_UUID;
 }
