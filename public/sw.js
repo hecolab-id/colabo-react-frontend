@@ -1,4 +1,4 @@
-const SW_VERSION = "colabo-pwa-v4";
+const SW_VERSION = "colabo-pwa-v5";
 const STATIC_CACHE = `${SW_VERSION}-static`;
 const ASSET_CACHE = `${SW_VERSION}-assets`;
 const API_CACHE = `${SW_VERSION}-api`;

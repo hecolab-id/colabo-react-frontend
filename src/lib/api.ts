@@ -10,7 +10,7 @@ const api = axios.create({
 });
 
 const OFFLINE_ACTION_EVENT = "colabo:offline-action-blocked";
-const OFFLINE_ACTION_MESSAGE = "This action needs an internet connection. Viewing cached dashboard and task data still works offline.";
+const OFFLINE_ACTION_MESSAGE = "Aksi ini butuh koneksi internet. Anda masih bisa membuka Dashboard dan Tugas yang tersimpan.";
 export const AUTH_EXPIRED_EVENT = "colabo:auth-expired";
 
 let accessToken: string | null = null;

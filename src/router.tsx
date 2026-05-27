@@ -47,6 +47,8 @@ const OFFLINE_SUPPORTED_PATHS = new Set([
   "/offline",
 ]);
 
+const INTENDED_PATH_KEY = "colabo:intended-path";
+
 function useOnlineStatus() {
   const [isOnline, setIsOnline] = useState(() => {
     if (typeof navigator === "undefined") {
@@ -182,10 +184,30 @@ function OfflineAwareRoutes() {
   const isOfflineUnsupportedRoute = !isOnline && !OFFLINE_SUPPORTED_PATHS.has(location.pathname);
 
   useEffect(() => {
-    if (isOfflineUnsupportedRoute) {
-      navigate("/offline", { replace: true });
+    if (!isOfflineUnsupportedRoute) {
+      return;
     }
-  }, [isOfflineUnsupportedRoute, navigate]);
+    try {
+      const intended = `${location.pathname}${location.search}`;
+      if (intended && intended !== "/offline") {
+        sessionStorage.setItem(INTENDED_PATH_KEY, intended);
+      }
+    } catch {
+      // sessionStorage may be unavailable; skip persistence and proceed.
+    }
+    navigate("/offline", { replace: true });
+  }, [isOfflineUnsupportedRoute, navigate, location.pathname, location.search]);
+
+  useEffect(() => {
+    if (location.pathname === "/offline" || !isOnline) {
+      return;
+    }
+    try {
+      sessionStorage.removeItem(INTENDED_PATH_KEY);
+    } catch {
+      // ignore
+    }
+  }, [location.pathname, isOnline]);
 
   if (isOfflineUnsupportedRoute) {
     return <OfflinePage />;
