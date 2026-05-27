@@ -784,7 +784,8 @@ export const createTask = async (
     columnId?: string,
     description?: string,
     priority?: string,
-    assigneeId?: string
+    assigneeId?: string,
+    dueDate?: string | null,
 ): Promise<Task> => {
     const { data } = await api.post("/tasks", {
         project_id: projectId,
@@ -794,6 +795,7 @@ export const createTask = async (
         description,
         priority,
         assignee_id: assigneeId,
+        due_date: dueDate || undefined,
     });
     recordNotificationPromptIntent("task_created");
     return data.data;

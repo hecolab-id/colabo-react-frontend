@@ -8,6 +8,7 @@ import {
     getProjectColumns,
     updateProject,
     createTask,
+    addLabelToTask,
     updateTask,
     deleteTask,
     createColumn,
@@ -24,7 +25,7 @@ import {
     generateProjectWeeklySummary,
     downloadProjectWeeklySummaryPdf
 } from "@/lib/api";
-import { Task, Column, Project, ProjectDocument, ProjectMeetingNote, WeeklyProjectSummary } from "@/lib/types";
+import { Task, TaskPriority, Column, Project, ProjectDocument, ProjectMeetingNote, WeeklyProjectSummary } from "@/lib/types";
 import { readSnapshot, writeSnapshot } from "@/lib/indexeddb-snapshot";
 
 type ProjectDetailCache = Project & {
@@ -310,8 +311,26 @@ export function useCreateTask(projectId: string) {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: ({ title, status, columnId, assigneeId }: { title: string; status: string; columnId?: string; assigneeId?: string }) =>
-            createTask(projectId, title, status, columnId, undefined, undefined, assigneeId),
+        mutationFn: async ({ title, status, columnId, assigneeId, priority, dueDate, labelIds }: {
+            title: string;
+            status: string;
+            columnId?: string;
+            assigneeId?: string;
+            priority?: TaskPriority;
+            dueDate?: string | null;
+            labelIds?: string[];
+        }) => {
+            const created = await createTask(projectId, title, status, columnId, undefined, priority, assigneeId, dueDate);
+            if (labelIds && labelIds.length > 0) {
+                const attachResults = await Promise.allSettled(labelIds.map((id) => addLabelToTask(created.id, id)));
+                attachResults.forEach((result, index) => {
+                    if (result.status === "rejected") {
+                        console.warn(`Failed to attach label ${labelIds[index]} to task ${created.id}:`, result.reason);
+                    }
+                });
+            }
+            return created;
+        },
         onMutate: async (variables) => {
             await queryClient.cancelQueries({ queryKey: ["projects", "detail"] });
             const previousProjects = getProjectDetailCaches(queryClient);
@@ -322,10 +341,11 @@ export function useCreateTask(projectId: string) {
                 title: variables.title,
                 description: "",
                 status: variables.status as Task["status"],
-                priority: "MEDIUM",
+                priority: variables.priority || "MEDIUM",
                 position: Date.now(),
                 assignee_id: variables.assigneeId || null,
                 column_id: variables.columnId,
+                due_date: variables.dueDate || null,
                 created_at: now,
                 updated_at: now,
                 comments_count: 0,

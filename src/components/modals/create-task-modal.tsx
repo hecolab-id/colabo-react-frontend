@@ -1,14 +1,18 @@
 "use client";
 
-import { ReactNode, useEffect, useState } from "react";
-import { FolderPlus, X, CheckCircle2, Check, ChevronDown } from "lucide-react";
-import { Column, Project, TaskStatus, User } from "@/lib/types";
+import { ReactNode, useCallback, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
+import { Calendar, CheckCircle2, Check, ChevronDown, FolderPlus, Plus, Tag, X } from "lucide-react";
+import { Column, Label, Project, TaskPriority, TaskStatus, User } from "@/lib/types";
 import { Listbox, ListboxButton, ListboxOption, ListboxOptions } from "@headlessui/react";
 import { cn } from "@/lib/utils";
+import { priorityToneMap } from "@/lib/task-ui";
+import { getTeamLabels } from "@/lib/api";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Input } from "@/components/ui/input";
+import { LabelBadge } from "@/components/ui/label-badge";
 import { ModalShell } from "@/components/ui/modal-shell";
 import { SettingsField } from "@/components/ui/settings-field";
 import { getProjectColumns } from "@/lib/api";
@@ -19,6 +23,9 @@ export type CreateTaskFormValues = {
     status: TaskStatus;
     columnId?: string;
     assigneeId?: string;
+    priority?: TaskPriority;
+    dueDate?: string | null;
+    labelIds?: string[];
 };
 
 type ProjectOption = Pick<Project, "id" | "name" | "slug">;
@@ -29,6 +36,12 @@ const statusOptions: Array<{ value: TaskStatus; label: string }> = [
     { value: "IN_PROGRESS", label: "In Progress" },
     { value: "DONE", label: "Done" },
     { value: "BACKLOG", label: "Backlog" },
+];
+
+const priorityOptions: Array<{ value: TaskPriority; label: string }> = [
+    { value: "HIGH", label: "High" },
+    { value: "MEDIUM", label: "Medium" },
+    { value: "LOW", label: "Low" },
 ];
 
 function getStatusFromColumn(column: Column | undefined, fallback: TaskStatus): TaskStatus {
@@ -42,6 +55,15 @@ function getStatusFromColumn(column: Column | undefined, fallback: TaskStatus): 
     }
 
     return "TODO";
+}
+
+function PriorityDot({ priority }: { priority: TaskPriority }) {
+    const colorMap: Record<TaskPriority, string> = {
+        HIGH: "bg-[var(--priority-high-fg)]",
+        MEDIUM: "bg-[var(--priority-medium-fg)]",
+        LOW: "bg-[var(--priority-low-fg)]",
+    };
+    return <span aria-hidden="true" className={cn("inline-block h-2 w-2 rounded-full", colorMap[priority])} />;
 }
 
 type ListboxOptionItem = { value: string; label: string; leading?: ReactNode };
@@ -150,6 +172,185 @@ function CustomListbox({
     );
 }
 
+function DraftLabelPicker({
+    teamSlug,
+    value,
+    onChange,
+    variant = "field",
+}: {
+    teamSlug: string;
+    value: string[];
+    onChange: (next: string[]) => void;
+    variant?: "field" | "row";
+}) {
+    const triggerRef = useRef<HTMLButtonElement>(null);
+    const popupRef = useRef<HTMLDivElement>(null);
+    const [isOpen, setIsOpen] = useState(false);
+    const [allLabels, setAllLabels] = useState<Label[]>([]);
+    const [isLoading, setIsLoading] = useState(false);
+    const [popupStyle, setPopupStyle] = useState<{ top: number; left: number; width: number }>({ top: 0, left: 0, width: 0 });
+    const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+    const placePopup = useCallback(() => {
+        const trigger = triggerRef.current;
+        if (!trigger) return;
+        const rect = trigger.getBoundingClientRect();
+        const viewportPadding = 12;
+        const width = Math.min(Math.max(rect.width, 280), window.innerWidth - viewportPadding * 2);
+        const left = Math.min(
+            Math.max(viewportPadding, rect.left),
+            Math.max(viewportPadding, window.innerWidth - viewportPadding - width),
+        );
+        setPopupStyle({ top: rect.bottom + 6, left, width });
+    }, []);
+
+    useEffect(() => {
+        if (!isOpen || !teamSlug) return;
+        setIsLoading(true);
+        setErrorMessage(null);
+        getTeamLabels(teamSlug)
+            .then((labels: Label[]) => setAllLabels(labels))
+            .catch(() => setErrorMessage("Failed to load labels. Try again."))
+            .finally(() => setIsLoading(false));
+    }, [isOpen, teamSlug]);
+
+    useEffect(() => {
+        if (!isOpen) return;
+        placePopup();
+
+        const handleResize = () => placePopup();
+        const handleClickOutside = (event: MouseEvent) => {
+            const target = event.target as Node;
+            if (popupRef.current?.contains(target)) return;
+            if (triggerRef.current?.contains(target)) return;
+            setIsOpen(false);
+        };
+
+        window.addEventListener("resize", handleResize);
+        window.addEventListener("scroll", handleResize, true);
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => {
+            window.removeEventListener("resize", handleResize);
+            window.removeEventListener("scroll", handleResize, true);
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, [isOpen, placePopup]);
+
+    const selectedLabels = allLabels.filter((label) => value.includes(label.id));
+    const isRow = variant === "row";
+
+    const toggleLabel = (id: string) => {
+        if (value.includes(id)) {
+            onChange(value.filter((v) => v !== id));
+        } else {
+            onChange([...value, id]);
+        }
+    };
+
+    return (
+        <>
+            <button
+                ref={triggerRef}
+                type="button"
+                onClick={() => setIsOpen((prev) => !prev)}
+                disabled={!teamSlug}
+                className={cn(
+                    "relative flex min-h-12 w-full items-center border border-slate-200/80 bg-white/90 px-4 text-left text-[15px] font-medium text-slate-900 shadow-none transition-[border-color,box-shadow,background-color] focus:border-primary/35 focus:bg-white focus:outline-none focus:ring-4 focus:ring-primary/15 disabled:cursor-not-allowed disabled:opacity-60",
+                    isRow
+                        ? "justify-between rounded-[1rem]"
+                        : "rounded-[1.05rem] sm:rounded-2xl sm:bg-slate-50 sm:shadow-[inset_0_1px_0_rgba(255,255,255,0.72)] sm:focus:bg-slate-100",
+                )}
+            >
+                {isRow ? (
+                    <>
+                        <span className="shrink-0 text-[12px] font-semibold text-slate-400">Labels</span>
+                        <span className="ml-4 flex min-w-0 flex-1 items-center justify-end gap-1.5 overflow-hidden">
+                            {selectedLabels.length > 0 ? (
+                                <span className="flex min-w-0 items-center gap-1.5 overflow-hidden">
+                                    {selectedLabels.slice(0, 2).map((label) => (
+                                        <LabelBadge key={label.id} label={label} size="sm" />
+                                    ))}
+                                    {selectedLabels.length > 2 ? (
+                                        <span className="text-[12px] font-medium text-slate-500">+{selectedLabels.length - 2}</span>
+                                    ) : null}
+                                </span>
+                            ) : (
+                                <span className="text-slate-400">+ Add label</span>
+                            )}
+                        </span>
+                    </>
+                ) : (
+                    <span className="flex min-w-0 flex-1 flex-wrap items-center gap-1.5 py-2 pr-6">
+                        {selectedLabels.length > 0 ? (
+                            selectedLabels.map((label) => (
+                                <LabelBadge key={label.id} label={label} size="sm" />
+                            ))
+                        ) : (
+                            <span className="inline-flex items-center gap-1.5 text-slate-400">
+                                <Plus className="h-3.5 w-3.5" aria-hidden="true" />
+                                Add label
+                            </span>
+                        )}
+                    </span>
+                )}
+                <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-4">
+                    <Tag className="h-4 w-4 text-slate-400" aria-hidden="true" />
+                </span>
+            </button>
+
+            {isOpen && typeof document !== "undefined"
+                ? createPortal(
+                      <div
+                          ref={popupRef}
+                          style={{
+                              position: "fixed",
+                              top: popupStyle.top,
+                              left: popupStyle.left,
+                              width: popupStyle.width,
+                              zIndex: 120,
+                          }}
+                          className="max-h-[60vh] overflow-y-auto rounded-[1.1rem] border border-slate-200 bg-white p-2 shadow-[0_22px_54px_-30px_rgba(15,23,42,0.48)]"
+                      >
+                          {isLoading ? (
+                              <p className="px-3 py-2.5 text-sm text-slate-500">Loading labels…</p>
+                          ) : errorMessage ? (
+                              <p className="px-3 py-2.5 text-sm text-rose-600">{errorMessage}</p>
+                          ) : allLabels.length === 0 ? (
+                              <p className="px-3 py-2.5 text-sm text-slate-500">
+                                  No labels yet. Create them in team settings.
+                              </p>
+                          ) : (
+                              <ul className="space-y-0.5">
+                                  {allLabels.map((label) => {
+                                      const isSelected = value.includes(label.id);
+                                      return (
+                                          <li key={label.id}>
+                                              <button
+                                                  type="button"
+                                                  onClick={() => toggleLabel(label.id)}
+                                                  className={cn(
+                                                      "flex w-full items-center justify-between gap-3 rounded-[0.85rem] px-2.5 py-2 text-left transition-colors",
+                                                      isSelected ? "bg-primary/10" : "hover:bg-slate-50",
+                                                  )}
+                                              >
+                                                  <LabelBadge label={label} size="sm" />
+                                                  {isSelected ? (
+                                                      <Check className="h-4 w-4 text-primary" aria-hidden="true" />
+                                                  ) : null}
+                                              </button>
+                                          </li>
+                                      );
+                                  })}
+                              </ul>
+                          )}
+                      </div>,
+                      document.body,
+                  )
+                : null}
+        </>
+    );
+}
+
 interface CreateTaskModalProps {
     isOpen: boolean;
     onClose: () => void;
@@ -166,6 +367,7 @@ interface CreateTaskModalProps {
     initialAssigneeId?: string;
     successMessage?: string | null;
     resetOnSuccess?: boolean;
+    teamSlug?: string;
 }
 
 export function CreateTaskModal({
@@ -184,6 +386,7 @@ export function CreateTaskModal({
     initialAssigneeId = "",
     successMessage,
     resetOnSuccess = false,
+    teamSlug,
 }: CreateTaskModalProps) {
     const [title, setTitle] = useState("");
     const [projectId, setProjectId] = useState(initialProjectId);
@@ -192,6 +395,9 @@ export function CreateTaskModal({
     const [availableColumns, setAvailableColumns] = useState<Column[]>(projectColumns || []);
     const [isColumnsLoading, setIsColumnsLoading] = useState(false);
     const [assigneeId, setAssigneeId] = useState(initialAssigneeId);
+    const [priority, setPriority] = useState<TaskPriority>("MEDIUM");
+    const [dueDate, setDueDate] = useState<string>("");
+    const [labelIds, setLabelIds] = useState<string[]>([]);
     const [hasTriedSubmit, setHasTriedSubmit] = useState(false);
 
     useEffect(() => {
@@ -203,8 +409,11 @@ export function CreateTaskModal({
         setSelectedColumnId(seededColumnId || "");
         setAvailableColumns(projectColumns || []);
         setAssigneeId(initialAssigneeId);
+        setPriority("MEDIUM");
+        setDueDate("");
+        setLabelIds([]);
         setHasTriedSubmit(false);
-        
+
         // Prevent body scroll when modal is open
         document.body.style.overflow = "hidden";
         return () => {
@@ -267,6 +476,12 @@ export function CreateTaskModal({
     const shouldShowProjectField = !lockProjectSelection;
     const detailLabel = columnOptions.length > 0 ? "Column" : "Status";
 
+    const priorityListOptions = priorityOptions.map((option) => ({
+        value: option.value,
+        label: option.label,
+        leading: <PriorityDot priority={option.value} />,
+    }));
+
     if (!isOpen) return null;
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -284,6 +499,9 @@ export function CreateTaskModal({
             status: nextStatus,
             columnId: selectedColumnId || seededColumnId,
             assigneeId: assigneeId || undefined,
+            priority,
+            dueDate: dueDate ? new Date(dueDate).toISOString() : null,
+            labelIds,
         });
 
         if (resetOnSuccess) {
@@ -292,6 +510,9 @@ export function CreateTaskModal({
             setStatus(initialStatus);
             setSelectedColumnId(seededColumnId || availableColumns[0]?.id || "");
             setAssigneeId(initialAssigneeId);
+            setPriority("MEDIUM");
+            setDueDate("");
+            setLabelIds([]);
             setHasTriedSubmit(false);
         }
     };
@@ -417,6 +638,23 @@ export function CreateTaskModal({
                                         leading: <Avatar user={a} size="xs" />,
                                     }))}
                                 />
+                                <CustomListbox
+                                    variant="row"
+                                    rowLabel="Priority"
+                                    value={priority}
+                                    onChange={(value) => setPriority(value as TaskPriority)}
+                                    placeholder="Medium"
+                                    options={priorityListOptions}
+                                />
+                                <DueDateRow value={dueDate} onChange={setDueDate} variant="row" />
+                                {teamSlug ? (
+                                    <DraftLabelPicker
+                                        teamSlug={teamSlug}
+                                        value={labelIds}
+                                        onChange={setLabelIds}
+                                        variant="row"
+                                    />
+                                ) : null}
                             </div>
 
                             {shouldShowProjectField ? (
@@ -465,6 +703,29 @@ export function CreateTaskModal({
                                     />
                                 </SettingsField>
                             </div>
+
+                            <SettingsField label="Priority" className="relative z-[15] hidden sm:block">
+                                <CustomListbox
+                                    value={priority}
+                                    onChange={(value) => setPriority(value as TaskPriority)}
+                                    placeholder="Medium"
+                                    options={priorityListOptions}
+                                />
+                            </SettingsField>
+
+                            <SettingsField label="Deadline" className="hidden sm:block">
+                                <DueDateInput value={dueDate} onChange={setDueDate} priorityTone={priorityToneMap[priority]?.iconClassName} />
+                            </SettingsField>
+
+                            {teamSlug ? (
+                                <SettingsField label="Labels" className="relative z-[10] hidden sm:block">
+                                    <DraftLabelPicker
+                                        teamSlug={teamSlug}
+                                        value={labelIds}
+                                        onChange={setLabelIds}
+                                    />
+                                </SettingsField>
+                            ) : null}
                         </div>
 
                         <div className="relative z-0 mt-3 border-t border-slate-200/70 bg-white/95 pt-3 backdrop-blur-xl sm:mt-4 sm:flex sm:flex-row-reverse sm:gap-3 sm:border-0 sm:bg-transparent sm:pt-0 sm:shadow-none">
@@ -489,5 +750,71 @@ export function CreateTaskModal({
                     </form>
                 )}
         </ModalShell>
+    );
+}
+
+function DueDateInput({
+    value,
+    onChange,
+    priorityTone,
+}: {
+    value: string;
+    onChange: (next: string) => void;
+    priorityTone?: string;
+}) {
+    return (
+        <div className="relative">
+            <input
+                type="date"
+                value={value}
+                onChange={(event) => onChange(event.target.value)}
+                className="h-12 w-full appearance-none rounded-[1.05rem] border border-slate-200/80 bg-white/90 px-4 pr-12 text-[15px] font-medium text-slate-900 shadow-none transition-[border-color,box-shadow,background-color] focus:border-primary/35 focus:bg-white focus:outline-none focus:ring-4 focus:ring-primary/15 sm:rounded-2xl sm:bg-slate-50 sm:shadow-[inset_0_1px_0_rgba(255,255,255,0.72)] sm:focus:bg-slate-100"
+                placeholder="Pick a date"
+            />
+            <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-4">
+                <Calendar className={cn("h-4 w-4 text-slate-400", priorityTone)} aria-hidden="true" />
+            </span>
+            {value ? (
+                <button
+                    type="button"
+                    onClick={() => onChange("")}
+                    className="absolute inset-y-0 right-10 flex items-center px-1 text-slate-400 transition-colors hover:text-slate-700"
+                    aria-label="Clear deadline"
+                >
+                    <X className="h-3.5 w-3.5" aria-hidden="true" />
+                </button>
+            ) : null}
+        </div>
+    );
+}
+
+function DueDateRow({
+    value,
+    onChange,
+    variant,
+}: {
+    value: string;
+    onChange: (next: string) => void;
+    variant?: "field" | "row";
+}) {
+    if (variant !== "row") {
+        return <DueDateInput value={value} onChange={onChange} />;
+    }
+
+    return (
+        <label className="relative flex h-12 w-full items-center justify-between rounded-[1rem] border border-slate-200/80 bg-white/90 px-4 text-left text-[15px] font-medium text-slate-900 shadow-none transition-[border-color,box-shadow,background-color] focus-within:border-primary/35 focus-within:bg-white focus-within:ring-4 focus-within:ring-primary/15">
+            <span className="shrink-0 text-[12px] font-semibold text-slate-400">Deadline</span>
+            <span className="ml-4 flex flex-1 items-center justify-end pr-6">
+                <input
+                    type="date"
+                    value={value}
+                    onChange={(event) => onChange(event.target.value)}
+                    className="w-full max-w-[140px] bg-transparent text-right text-[15px] font-medium text-slate-900 outline-none focus:ring-0"
+                />
+            </span>
+            <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-4">
+                <Calendar className="h-4 w-4 text-slate-400" aria-hidden="true" />
+            </span>
+        </label>
     );
 }

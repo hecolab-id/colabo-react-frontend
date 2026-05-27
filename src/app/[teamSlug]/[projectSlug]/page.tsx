@@ -185,7 +185,7 @@ function ProjectSlugPageContent({ params }: { params: Promise<{ teamSlug: string
     const reorderColumnsMutation = useReorderColumns(projectId);
     const deleteProjectMutation = useDeleteProject();
 
-    const handleCreateTask = async ({ title, status, columnId, assigneeId }: CreateTaskFormValues) => {
+    const handleCreateTask = async ({ title, status, columnId, assigneeId, priority, dueDate, labelIds }: CreateTaskFormValues) => {
         // Find column ID by status if using legacy status
         const targetColumn = columns.find((c) => c.name.toUpperCase() === status) || columns[0];
 
@@ -194,6 +194,9 @@ function ProjectSlugPageContent({ params }: { params: Promise<{ teamSlug: string
             status,
             columnId: columnId || defaultColumnId || targetColumn?.id,
             assigneeId,
+            priority,
+            dueDate,
+            labelIds,
         });
         setIsTaskModalOpen(false);
     };
@@ -521,6 +524,7 @@ function ProjectSlugPageContent({ params }: { params: Promise<{ teamSlug: string
                     lockProjectSelection
                     isSubmitting={createTaskMutation.isPending}
                     assignees={availableAssignees}
+                    teamSlug={teamSlug}
                 />
 
                 <CreateColumnModal

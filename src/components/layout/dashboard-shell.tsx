@@ -13,7 +13,7 @@ import { KeyboardShortcutsModal } from "@/components/modals/keyboard-shortcuts-m
 import { CreateProjectModal } from "@/components/modals/create-project-modal";
 import { CreateTaskFormValues, CreateTaskModal } from "@/components/modals/create-task-modal";
 import { ManageProjectMembersModal } from "@/components/modals/manage-project-members-modal";
-import { createProject, createTask, getTeamBySlug } from "@/lib/api";
+import { addLabelToTask, createProject, createTask, getTeamBySlug } from "@/lib/api";
 import { useStore } from "@/lib/store";
 import { useUsage } from "@/lib/hooks/use-billing";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -134,7 +134,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
         }
     };
 
-    const handleGlobalCreateTask = async ({ title, projectId, status, columnId, assigneeId }: CreateTaskFormValues) => {
+    const handleGlobalCreateTask = async ({ title, projectId, status, columnId, assigneeId, priority, dueDate, labelIds }: CreateTaskFormValues) => {
         if (!currentTeam) {
             return;
         }
@@ -143,7 +143,15 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
         setCreateTaskSuccessMessage(null);
 
         try {
-            await createTask(projectId, title, status, columnId, undefined, undefined, assigneeId);
+            const created = await createTask(projectId, title, status, columnId, undefined, priority, assigneeId, dueDate);
+            if (labelIds && labelIds.length > 0) {
+                const attachResults = await Promise.allSettled(labelIds.map((id) => addLabelToTask(created.id, id)));
+                attachResults.forEach((result, index) => {
+                    if (result.status === "rejected") {
+                        console.warn(`Failed to attach label ${labelIds[index]} to task ${created.id}:`, result.reason);
+                    }
+                });
+            }
 
             await queryClient.invalidateQueries({ queryKey: ["projects", "detail"] });
             if (currentTeam?.slug) {
@@ -269,6 +277,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
                     initialAssigneeId={activeProject?.members?.some((member) => member.id === currentUser?.id) ? currentUser?.id : ""}
                     successMessage={createTaskSuccessMessage}
                     resetOnSuccess
+                    teamSlug={currentTeam?.slug}
                     onCreateProject={() => {
                         setCreateTaskSuccessMessage(null);
                         setIsCreateTaskModalOpen(false);
