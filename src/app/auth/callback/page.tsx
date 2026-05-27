@@ -12,6 +12,12 @@ function CallbackContent() {
 
     useEffect(() => {
         const handleCallback = async () => {
+            const errorReason = searchParams.get("error");
+            if (errorReason) {
+                router.push(`/login?error=${encodeURIComponent(errorReason)}`);
+                return;
+            }
+
             const accessToken = searchParams.get("access_token");
             const refreshToken = searchParams.get("refresh_token");
             // const accessExpires = searchParams.get("access_expires"); // Not strictly needed for store init currently

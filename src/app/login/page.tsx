@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import { ErrorMessage, Field, Form, Formik } from "formik";
 import * as Yup from "yup";
 import { AlertCircle, Loader2, Lock, Mail } from "lucide-react";
@@ -19,6 +19,12 @@ const loginSchema = Yup.object({
   password: Yup.string().min(6, "Password must be at least 6 characters").required("Password is required"),
 });
 
+const AUTH_ERROR_MESSAGES: Record<string, string> = {
+  state_mismatch: "Your sign-in session expired. Please try signing in with Google again.",
+  google_auth_failed: "We couldn't sign you in with Google. Please try again.",
+  missing_tokens: "We couldn't sign you in with Google. Please try again.",
+};
+
 function LoginPageContent() {
   const [serverError, setServerError] = useState<string | null>(null);
   const router = useRouter();
@@ -30,6 +36,13 @@ function LoginPageContent() {
   const teamName = searchParams.get("teamName");
   const inviterName = searchParams.get("inviterName");
   const inviteEmail = searchParams.get("inviteEmail");
+  const errorCode = searchParams.get("error");
+
+  useEffect(() => {
+    if (errorCode && AUTH_ERROR_MESSAGES[errorCode]) {
+      setServerError(AUTH_ERROR_MESSAGES[errorCode]);
+    }
+  }, [errorCode]);
 
   const registerHref = useMemo(() => {
     const nextParams = new URLSearchParams(searchParams.toString());
