@@ -58,6 +58,7 @@ import { Avatar } from "@/components/ui/avatar";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 import { RichTextEditor } from "@/components/ui/rich-text-editor";
 import { LabelSelector } from "@/components/modals/label-selector";
+import { AiTitleRefineBanner, AiTitleRefineButton, useAiTitleRefine } from "@/components/ai/ai-title-refine";
 import {
     formatTaskDate,
     formatTaskDateTime,
@@ -254,6 +255,7 @@ export function TaskDetailModal({ task, projectColumns: initialProjectColumns, o
 
     const [isEditingTitle, setIsEditingTitle] = useState(false);
     const [title, setTitle] = useState(task.title);
+    const titleRefiner = useAiTitleRefine({ value: title, onChange: setTitle, teamId: task.project?.team_id });
     const [isEditingDesc, setIsEditingDesc] = useState(false);
     const [description, setDescription] = useState(task.description || "");
     const [isAssigning, setIsAssigning] = useState(false);
@@ -995,29 +997,44 @@ export function TaskDetailModal({ task, projectColumns: initialProjectColumns, o
                                 ) : null}
 
                                 {isEditingTitle ? (
-                                    <div className="flex items-start gap-2">
-                                        <label htmlFor="task-title" className="sr-only">Task title</label>
-                                        <input
-                                            id="task-title"
-                                            name="task_title"
-                                            type="text"
-                                            value={title}
-                                            onChange={(event) => setTitle(event.target.value)}
-                                            onBlur={handleTitleSave}
-                                            onKeyDown={(event) => {
-                                                if (event.key === "Enter") handleTitleSave();
-                                            }}
-                                            autoFocus
-                                            className="min-w-0 flex-1 rounded-2xl border border-slate-300 bg-white px-4 py-3 text-xl font-semibold tracking-tight text-slate-950 outline-none transition-[border-color,box-shadow] focus-visible:border-primary focus-visible:ring-4 focus-visible:ring-primary/15 md:text-2xl"
-                                        />
-                                        <button
-                                            type="button"
-                                            onClick={handleTitleSave}
-                                            aria-label="Save title"
-                                            className="touch-manipulation rounded-2xl border border-slate-300 bg-white p-3 text-slate-700 transition-[border-color,background-color,color] hover:border-primary/30 hover:bg-slate-50 hover:text-primary focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15"
-                                        >
-                                            <Check className="h-4 w-4" aria-hidden="true" />
-                                        </button>
+                                    <div className="space-y-2">
+                                        <div className="flex items-start gap-2">
+                                            <label htmlFor="task-title" className="sr-only">Task title</label>
+                                            <div className="relative min-w-0 flex-1">
+                                                <input
+                                                    id="task-title"
+                                                    name="task_title"
+                                                    type="text"
+                                                    value={title}
+                                                    onChange={(event) => setTitle(event.target.value)}
+                                                    onBlur={handleTitleSave}
+                                                    onKeyDown={(event) => {
+                                                        if (event.key === "Enter") handleTitleSave();
+                                                    }}
+                                                    autoFocus
+                                                    className="block w-full rounded-2xl border border-slate-300 bg-white pl-4 pr-12 py-3 text-xl font-semibold tracking-tight text-slate-950 outline-none transition-[border-color,box-shadow] focus-visible:border-primary focus-visible:ring-4 focus-visible:ring-primary/15 md:text-2xl"
+                                                />
+                                                {/* Wrapper preventDefault on mousedown keeps the input focused
+                                                    so onBlur (which auto-saves) does not race the async refine. */}
+                                                <div
+                                                    onMouseDown={(e) => e.preventDefault()}
+                                                    className="absolute right-2 top-1/2 -translate-y-1/2"
+                                                >
+                                                    <AiTitleRefineButton state={titleRefiner} />
+                                                </div>
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={handleTitleSave}
+                                                aria-label="Save title"
+                                                className="touch-manipulation rounded-2xl border border-slate-300 bg-white p-3 text-slate-700 transition-[border-color,background-color,color] hover:border-primary/30 hover:bg-slate-50 hover:text-primary focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15"
+                                            >
+                                                <Check className="h-4 w-4" aria-hidden="true" />
+                                            </button>
+                                        </div>
+                                        <div onMouseDown={(e) => e.preventDefault()}>
+                                            <AiTitleRefineBanner state={titleRefiner} />
+                                        </div>
                                     </div>
                                 ) : (
                                     <button

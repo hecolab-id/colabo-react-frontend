@@ -810,6 +810,19 @@ export const deleteTask = async (taskId: string): Promise<void> => {
     await api.delete(`/tasks/${taskId}`);
 };
 
+export type RefineTitleResult = {
+    refined: string;
+    changed: boolean;
+};
+
+export const refineTaskTitle = async (title: string, teamId: string): Promise<RefineTitleResult> => {
+    const { data } = await api.post("/ai/refine-title", {
+        title,
+        team_id: teamId,
+    });
+    return data;
+};
+
 // Comments
 export const getComments = async (taskId: string): Promise<Comment[]> => {
     const { data } = await api.get(`/tasks/${taskId}/comments`);

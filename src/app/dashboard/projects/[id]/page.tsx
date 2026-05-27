@@ -242,6 +242,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                 isSubmitting={createTaskMutation.isPending}
                 assignees={availableAssignees}
                 teamSlug={project?.team?.slug}
+                teamId={project?.team?.id || project?.team_id}
             />
 
             <CreateColumnModal

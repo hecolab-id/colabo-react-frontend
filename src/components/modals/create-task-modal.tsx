@@ -15,6 +15,7 @@ import { Input } from "@/components/ui/input";
 import { LabelBadge } from "@/components/ui/label-badge";
 import { ModalShell } from "@/components/ui/modal-shell";
 import { SettingsField } from "@/components/ui/settings-field";
+import { AiTitleRefineBanner, AiTitleRefineButton, useAiTitleRefine } from "@/components/ai/ai-title-refine";
 import { getProjectColumns } from "@/lib/api";
 
 export type CreateTaskFormValues = {
@@ -368,6 +369,7 @@ interface CreateTaskModalProps {
     successMessage?: string | null;
     resetOnSuccess?: boolean;
     teamSlug?: string;
+    teamId?: string;
 }
 
 export function CreateTaskModal({
@@ -387,6 +389,7 @@ export function CreateTaskModal({
     successMessage,
     resetOnSuccess = false,
     teamSlug,
+    teamId,
 }: CreateTaskModalProps) {
     const [title, setTitle] = useState("");
     const [projectId, setProjectId] = useState(initialProjectId);
@@ -399,6 +402,8 @@ export function CreateTaskModal({
     const [dueDate, setDueDate] = useState<string>("");
     const [labelIds, setLabelIds] = useState<string[]>([]);
     const [hasTriedSubmit, setHasTriedSubmit] = useState(false);
+
+    const titleRefiner = useAiTitleRefine({ value: title, onChange: setTitle, teamId });
 
     useEffect(() => {
         if (!isOpen) return;
@@ -555,44 +560,58 @@ export function CreateTaskModal({
                             )}
 
                             <div className="sm:hidden">
-                                <input
-                                    type="text"
-                                    value={title}
-                                    onChange={(e) => {
-                                        setTitle(e.target.value);
-                                        if (e.target.value.trim()) {
-                                            setHasTriedSubmit(false);
-                                        }
-                                    }}
-                                    placeholder="What needs doing?"
-                                    autoFocus
-                                    className={cn(
-                                        "block h-14 w-full rounded-[1rem] border bg-slate-50/80 px-4 text-[17px] font-semibold leading-none text-slate-950 shadow-none outline-none transition-[border-color,box-shadow,background-color] placeholder:font-medium placeholder:text-slate-400 focus:border-primary/45 focus:bg-white focus:shadow-[inset_0_0_0_2px_rgba(109,93,252,0.22)] focus-visible:!ring-0 focus-visible:!ring-offset-0",
-                                        titleError ? "border-[var(--danger-border)] shadow-[inset_0_0_0_3px_rgba(179,66,66,0.14)]" : "border-slate-200/80",
-                                    )}
-                                />
+                                <div className="relative">
+                                    <input
+                                        type="text"
+                                        value={title}
+                                        onChange={(e) => {
+                                            setTitle(e.target.value);
+                                            if (e.target.value.trim()) {
+                                                setHasTriedSubmit(false);
+                                            }
+                                        }}
+                                        placeholder="What needs doing?"
+                                        autoFocus
+                                        className={cn(
+                                            "block h-14 w-full rounded-[1rem] border bg-slate-50/80 pl-4 pr-14 text-[17px] font-semibold leading-none text-slate-950 shadow-none outline-none transition-[border-color,box-shadow,background-color] placeholder:font-medium placeholder:text-slate-400 focus:border-primary/45 focus:bg-white focus:shadow-[inset_0_0_0_2px_rgba(109,93,252,0.22)] focus-visible:!ring-0 focus-visible:!ring-offset-0",
+                                            titleError ? "border-[var(--danger-border)] shadow-[inset_0_0_0_3px_rgba(179,66,66,0.14)]" : "border-slate-200/80",
+                                        )}
+                                    />
+                                    <AiTitleRefineButton
+                                        state={titleRefiner}
+                                        className="absolute right-2 top-1/2 -translate-y-1/2"
+                                    />
+                                </div>
                                 {titleError ? (
                                     <p className="mt-2 px-1 text-[12px] font-semibold text-[var(--danger-fg)]">{titleError}</p>
                                 ) : null}
+                                <AiTitleRefineBanner state={titleRefiner} className="mt-2" />
                             </div>
 
                             <SettingsField label="Task Title" className="hidden sm:block">
-                                <Input
-                                    type="text"
-                                    value={title}
-                                    onChange={(e) => {
-                                        setTitle(e.target.value);
-                                        if (e.target.value.trim()) {
-                                            setHasTriedSubmit(false);
-                                        }
-                                    }}
-                                    placeholder="What needs to be done?"
-                                    autoFocus
-                                    className="h-12 rounded-[1.05rem] border-slate-200/80 bg-white/90 text-[15px] shadow-none transition-[border-color,box-shadow,background-color] focus-visible:border-primary/35 focus-visible:bg-white focus-visible:ring-4 focus-visible:ring-primary/15 sm:h-12 sm:rounded-2xl sm:bg-white/78"
-                                />
+                                <div className="relative">
+                                    <Input
+                                        type="text"
+                                        value={title}
+                                        onChange={(e) => {
+                                            setTitle(e.target.value);
+                                            if (e.target.value.trim()) {
+                                                setHasTriedSubmit(false);
+                                            }
+                                        }}
+                                        placeholder="What needs to be done?"
+                                        autoFocus
+                                        className="h-12 rounded-[1.05rem] border-slate-200/80 bg-white/90 pr-12 text-[15px] shadow-none transition-[border-color,box-shadow,background-color] focus-visible:border-primary/35 focus-visible:bg-white focus-visible:ring-4 focus-visible:ring-primary/15 sm:h-12 sm:rounded-2xl sm:bg-white/78"
+                                    />
+                                    <AiTitleRefineButton
+                                        state={titleRefiner}
+                                        className="absolute right-2 top-1/2 -translate-y-1/2"
+                                    />
+                                </div>
                                 {titleError ? (
                                     <p className="mt-2 text-[12px] font-semibold text-[var(--danger-fg)]">{titleError}</p>
                                 ) : null}
+                                <AiTitleRefineBanner state={titleRefiner} className="mt-2" />
                             </SettingsField>
 
                             <div className="space-y-2 sm:hidden">

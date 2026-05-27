@@ -342,7 +342,8 @@ export type AdminAIUsageFeature =
     | "GENERATE_TASKS"
     | "QUERY_INTENT"
     | "MESSENGER_ASSISTANT"
-    | "WEEKLY_SUMMARY";
+    | "WEEKLY_SUMMARY"
+    | "TITLE_REFINE";
 
 export type AdminAIUsageSummary = {
     total_tokens: number;

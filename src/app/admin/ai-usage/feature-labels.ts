@@ -32,6 +32,11 @@ export const FEATURE_LABELS: Record<
         description: "Automatic and manual project weekly reports",
         color: "#10b981",
     },
+    TITLE_REFINE: {
+        label: "Title Refine",
+        description: "Magic wand that rewrites task titles for clarity",
+        color: "#0ea5e9",
+    },
 };
 
 // Stable rendering order, used both in the daily stack chart and in the
@@ -43,4 +48,5 @@ export const FEATURE_ORDER: AdminAIUsageFeature[] = [
     "QUERY_INTENT",
     "MESSENGER_ASSISTANT",
     "WEEKLY_SUMMARY",
+    "TITLE_REFINE",
 ];

@@ -525,6 +525,7 @@ function ProjectSlugPageContent({ params }: { params: Promise<{ teamSlug: string
                     isSubmitting={createTaskMutation.isPending}
                     assignees={availableAssignees}
                     teamSlug={teamSlug}
+                    teamId={currentTeam?.id || project?.team_id}
                 />
 
                 <CreateColumnModal

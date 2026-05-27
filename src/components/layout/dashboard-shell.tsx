@@ -278,6 +278,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
                     successMessage={createTaskSuccessMessage}
                     resetOnSuccess
                     teamSlug={currentTeam?.slug}
+                    teamId={currentTeam?.id}
                     onCreateProject={() => {
                         setCreateTaskSuccessMessage(null);
                         setIsCreateTaskModalOpen(false);
