@@ -25,19 +25,19 @@ export function NetworkStatus() {
 
         const showOffline = () => showBanner({
             tone: "warning",
-            message: "Tidak tersambung. Hanya Dashboard dan Tugas tersimpan yang bisa dibuka.",
+            message: "You're offline. Only cached dashboard and task views are available.",
         }, 5000);
 
         const showConnected = () => showBanner({
             tone: "success",
-            message: "Tersambung kembali.",
-        }, 3000);
+            message: "You're back online.",
+        }, 4000);
 
         const handleOfflineActionBlocked = (event: Event) => {
             const detail = (event as CustomEvent<{ message?: string }>).detail;
             showBanner({
                 tone: "warning",
-                message: detail?.message || "Aksi ini butuh koneksi internet.",
+                message: detail?.message || "This action requires an internet connection.",
             }, 5000);
         };
 
