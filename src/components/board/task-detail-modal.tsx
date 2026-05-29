@@ -53,6 +53,7 @@ import {
 } from "@/lib/api";
 import { Checklist } from "./checklist";
 import { useStore } from "@/lib/store";
+import { useUsage } from "@/lib/hooks/use-billing";
 import { useEscapeKey } from "@/lib/hooks/use-escape-key";
 import { Avatar } from "@/components/ui/avatar";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
@@ -222,6 +223,8 @@ function FieldLabel({ children }: { children: ReactNode }) {
 
 export function TaskDetailModal({ task, projectColumns: initialProjectColumns, onClose, onDelete, onUpdate }: TaskDetailModalProps) {
     const { currentTeam, user: currentUser } = useStore();
+    const { data: teamUsage } = useUsage(currentTeam?.id || "");
+    const maxImageSizeMb = teamUsage?.plan?.max_file_size_mb;
     const bodyRef = useRef<HTMLDivElement>(null);
     const commentInputRef = useRef<HTMLTextAreaElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -262,6 +265,7 @@ export function TaskDetailModal({ task, projectColumns: initialProjectColumns, o
     });
     const [isEditingDesc, setIsEditingDesc] = useState(false);
     const [description, setDescription] = useState(task.description || "");
+    const [isUploadingDescImage, setIsUploadingDescImage] = useState(false);
     const [isAssigning, setIsAssigning] = useState(false);
     const [isPriorityOpen, setIsPriorityOpen] = useState(false);
     const [activeMobileSection, setActiveMobileSection] = useState<"description" | "checklist" | "comments" | "attachments" | "settings">("description");
@@ -1121,6 +1125,10 @@ export function TaskDetailModal({ task, projectColumns: initialProjectColumns, o
                                                 onChange={setDescription}
                                                 placeholder="Add a detailed description…"
                                                 className="min-h-[180px]"
+                                                enableImageUpload
+                                                onImageUpload={async (file) => (await uploadFile(file)).url}
+                                                maxImageSizeMb={maxImageSizeMb}
+                                                onUploadingChange={setIsUploadingDescImage}
                                             />
                                             <div className="flex justify-end gap-2">
                                                 <button
@@ -1136,9 +1144,10 @@ export function TaskDetailModal({ task, projectColumns: initialProjectColumns, o
                                                 <button
                                                     type="button"
                                                     onClick={handleDescSave}
-                                                    className="touch-manipulation rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-95 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15"
+                                                    disabled={isUploadingDescImage}
+                                                    className="touch-manipulation rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-95 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15 disabled:cursor-not-allowed disabled:opacity-50"
                                                 >
-                                                    Save Description
+                                                    {isUploadingDescImage ? "Mengunggah gambar…" : "Save Description"}
                                                 </button>
                                             </div>
                                         </div>
