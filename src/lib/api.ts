@@ -1,5 +1,5 @@
 import axios from "axios";
-import { AuthResponse, Plan, Project, ProjectDocument, ProjectDocumentKind, ProjectMeetingNote, WeeklyProjectSummary, Task, Team, Comment, Notification, User, ActivityLog, Column, Checklist, ChecklistItem, Role, TeamUsage, CommentMention, LinkPreview, MessengerConnection, NotificationPreference, MessengerPlatform, TeamMessengerPolicy, MessengerLinkToken, BrowserPushSettings, BrowserPushSubscriptionInput, AdminImpersonationState, AdminOverview, AdminPaymentTransaction, AdminPlan, AdminProjectRow, AdminTeamRow, AdminUserRow, AdminListResponse, AdminAIUsageSummary, AdminAIUsageTeamRow, AdminAIUsageUserRow, AdminAIUsageFeatureRow, AdminAIUsageGranularity, AdminAIUsageTimeseries, DashboardActionBucketId, DashboardActionItem, DashboardActionSeverity, DashboardHealthMetric, DashboardOverview, DashboardProjectSummary, DashboardRecommendedAction, PaginatedResult, TeamActivityItem, TeamActivityOverview, TeamInvite, TeamInvitePreview } from "./types";
+import { AuthResponse, Plan, Project, ProjectDocument, ProjectDocumentKind, ProjectMeetingNote, WeeklyProjectSummary, Task, Team, Comment, Notification, User, ActivityLog, Column, Checklist, ChecklistItem, Label, Role, TeamUsage, CommentMention, LinkPreview, MessengerConnection, NotificationPreference, MessengerPlatform, TeamMessengerPolicy, MessengerLinkToken, BrowserPushSettings, BrowserPushSubscriptionInput, AdminImpersonationState, AdminOverview, AdminPaymentTransaction, AdminPlan, AdminProjectRow, AdminTeamRow, AdminUserRow, AdminListResponse, AdminAIUsageSummary, AdminAIUsageTeamRow, AdminAIUsageUserRow, AdminAIUsageFeatureRow, AdminAIUsageGranularity, AdminAIUsageTimeseries, DashboardActionBucketId, DashboardActionItem, DashboardActionSeverity, DashboardHealthMetric, DashboardOverview, DashboardProjectSummary, DashboardRecommendedAction, PaginatedResult, TeamActivityItem, TeamActivityOverview, TeamInvite, TeamInvitePreview } from "./types";
 import { recordNotificationPromptIntent } from "@/lib/notification-soft-prompt";
 
 export const API_ORIGIN = (import.meta.env.VITE_API_URL || "").replace(/\/$/, "");
@@ -1192,9 +1192,13 @@ export interface ChatStreamChunk {
 }
 
 // Label API functions
-export const getTeamLabels = async (teamSlug: string) => {
+export const getTeamLabels = async (teamSlug: string): Promise<Label[]> => {
     const response = await api.get(`/teams/${teamSlug}/labels`);
-    return response.data.data;
+    // Backend (pre-fix) serialized empty Go slices as null. The frontend
+    // assumes Label[]; coerce any non-array response to [] so callers
+    // never see undefined.filter at runtime.
+    const data = response.data?.data;
+    return Array.isArray(data) ? data : [];
 };
 
 export const createLabel = async (teamSlug: string, name: string, color: string) => {

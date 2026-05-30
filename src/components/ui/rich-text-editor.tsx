@@ -82,7 +82,10 @@ export function RichTextEditor({
 
     const editor = useEditor({
         extensions: [
-            StarterKit,
+            // StarterKit v3 already bundles Link and Underline; disable them here
+            // and register our own so we can keep `openOnClick: false` on Link
+            // (otherwise TipTap warns about duplicate extension names).
+            StarterKit.configure({ link: false, underline: false }),
             Placeholder.configure({ placeholder }),
             Underline,
             Link.configure({ openOnClick: false }),
