@@ -828,6 +828,14 @@ export const updateWeeklyTaskReminderPreference = async (input: EmailReminderUpd
     return data.data;
 };
 
+// Token-based unsubscribe is intentionally unauthenticated; the token is
+// the secret. We bypass the shared axios instance (which would attach the
+// caller's JWT) so logged-out recipients on a different account can still
+// call it from the email link.
+export const unsubscribeFromEmailReminder = async (token: string): Promise<void> => {
+    await axios.post(`${API_BASE_URL}/email-reminders/unsubscribe`, { token });
+};
+
 export const refineTaskTitle = async (title: string, teamId: string): Promise<RefineTitleResult> => {
     const { data } = await api.post("/ai/refine-title", {
         title,
