@@ -11,6 +11,23 @@ import { cn } from "@/lib/utils";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { convertImageToWebp } from "@/lib/image-to-webp";
 
+// Image node with a transient `uploadId` attribute used to find the pending
+// node again when the upload completes. `renderHTML: () => ({})` keeps the
+// attribute out of the serialized HTML, and `parseHTML: () => null` keeps it
+// off images loaded from existing descriptions.
+const UploadableImage = Image.extend({
+    addAttributes() {
+        return {
+            ...this.parent?.(),
+            uploadId: {
+                default: null,
+                parseHTML: () => null,
+                renderHTML: () => ({}),
+            },
+        };
+    },
+});
+
 interface RichTextEditorProps {
     content: string;
     onChange: (content: string) => void;
@@ -69,7 +86,7 @@ export function RichTextEditor({
             Placeholder.configure({ placeholder }),
             Underline,
             Link.configure({ openOnClick: false }),
-            Image.configure({ inline: false, allowBase64: false }),
+            UploadableImage.configure({ inline: false, allowBase64: false }),
         ],
         content,
         editable,
@@ -114,12 +131,18 @@ export function RichTextEditor({
             }
 
             const previewUrl = URL.createObjectURL(file);
+            const uploadId = `upload-${crypto.randomUUID()}`;
             const insertAt = typeof pos === "number" ? pos : editor.state.selection.from;
             editor
                 .chain()
-                .insertContentAt(insertAt, { type: "image", attrs: { src: previewUrl } })
+                .insertContentAt(insertAt, { type: "image", attrs: { src: previewUrl, uploadId } })
                 .run();
             setPending(1);
+
+            // Delay blob revoke until after the editor has had a chance to swap
+            // to the final URL. If swap fails for any reason, the preview stays
+            // visible instead of becoming a broken icon.
+            const revokeLater = () => window.setTimeout(() => URL.revokeObjectURL(previewUrl), 60_000);
 
             try {
                 const { file: uploadFile } = await convertImageToWebp(file);
@@ -127,19 +150,27 @@ export function RichTextEditor({
                 if (typeof maxImageSizeMb === "number" && maxImageSizeMb > 0) {
                     const sizeMb = uploadFile.size / (1024 * 1024);
                     if (sizeMb > maxImageSizeMb) {
-                        removeImageBySrc(editor, previewUrl);
+                        removeImageByUploadId(editor, uploadId);
+                        URL.revokeObjectURL(previewUrl);
                         showError("Gambar gagal diunggah. Ukuran melebihi batas paket Anda.");
                         return;
                     }
                 }
 
                 const finalUrl = await onImageUpload(uploadFile);
-                swapImageSrc(editor, previewUrl, finalUrl);
+                const swapped = swapImageByUploadId(editor, uploadId, finalUrl);
+                if (!swapped) {
+                    // Pending node was deleted by the user (or never inserted);
+                    // nothing to update. Revoke is safe.
+                    URL.revokeObjectURL(previewUrl);
+                } else {
+                    revokeLater();
+                }
             } catch {
-                removeImageBySrc(editor, previewUrl);
+                removeImageByUploadId(editor, uploadId);
+                URL.revokeObjectURL(previewUrl);
                 showError("Gambar gagal diunggah. Coba lagi.");
             } finally {
-                URL.revokeObjectURL(previewUrl);
                 setPending(-1);
             }
         },
@@ -322,41 +353,50 @@ function imageFilesFromList(list: FileList | null | undefined): File[] {
 }
 
 // ProseMirror positions are not stable across edits, so the swap / removal
-// helpers re-find the pending image by matching its (unique) blob src.
-function forEachImageNode(editor: Editor, cb: (pos: number, src: string) => void) {
+// helpers re-find the pending image by its uploadId attribute. Both helpers
+// run through editor.commands.command so the transaction goes through
+// TipTap's dispatch pipeline and onUpdate fires reliably, which is what
+// pushes the new src out to the parent's description state.
+
+type ImageMatch = {
+    pos: number;
+    size: number;
+    attrs: Record<string, unknown>;
+};
+
+// Extracted as a function so the return value carries the union type cleanly;
+// TS does not narrow `let` assignments made inside the descendants callback,
+// so the inline pattern collapses to `never` after the null-check.
+function findImageByUploadId(editor: Editor, uploadId: string): ImageMatch | null {
+    let found: ImageMatch | null = null;
     editor.state.doc.descendants((node, pos) => {
-        if (node.type.name === "image" && typeof node.attrs.src === "string") {
-            cb(pos, node.attrs.src);
+        if (node.type.name === "image" && node.attrs.uploadId === uploadId) {
+            found = { pos, size: node.nodeSize, attrs: { ...node.attrs } };
+            return false;
+        }
+        return true;
+    });
+    return found;
+}
+
+function swapImageByUploadId(editor: Editor, uploadId: string, toSrc: string): boolean {
+    const target = findImageByUploadId(editor, uploadId);
+    if (!target) return false;
+    return editor.commands.command(({ tr, dispatch }) => {
+        if (dispatch) {
+            tr.setNodeMarkup(target.pos, undefined, { ...target.attrs, src: toSrc, uploadId: null });
         }
         return true;
     });
 }
 
-function swapImageSrc(editor: Editor, fromSrc: string, toSrc: string) {
-    let target: number | null = null;
-    forEachImageNode(editor, (pos, src) => {
-        if (src === fromSrc) target = pos;
-    });
-    if (target === null) return;
-    const node = editor.state.doc.nodeAt(target);
-    if (!node) return;
-    // Dispatching a doc-changing transaction makes TipTap fire onUpdate, which
-    // propagates the swapped src into the serialized HTML the parent holds.
-    editor.view.dispatch(
-        editor.state.tr.setNodeMarkup(target, undefined, { ...node.attrs, src: toSrc }),
-    );
-}
-
-function removeImageBySrc(editor: Editor, src: string) {
-    let target: number | null = null;
-    let nodeSize = 0;
-    forEachImageNode(editor, (pos, nodeSrc) => {
-        if (nodeSrc === src) {
-            target = pos;
-            const node = editor.state.doc.nodeAt(pos);
-            nodeSize = node?.nodeSize ?? 1;
+function removeImageByUploadId(editor: Editor, uploadId: string): boolean {
+    const target = findImageByUploadId(editor, uploadId);
+    if (!target) return false;
+    return editor.commands.command(({ tr, dispatch }) => {
+        if (dispatch) {
+            tr.delete(target.pos, target.pos + target.size);
         }
+        return true;
     });
-    if (target === null) return;
-    editor.view.dispatch(editor.state.tr.delete(target, target + nodeSize));
 }
