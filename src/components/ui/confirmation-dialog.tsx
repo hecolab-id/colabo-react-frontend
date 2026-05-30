@@ -46,7 +46,7 @@ export function ConfirmationDialog({
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-200">
             <div
                 ref={dialogRef}
                 className="bg-card w-full max-w-md rounded-xl border border-border shadow-2xl overflow-hidden scale-100 animate-in zoom-in-95 duration-200"
