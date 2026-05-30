@@ -1,5 +1,5 @@
 import axios from "axios";
-import { AuthResponse, Plan, Project, ProjectDocument, ProjectDocumentKind, ProjectMeetingNote, WeeklyProjectSummary, Task, Team, Comment, Notification, User, ActivityLog, Column, Checklist, ChecklistItem, Label, Role, TeamUsage, CommentMention, LinkPreview, MessengerConnection, NotificationPreference, MessengerPlatform, TeamMessengerPolicy, MessengerLinkToken, BrowserPushSettings, BrowserPushSubscriptionInput, AdminImpersonationState, AdminOverview, AdminPaymentTransaction, AdminPlan, AdminProjectRow, AdminTeamRow, AdminUserRow, AdminListResponse, AdminAIUsageSummary, AdminAIUsageTeamRow, AdminAIUsageUserRow, AdminAIUsageFeatureRow, AdminAIUsageGranularity, AdminAIUsageTimeseries, DashboardActionBucketId, DashboardActionItem, DashboardActionSeverity, DashboardHealthMetric, DashboardOverview, DashboardProjectSummary, DashboardRecommendedAction, PaginatedResult, TeamActivityItem, TeamActivityOverview, TeamInvite, TeamInvitePreview } from "./types";
+import { AuthResponse, Plan, Project, ProjectDocument, ProjectDocumentKind, ProjectMeetingNote, WeeklyProjectSummary, Task, Team, Comment, Notification, User, ActivityLog, Column, Checklist, ChecklistItem, Label, Role, TeamUsage, CommentMention, LinkPreview, MessengerConnection, NotificationPreference, MessengerPlatform, TeamMessengerPolicy, MessengerLinkToken, BrowserPushSettings, BrowserPushSubscriptionInput, AdminImpersonationState, AdminOverview, AdminPaymentTransaction, AdminPlan, AdminProjectRow, AdminTeamRow, AdminUserRow, AdminListResponse, AdminAIUsageSummary, AdminAIUsageTeamRow, AdminAIUsageUserRow, AdminAIUsageFeatureRow, AdminAIUsageGranularity, AdminAIUsageTimeseries, DashboardActionBucketId, DashboardActionItem, DashboardActionSeverity, DashboardHealthMetric, DashboardOverview, DashboardProjectSummary, DashboardRecommendedAction, PaginatedResult, TeamActivityItem, TeamActivityOverview, TeamInvite, TeamInvitePreview, EmailReminderPreference, EmailReminderUpdate } from "./types";
 import { recordNotificationPromptIntent } from "@/lib/notification-soft-prompt";
 
 export const API_ORIGIN = (import.meta.env.VITE_API_URL || "").replace(/\/$/, "");
@@ -813,6 +813,19 @@ export const deleteTask = async (taskId: string): Promise<void> => {
 export type RefineTitleResult = {
     refined: string;
     changed: boolean;
+};
+
+export const getWeeklyTaskReminderPreference = async (): Promise<EmailReminderPreference> => {
+    const { data } = await api.get<{ data: EmailReminderPreference }>("/users/me/email-reminders/weekly-task");
+    return data.data;
+};
+
+export const updateWeeklyTaskReminderPreference = async (input: EmailReminderUpdate): Promise<EmailReminderPreference> => {
+    const { data } = await api.patch<{ data: EmailReminderPreference }>(
+        "/users/me/email-reminders/weekly-task",
+        input,
+    );
+    return data.data;
 };
 
 export const refineTaskTitle = async (title: string, teamId: string): Promise<RefineTitleResult> => {

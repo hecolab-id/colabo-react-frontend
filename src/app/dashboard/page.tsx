@@ -20,6 +20,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { CreateProjectModal } from "@/components/modals/create-project-modal";
 import { InstallPrompt } from "@/components/pwa/install-prompt";
 import { MobilePremiumPrompt } from "@/components/layout/mobile-premium-prompt";
+import { EmailReminderBanner } from "@/components/dashboard/email-reminder-banner";
 import { DashboardActionBucketId, DashboardActionItem, DashboardActionSeverity, DashboardOverview } from "@/lib/types";
 import { useStore } from "@/lib/store";
 
@@ -424,6 +425,7 @@ export default function DashboardPage() {
         <div className="min-h-screen overflow-x-hidden pb-32 font-sans md:pb-16">
             <InstallPrompt />
             <MobilePremiumPrompt team={currentTeam || null} />
+            <EmailReminderBanner />
 
             <div className="grid gap-4 pt-3 md:pt-4 xl:grid-cols-[minmax(0,1fr)_320px] xl:gap-5">
                 <div className="min-w-0 space-y-5">

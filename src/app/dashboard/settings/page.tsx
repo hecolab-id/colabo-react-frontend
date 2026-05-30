@@ -12,6 +12,7 @@ import {
 } from "@/lib/hooks/use-browser-push";
 import { useStore } from "@/lib/store";
 import { useUpdateProfile } from "@/lib/hooks/use-settings";
+import { useWeeklyTaskReminderPreference, useUpdateWeeklyTaskReminderPreference, useAutoSyncReminderTimezone } from "@/lib/hooks/use-email-reminder";
 import {
     useConnectMessengerPlatform,
     useCreateMessengerLinkToken,
@@ -105,6 +106,29 @@ const frequencyOptions: SelectOption[] = [
     { value: "DAILY", label: "Daily" },
     { value: "WEEKLY", label: "Weekly" },
 ];
+
+const WEEKLY_REMINDER_DAY_OPTIONS: SelectOption[] = [
+    { value: "1", label: "Senin" },
+    { value: "2", label: "Selasa" },
+    { value: "3", label: "Rabu" },
+    { value: "4", label: "Kamis" },
+    { value: "5", label: "Jumat" },
+    { value: "6", label: "Sabtu" },
+    { value: "7", label: "Minggu" },
+];
+
+const WEEKLY_REMINDER_HOUR_OPTIONS: SelectOption[] = Array.from({ length: 24 }, (_, hour) => ({
+    value: String(hour),
+    label: `${String(hour).padStart(2, "0")}:00`,
+}));
+
+function formatReminderDay(day: number): string {
+    return WEEKLY_REMINDER_DAY_OPTIONS.find((option) => option.value === String(day))?.label ?? "Senin";
+}
+
+function formatReminderHour(hour: number): string {
+    return `${String(hour).padStart(2, "0")}:00`;
+}
 
 const defaultTimezoneOptions = [
     "Asia/Jakarta",
@@ -302,6 +326,10 @@ export default function SettingsPage() {
     const [activeTab, setActiveTab] = useState<SettingsTab>("profile");
     const [avatarError, setAvatarError] = useState("");
     const timezoneOptions = useMemo(() => getTimezoneOptions(), []);
+
+    const { data: weeklyReminder } = useWeeklyTaskReminderPreference();
+    const updateWeeklyReminder = useUpdateWeeklyTaskReminderPreference();
+    useAutoSyncReminderTimezone(weeklyReminder);
     const browserPushSupported = typeof window !== "undefined" && isBrowserPushSupported();
     const browserPushPermission = browserPushSupported ? Notification.permission : "unsupported";
     const browserPushStatusLabel = !browserPushSupported
@@ -606,6 +634,63 @@ export default function SettingsPage() {
                         <Alert>
                             <AlertDescription>{browserPushTestMessage}</AlertDescription>
                         </Alert>
+                    )}
+                </SettingsSection>
+                ) : null}
+
+                {activeTab === "notifications" ? (
+                <SettingsSection
+                    eyebrow="Email"
+                    title="Pengingat Mingguan via Email"
+                    description="Kami kirim 5 task prioritas Anda ke email setiap minggu agar Anda tidak ketinggalan update."
+                    action={(
+                        <ToggleSwitch
+                            checked={weeklyReminder?.enabled ?? true}
+                            onClick={() => {
+                                if (!weeklyReminder) return;
+                                updateWeeklyReminder.mutate({ enabled: !weeklyReminder.enabled });
+                            }}
+                            disabled={!weeklyReminder || updateWeeklyReminder.isPending}
+                        />
+                    )}
+                >
+                    {weeklyReminder ? (
+                        <>
+                            {weeklyReminder.enabled ? (
+                                <>
+                                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                                        <SettingsField label="Hari">
+                                            <SettingsSelect
+                                                value={String(weeklyReminder.day_of_week)}
+                                                onChange={(value) => updateWeeklyReminder.mutate({ day_of_week: Number(value) })}
+                                                options={WEEKLY_REMINDER_DAY_OPTIONS}
+                                            />
+                                        </SettingsField>
+                                        <SettingsField label="Jam">
+                                            <SettingsSelect
+                                                value={String(weeklyReminder.hour_local)}
+                                                onChange={(value) => updateWeeklyReminder.mutate({ hour_local: Number(value) })}
+                                                options={WEEKLY_REMINDER_HOUR_OPTIONS}
+                                            />
+                                        </SettingsField>
+                                    </div>
+                                    <p className="text-[13px] text-slate-500">
+                                        Akan dikirim setiap{" "}
+                                        <span className="font-medium text-slate-700">{formatReminderDay(weeklyReminder.day_of_week)}</span>{" "}
+                                        pukul{" "}
+                                        <span className="font-medium text-slate-700">{formatReminderHour(weeklyReminder.hour_local)}</span>{" "}
+                                        di zona{" "}
+                                        <span className="font-medium text-slate-700">{formatTimezoneLabel(weeklyReminder.timezone)}</span>.
+                                    </p>
+                                </>
+                            ) : (
+                                <p className="text-[13px] text-slate-500">
+                                    Pengingat sedang nonaktif. Aktifkan untuk mendapat ringkasan task setiap minggu.
+                                </p>
+                            )}
+                        </>
+                    ) : (
+                        <p className="text-[13px] text-slate-400">Memuat preferensi…</p>
                     )}
                 </SettingsSection>
                 ) : null}

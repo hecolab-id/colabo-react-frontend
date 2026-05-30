@@ -82,6 +82,28 @@ export type MessengerConnection = {
     updated_at?: string;
 };
 
+export type EmailReminderKind = "weekly_task";
+
+export type EmailReminderPreference = {
+    id: string;
+    user_id: string;
+    kind: EmailReminderKind;
+    enabled: boolean;
+    day_of_week: number; // ISO weekday: 1 = Monday .. 7 = Sunday
+    hour_local: number;  // 0..23 in `timezone`
+    timezone: string;    // IANA, e.g. "Asia/Jakarta"
+    last_sent_at?: string | null;
+    created_at: string;
+    updated_at: string;
+};
+
+export type EmailReminderUpdate = Partial<{
+    enabled: boolean;
+    day_of_week: number;
+    hour_local: number;
+    timezone: string;
+}>;
+
 export type NotificationPreference = {
     id: string;
     user_id: string;
