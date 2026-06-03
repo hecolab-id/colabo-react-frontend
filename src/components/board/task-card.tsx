@@ -120,7 +120,7 @@ function TaskCardSurface({
             ref={setNodeRef}
             style={style}
             className={cn(
-                "kanban-task-card relative cursor-pointer touch-manipulation select-none overflow-hidden rounded-[1.15rem] p-3.5 shadow-[0_10px_24px_-22px_rgba(15,23,42,0.32)] md:p-4",
+                "kanban-task-card relative cursor-pointer touch-manipulation select-none overflow-hidden rounded-[1.15rem] p-3.5 shadow-[0_10px_24px_-22px_rgba(15,23,42,0.32)] md:p-4 focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/35 focus-visible:ring-offset-0",
                 elevated
                     ? "border border-white/80 bg-white/88"
                     : "border border-black/5 bg-white",
