@@ -787,7 +787,7 @@ function DueDateInput({
                 type="date"
                 value={value}
                 onChange={(event) => onChange(event.target.value)}
-                className="h-12 w-full appearance-none rounded-[1.05rem] border border-slate-200/80 bg-white/90 px-4 pr-12 text-[15px] font-medium text-slate-900 shadow-none transition-[border-color,box-shadow,background-color] focus:border-primary/35 focus:bg-white focus:outline-none focus:ring-4 focus:ring-primary/15 sm:rounded-2xl sm:bg-slate-50 sm:shadow-[inset_0_1px_0_rgba(255,255,255,0.72)] sm:focus:bg-slate-100"
+                className="h-12 w-full appearance-none rounded-[1.05rem] border border-slate-200/80 bg-white/90 px-4 pr-12 text-[15px] font-medium text-slate-900 shadow-none transition-[border-color,box-shadow,background-color] focus:border-primary/35 focus:bg-white focus:outline-none focus:ring-4 focus:ring-primary/15 sm:rounded-2xl sm:bg-slate-50 sm:shadow-[inset_0_1px_0_rgba(255,255,255,0.72)] sm:focus:bg-slate-100 [&::-webkit-calendar-picker-indicator]:appearance-none [&::-webkit-calendar-picker-indicator]:opacity-0"
                 placeholder="Pick a date"
             />
             <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-4">
@@ -828,7 +828,7 @@ function DueDateRow({
                     type="date"
                     value={value}
                     onChange={(event) => onChange(event.target.value)}
-                    className="w-full max-w-[140px] bg-transparent text-right text-[15px] font-medium text-slate-900 outline-none focus:ring-0"
+                    className="w-full max-w-[140px] bg-transparent text-right text-[15px] font-medium text-slate-900 outline-none focus:ring-0 [&::-webkit-calendar-picker-indicator]:appearance-none [&::-webkit-calendar-picker-indicator]:opacity-0"
                 />
             </span>
             <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-4">
