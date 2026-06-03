@@ -158,9 +158,6 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
                 await queryClient.invalidateQueries({ queryKey: ["projects", "list", currentTeam.slug] });
             }
 
-            if (activeProject?.id === projectId) {
-                router.refresh();
-            }
             setCreateTaskSuccessMessage("Task created. You can add another one.");
         } catch (error) {
             console.error("Failed to create task", error);
