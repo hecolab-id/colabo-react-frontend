@@ -2,7 +2,7 @@
 
 import { ReactNode, useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { Calendar, CheckCircle2, Check, ChevronDown, FolderPlus, Plus, Tag, X } from "lucide-react";
+import { Calendar, CheckCircle2, Check, ChevronDown, FolderPlus, Plus, Tag, User as UserIcon, X } from "lucide-react";
 import { Column, Label, Project, TaskPriority, TaskStatus, User } from "@/lib/types";
 import { Listbox, ListboxButton, ListboxOption, ListboxOptions } from "@headlessui/react";
 import { cn } from "@/lib/utils";
@@ -56,6 +56,17 @@ function getStatusFromColumn(column: Column | undefined, fallback: TaskStatus): 
     }
 
     return "TODO";
+}
+
+function UnassignedLeading() {
+    return (
+        <span
+            aria-hidden="true"
+            className="inline-flex h-6 w-6 items-center justify-center rounded-full border border-dashed border-slate-300 text-slate-400"
+        >
+            <UserIcon className="h-3 w-3" />
+        </span>
+    );
 }
 
 function PriorityDot({ priority }: { priority: TaskPriority }) {
@@ -651,11 +662,14 @@ export function CreateTaskModal({
                                     value={assigneeId}
                                     onChange={setAssigneeId}
                                     placeholder="Unassigned"
-                                    options={assignees.map((a) => ({
-                                        value: a.id,
-                                        label: a.name,
-                                        leading: <Avatar user={a} size="xs" />,
-                                    }))}
+                                    options={[
+                                        { value: "", label: "Unassigned", leading: <UnassignedLeading /> },
+                                        ...assignees.map((a) => ({
+                                            value: a.id,
+                                            label: a.name,
+                                            leading: <Avatar user={a} size="xs" />,
+                                        })),
+                                    ]}
                                 />
                                 <CustomListbox
                                     variant="row"
@@ -697,11 +711,14 @@ export function CreateTaskModal({
                                         value={assigneeId}
                                         onChange={setAssigneeId}
                                         placeholder="Leave Unassigned"
-                                        options={assignees.map((a) => ({
-                                            value: a.id,
-                                            label: a.name,
-                                            leading: <Avatar user={a} size="xs" />,
-                                        }))}
+                                        options={[
+                                            { value: "", label: "Unassigned", leading: <UnassignedLeading /> },
+                                            ...assignees.map((a) => ({
+                                                value: a.id,
+                                                label: a.name,
+                                                leading: <Avatar user={a} size="xs" />,
+                                            })),
+                                        ]}
                                     />
                                 </SettingsField>
 
