@@ -3,6 +3,14 @@ import { persist } from "zustand/middleware";
 import { AdminImpersonationState, AdminSessionSnapshot, User, Team } from "./types";
 import { API_BASE_URL, performLogin, performRegister, getTeams, setAccessToken, sendVerificationEmail, getMe, impersonateUser, exitImpersonation, resetAuthExpiredDispatch } from "./api";
 
+function resolvePersistedTeam(teams: Team[], previousTeam: Team | null): Team | null {
+    if (previousTeam) {
+        const match = teams.find((team) => team.id === previousTeam.id);
+        if (match) return match;
+    }
+    return teams[0] || null;
+}
+
 interface AppState {
     // Auth
     user: User | null;
@@ -169,14 +177,9 @@ export const useStore = create<AppState>()(
                 set({ isTeamsLoading: true });
                 try {
                     const teams = await getTeams();
-                    const previousTeam = get().currentTeam;
-                    const matchingTeam = previousTeam
-                        ? teams.find((team) => team.id === previousTeam.id)
-                        : null;
-
                     set({
                         teams,
-                        currentTeam: matchingTeam || teams[0] || null,
+                        currentTeam: resolvePersistedTeam(teams, get().currentTeam),
                         isTeamsLoading: false,
                         hasLoadedTeams: true,
                     });
@@ -189,10 +192,11 @@ export const useStore = create<AppState>()(
             refreshUser: async () => {
                 try {
                     const { user, teams, impersonation } = await getMe();
+                    const teamList = teams || [];
                     set({
                         user,
-                        teams: teams || [],
-                        currentTeam: teams?.[0] || get().currentTeam,
+                        teams: teamList,
+                        currentTeam: resolvePersistedTeam(teamList, get().currentTeam),
                         hasLoadedTeams: true,
                         isTeamsLoading: false,
                         impersonation: impersonation || null,
