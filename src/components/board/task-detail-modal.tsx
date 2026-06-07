@@ -228,6 +228,8 @@ export function TaskDetailModal({ task, projectColumns: initialProjectColumns, o
     const bodyRef = useRef<HTMLDivElement>(null);
     const commentInputRef = useRef<HTMLTextAreaElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const assigneeRef = useRef<HTMLDivElement>(null);
+    const priorityRef = useRef<HTMLDivElement>(null);
     const sectionRefs = {
         description: useRef<HTMLSpanElement>(null),
         checklist: useRef<HTMLSpanElement>(null),
@@ -350,6 +352,27 @@ export function TaskDetailModal({ task, projectColumns: initialProjectColumns, o
     }, [loadTaskDetails]);
 
     useEscapeKey(!showDeleteDialog, onClose);
+    useEscapeKey(isAssigning || isPriorityOpen, () => {
+        setIsAssigning(false);
+        setIsPriorityOpen(false);
+    });
+
+    useEffect(() => {
+        if (!isAssigning && !isPriorityOpen) return;
+
+        const handlePointerDown = (event: MouseEvent) => {
+            const target = event.target as Node;
+            if (isAssigning && assigneeRef.current && !assigneeRef.current.contains(target)) {
+                setIsAssigning(false);
+            }
+            if (isPriorityOpen && priorityRef.current && !priorityRef.current.contains(target)) {
+                setIsPriorityOpen(false);
+            }
+        };
+
+        document.addEventListener("mousedown", handlePointerDown);
+        return () => document.removeEventListener("mousedown", handlePointerDown);
+    }, [isAssigning, isPriorityOpen]);
 
     useEffect(() => {
         const container = bodyRef.current;
@@ -1558,10 +1581,16 @@ export function TaskDetailModal({ task, projectColumns: initialProjectColumns, o
                                     <div className="divide-y divide-slate-200/70">
                                         <div>
                                             <FieldLabel>Assignee</FieldLabel>
-                                            <div className={cn("relative", isAssigning && "z-20")}>
+                                            <div ref={assigneeRef} className={cn("relative", isAssigning && "z-20")}>
                                                 <button
                                                     type="button"
-                                                    onClick={() => setIsAssigning((current) => !current)}
+                                                    onClick={() => {
+                                                        setIsAssigning((current) => {
+                                                            const next = !current;
+                                                            if (next) setIsPriorityOpen(false);
+                                                            return next;
+                                                        });
+                                                    }}
                                                     className="flex w-full items-center justify-between gap-3 rounded-[1.15rem] border border-slate-300 bg-white px-3 py-3 text-left transition-[border-color,background-color] hover:border-primary/25 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15"
                                                 >
                                                     <div className="min-w-0 flex items-center gap-3">
@@ -1617,10 +1646,16 @@ export function TaskDetailModal({ task, projectColumns: initialProjectColumns, o
 
                                         <div className="pt-4">
                                             <FieldLabel>Priority</FieldLabel>
-                                            <div className={cn("relative", isPriorityOpen && "z-20")}>
+                                            <div ref={priorityRef} className={cn("relative", isPriorityOpen && "z-20")}>
                                                 <button
                                                     type="button"
-                                                    onClick={() => setIsPriorityOpen((current) => !current)}
+                                                    onClick={() => {
+                                                        setIsPriorityOpen((current) => {
+                                                            const next = !current;
+                                                            if (next) setIsAssigning(false);
+                                                            return next;
+                                                        });
+                                                    }}
                                                     className={cn(
                                                         "flex w-full items-center justify-between rounded-full px-3 py-2 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15",
                                                         priority.badgeClassName
