@@ -2,6 +2,7 @@
 
 import { use, useMemo } from "react";
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { KanbanBoard } from "@/components/board/kanban-board";
 import { TaskListView } from "@/components/board/task-list-view";
 import { CreateTaskFormValues, CreateTaskModal } from "@/components/modals/create-task-modal";
@@ -21,6 +22,8 @@ import {
     useReorderColumns
 } from "@/lib/hooks/use-project";
 import { getTaskColumnId } from "@/lib/task-ui";
+import { useStore } from "@/lib/store";
+import { getTeamBySlug } from "@/lib/api";
 
 type ViewMode = "board" | "list";
 
@@ -41,6 +44,7 @@ function getStatusFromColumn(columnId: string | undefined, columns: Column[]): T
 
 export default function ProjectDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = use(params);
+    const currentTeam = useStore((state) => state.currentTeam);
     const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
     const [isColumnModalOpen, setIsColumnModalOpen] = useState(false);
     const [editingColumn, setEditingColumn] = useState<Column | null>(null);
@@ -67,6 +71,29 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
 
         return [...byId.values()].sort((left, right) => left.name.localeCompare(right.name));
     }, [project?.members, tasks]);
+    const shouldHydrateTeamMembers = !!currentTeam?.slug && (!currentTeam.members || currentTeam.members.length === 0);
+    const { data: hydratedCurrentTeam } = useQuery({
+        queryKey: ["teams", "detail", currentTeam?.slug],
+        queryFn: () => getTeamBySlug(currentTeam!.slug),
+        enabled: shouldHydrateTeamMembers,
+        staleTime: 5 * 60 * 1000,
+    });
+    const delegateAssignees = useMemo(() => {
+        const teamMembers = hydratedCurrentTeam?.members?.length
+            ? hydratedCurrentTeam.members
+            : currentTeam?.members || [];
+        const projectMembers = project?.members || [];
+        const taskAssignees = tasks
+            .map((task) => task.assignee)
+            .filter((assignee): assignee is NonNullable<Task["assignee"]> => Boolean(assignee));
+
+        const byId = new Map<string, NonNullable<Task["assignee"]>>();
+        [...teamMembers, ...projectMembers, ...taskAssignees].forEach((user) => {
+            byId.set(user.id, user);
+        });
+
+        return [...byId.values()].sort((left, right) => left.name.localeCompare(right.name));
+    }, [hydratedCurrentTeam?.members, currentTeam?.members, project?.members, tasks]);
 
     // Mutations
     const createTaskMutation = useCreateTask(id);
@@ -240,7 +267,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                 projectColumns={columns}
                 lockProjectSelection
                 isSubmitting={createTaskMutation.isPending}
-                assignees={availableAssignees}
+                assignees={delegateAssignees}
                 teamSlug={project?.team?.slug}
                 teamId={project?.team?.id || project?.team_id}
             />

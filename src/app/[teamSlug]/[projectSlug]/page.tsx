@@ -1,7 +1,8 @@
 "use client";
 
 import { lazy, Suspense, use, useEffect, useMemo, useRef, useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { getTeamBySlug } from "@/lib/api";
 import type { CreateTaskFormValues } from "@/components/modals/create-task-modal";
 import { ManageProjectMembersModal } from "@/components/modals/manage-project-members-modal";
 import { EditColumnModal } from "@/components/modals/edit-column-modal";
@@ -115,6 +116,29 @@ function ProjectSlugPageContent({ params }: { params: Promise<{ teamSlug: string
 
         return [...byId.values()].sort((left, right) => left.name.localeCompare(right.name));
     }, [project?.members, tasks]);
+    const shouldHydrateTeamMembers = !!currentTeam?.slug && (!currentTeam.members || currentTeam.members.length === 0);
+    const { data: hydratedCurrentTeam } = useQuery({
+        queryKey: ["teams", "detail", currentTeam?.slug],
+        queryFn: () => getTeamBySlug(currentTeam!.slug),
+        enabled: shouldHydrateTeamMembers,
+        staleTime: 5 * 60 * 1000,
+    });
+    const delegateAssignees = useMemo(() => {
+        const teamMembers = hydratedCurrentTeam?.members?.length
+            ? hydratedCurrentTeam.members
+            : currentTeam?.members || [];
+        const projectMembers = project?.members || [];
+        const taskAssignees = tasks
+            .map((task) => task.assignee)
+            .filter((assignee): assignee is NonNullable<Task["assignee"]> => Boolean(assignee));
+
+        const byId = new Map<string, NonNullable<Task["assignee"]>>();
+        [...teamMembers, ...projectMembers, ...taskAssignees].forEach((user) => {
+            byId.set(user.id, user);
+        });
+
+        return [...byId.values()].sort((left, right) => left.name.localeCompare(right.name));
+    }, [hydratedCurrentTeam?.members, currentTeam?.members, project?.members, tasks]);
     const availableLabels = useMemo(() => {
         const byId = new Map<string, NonNullable<Task["labels"]>[number]>();
 
@@ -523,7 +547,7 @@ function ProjectSlugPageContent({ params }: { params: Promise<{ teamSlug: string
                     projectColumns={columns}
                     lockProjectSelection
                     isSubmitting={createTaskMutation.isPending}
-                    assignees={availableAssignees}
+                    assignees={delegateAssignees}
                     teamSlug={teamSlug}
                     teamId={currentTeam?.id || project?.team_id}
                 />
