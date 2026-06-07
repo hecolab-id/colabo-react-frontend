@@ -276,7 +276,7 @@ function DraftLabelPicker({
                 {isRow ? (
                     <>
                         <span className="shrink-0 text-[12px] font-semibold text-slate-400">Labels</span>
-                        <span className="ml-4 flex min-w-0 flex-1 items-center justify-end gap-1.5 overflow-hidden">
+                        <span className="ml-4 flex min-w-0 flex-1 items-center justify-end gap-1.5 overflow-hidden pr-7 text-right">
                             {selectedLabels.length > 0 ? (
                                 <span className="flex min-w-0 items-center gap-1.5 overflow-hidden">
                                     {selectedLabels.slice(0, 2).map((label) => (
