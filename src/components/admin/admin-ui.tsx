@@ -176,7 +176,7 @@ export function PaginationControls({
     const safeTotalPages = Math.max(totalPages, 1);
 
     return (
-        <div className="flex flex-col gap-3 rounded-[12px] border border-black/5 bg-white px-4 py-2.5 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-3 rounded-[12px] border border-black/5 bg-white px-3 py-2 sm:flex-row sm:items-center sm:justify-between sm:px-4 sm:py-2.5">
             <p className="text-sm text-muted-foreground">
                 Page {page} of {safeTotalPages} · {formatNumber(totalItems)} {label}
             </p>
@@ -185,7 +185,7 @@ export function PaginationControls({
                     type="button"
                     onClick={() => onChange(Math.max(1, page - 1))}
                     disabled={page <= 1}
-                    className="rounded-full border border-black/5 bg-white px-3.5 py-1.5 text-xs font-semibold text-foreground transition hover:bg-muted disabled:cursor-not-allowed disabled:opacity-40"
+                    className="min-h-11 rounded-full border border-black/5 bg-white px-3.5 py-1.5 text-xs font-semibold text-foreground transition hover:bg-muted disabled:cursor-not-allowed disabled:opacity-40 md:min-h-0"
                 >
                     Previous
                 </button>
@@ -193,7 +193,7 @@ export function PaginationControls({
                     type="button"
                     onClick={() => onChange(Math.min(safeTotalPages, page + 1))}
                     disabled={page >= safeTotalPages}
-                    className="rounded-full border border-black/5 bg-white px-3.5 py-1.5 text-xs font-semibold text-foreground transition hover:bg-muted disabled:cursor-not-allowed disabled:opacity-40"
+                    className="min-h-11 rounded-full border border-black/5 bg-white px-3.5 py-1.5 text-xs font-semibold text-foreground transition hover:bg-muted disabled:cursor-not-allowed disabled:opacity-40 md:min-h-0"
                 >
                     Next
                 </button>

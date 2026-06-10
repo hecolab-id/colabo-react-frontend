@@ -423,7 +423,7 @@ function FilterBar({
                                 )
                             }
                             className={
-                                "h-9 rounded-full px-3.5 text-sm font-medium transition " +
+                                "h-11 rounded-full px-3.5 text-sm font-medium transition md:h-9 " +
                                 (range.kind === k
                                     ? "bg-primary text-primary-foreground"
                                     : "text-muted-foreground hover:bg-muted hover:text-foreground")
@@ -442,7 +442,7 @@ function FilterBar({
                             onGranularityChange(v === "hour" || v === "day" ? v : undefined);
                         }}
                         aria-label="Bucket granularity"
-                        className="h-9 rounded-full border border-border bg-white px-3 text-sm text-foreground outline-none focus:border-primary/40 focus:ring-2 focus:ring-primary/20"
+                        className="h-11 w-full rounded-full border border-border bg-white px-3 text-sm text-foreground outline-none focus:border-primary/40 focus:ring-2 focus:ring-primary/20 sm:w-auto md:h-9"
                     >
                         <option value="">Auto bucket</option>
                         <option value="hour">Hourly</option>
@@ -452,7 +452,7 @@ function FilterBar({
                         value={selectedTeamId ?? ""}
                         onChange={(e) => onTeamChange(e.target.value || null)}
                         aria-label="Filter by team"
-                        className="h-9 rounded-full border border-border bg-white px-3 text-sm text-foreground outline-none focus:border-primary/40 focus:ring-2 focus:ring-primary/20"
+                        className="h-11 w-full rounded-full border border-border bg-white px-3 text-sm text-foreground outline-none focus:border-primary/40 focus:ring-2 focus:ring-primary/20 sm:w-auto md:h-9"
                     >
                         <option value="">All teams</option>
                         {teamOptions.map((t) => (
@@ -465,7 +465,7 @@ function FilterBar({
             </div>
 
             {range.kind === "custom" ? (
-                <div className="mt-3 flex flex-wrap items-center gap-3 text-sm">
+                <div className="mt-3 flex flex-col gap-2 text-sm sm:flex-row sm:flex-wrap sm:items-center sm:gap-3">
                     <label className="flex items-center gap-2">
                         <span className="text-muted-foreground">From</span>
                         <input
@@ -477,7 +477,7 @@ function FilterBar({
                                     from: e.target.value ? `${e.target.value}T00:00:00.000Z` : undefined,
                                 })
                             }
-                            className="h-9 rounded-full border border-border bg-white px-3 text-foreground outline-none focus:border-primary/40 focus:ring-2 focus:ring-primary/20"
+                            className="h-11 flex-1 rounded-full border border-border bg-white px-3 text-foreground outline-none focus:border-primary/40 focus:ring-2 focus:ring-primary/20 sm:flex-initial md:h-9"
                         />
                     </label>
                     <label className="flex items-center gap-2">
@@ -491,7 +491,7 @@ function FilterBar({
                                     to: e.target.value ? `${e.target.value}T23:59:59.999Z` : undefined,
                                 })
                             }
-                            className="h-9 rounded-full border border-border bg-white px-3 text-foreground outline-none focus:border-primary/40 focus:ring-2 focus:ring-primary/20"
+                            className="h-11 flex-1 rounded-full border border-border bg-white px-3 text-foreground outline-none focus:border-primary/40 focus:ring-2 focus:ring-primary/20 sm:flex-initial md:h-9"
                         />
                     </label>
                 </div>

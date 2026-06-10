@@ -113,7 +113,7 @@ export default function AdminPlansPage() {
                 >
                     <form className="space-y-4" onSubmit={handlePlanSubmit}>
                         <TextField label="Plan name" value={planDraft.name} onChange={(value) => setPlanDraft((current) => ({ ...current, name: value }))} />
-                        <div className="grid gap-3 sm:grid-cols-2">
+                        <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                             <NumberField label="Price per user" value={planDraft.price_per_user} onChange={(value) => setPlanDraft((current) => ({ ...current, price_per_user: value }))} step="0.01" />
                             <NumberField label="Max members" value={planDraft.max_members} onChange={(value) => setPlanDraft((current) => ({ ...current, max_members: value }))} />
                             <NumberField label="Max projects" value={planDraft.max_projects} onChange={(value) => setPlanDraft((current) => ({ ...current, max_projects: value }))} />
@@ -182,14 +182,14 @@ export default function AdminPlansPage() {
                                             <button
                                                 type="button"
                                                 onClick={() => handlePlanEdit(plan)}
-                                                className="rounded-full border border-white/10 px-3 py-2 text-xs font-semibold text-slate-200"
+                                                className="min-h-11 rounded-full border border-white/10 px-3 py-2 text-xs font-semibold text-slate-200 md:min-h-0"
                                             >
                                                 Edit
                                             </button>
                                             <button
                                                 type="button"
                                                 onClick={() => void handlePlanDelete(plan.id)}
-                                                className="rounded-full border border-[#d56f6f]/20 bg-[#d56f6f]/10 px-3 py-2 text-xs font-semibold text-[#ffc9c9]"
+                                                className="min-h-11 rounded-full border border-[#d56f6f]/20 bg-[#d56f6f]/10 px-3 py-2 text-xs font-semibold text-[#ffc9c9] md:min-h-0"
                                             >
                                                 Delete
                                             </button>

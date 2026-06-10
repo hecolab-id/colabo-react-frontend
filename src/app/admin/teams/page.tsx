@@ -200,7 +200,7 @@ export default function AdminTeamsPage() {
                                             <button
                                                 type="button"
                                                 onClick={() => openEdit(team)}
-                                                className="h-9 rounded-full border border-black/5 bg-white px-4 text-sm font-semibold text-foreground transition hover:bg-muted"
+                                                className="h-11 rounded-full border border-black/5 bg-white px-4 text-sm font-semibold text-foreground transition hover:bg-muted md:h-9"
                                             >
                                                 Edit
                                             </button>

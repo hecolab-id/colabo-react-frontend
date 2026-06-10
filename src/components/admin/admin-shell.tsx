@@ -166,7 +166,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
                                 type="button"
                                 onClick={() => setMobileNavOpen(false)}
                                 aria-label="Close admin navigation"
-                                className="rounded-full border border-black/5 bg-white p-2 text-muted-foreground transition hover:bg-muted"
+                                className="grid h-11 w-11 place-items-center rounded-full border border-black/5 bg-white text-muted-foreground transition hover:bg-muted"
                             >
                                 <X className="h-4 w-4" />
                             </button>
@@ -205,7 +205,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
                         type="button"
                         onClick={() => setMobileNavOpen(true)}
                         aria-label="Open admin navigation"
-                        className="rounded-full border border-black/5 bg-white p-2 text-muted-foreground lg:hidden"
+                        className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-black/5 bg-white text-muted-foreground lg:hidden"
                     >
                         <Menu className="h-4 w-4" />
                     </button>
@@ -238,7 +238,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
                                 <Link
                                     href="/dashboard/settings"
                                     onClick={() => setProfileOpen(false)}
-                                    className="flex items-center gap-3 rounded-[10px] px-3 py-2.5 text-sm text-foreground transition hover:bg-muted"
+                                    className="flex min-h-11 items-center gap-3 rounded-[10px] px-3 py-2.5 text-sm text-foreground transition hover:bg-muted md:min-h-0"
                                 >
                                     <Settings className="h-4 w-4" />
                                     Settings
@@ -246,7 +246,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
                                 <button
                                     type="button"
                                     onClick={handleLogout}
-                                    className="flex w-full items-center gap-3 rounded-[10px] px-3 py-2.5 text-sm text-[var(--danger-fg)] transition hover:bg-muted"
+                                    className="flex min-h-11 w-full items-center gap-3 rounded-[10px] px-3 py-2.5 text-sm text-[var(--danger-fg)] transition hover:bg-muted md:min-h-0"
                                 >
                                     <LogOut className="h-4 w-4" />
                                     Logout

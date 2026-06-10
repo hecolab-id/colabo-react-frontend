@@ -85,7 +85,7 @@ export function TeamEditDrawer({ team, open, onClose, plans, draft, onChange, on
                         type="button"
                         onClick={onClose}
                         aria-label="Close"
-                        className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-black/5 bg-white text-muted-foreground transition hover:bg-muted"
+                        className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-black/5 bg-white text-muted-foreground transition hover:bg-muted md:h-9 md:w-9"
                     >
                         <X className="h-4 w-4" />
                     </button>
@@ -133,7 +133,7 @@ export function TeamEditDrawer({ team, open, onClose, plans, draft, onChange, on
                     <button
                         type="button"
                         onClick={onClose}
-                        className="h-10 rounded-full px-4 text-sm font-semibold text-muted-foreground transition hover:bg-muted"
+                        className="h-11 rounded-full px-4 text-sm font-semibold text-muted-foreground transition hover:bg-muted md:h-10"
                     >
                         Cancel
                     </button>
@@ -141,7 +141,7 @@ export function TeamEditDrawer({ team, open, onClose, plans, draft, onChange, on
                         type="button"
                         onClick={onSave}
                         disabled={saving || !team}
-                        className="h-10 rounded-full bg-primary px-5 text-sm font-semibold text-primary-foreground shadow-[0_14px_30px_-18px_rgba(109,93,252,0.55)] transition hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-60"
+                        className="h-11 rounded-full bg-primary px-5 text-sm font-semibold text-primary-foreground shadow-[0_14px_30px_-18px_rgba(109,93,252,0.55)] transition hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-60 md:h-10"
                     >
                         {saving ? "Saving..." : "Save changes"}
                     </button>

@@ -58,7 +58,7 @@ export default function AdminPaymentsPage() {
                                 setPaymentFilter(status);
                                 setPage(1);
                             }}
-                            className={`rounded-full px-4 py-2 text-xs font-semibold transition ${
+                            className={`min-h-11 shrink-0 whitespace-nowrap rounded-full px-4 py-2 text-xs font-semibold transition md:min-h-0 ${
                                 paymentFilter === status
                                     ? "bg-[#b8adff] text-[#111827]"
                                     : "border border-white/10 bg-white/[0.03] text-slate-300 hover:bg-white/[0.06]"
