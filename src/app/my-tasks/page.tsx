@@ -390,7 +390,7 @@ export default function MyTasksPage() {
                                         </div>
                                     </div>
 
-                                    <div className="flex shrink-0 items-center gap-2 text-[12px] font-semibold text-slate-400 opacity-0 transition-all group-hover:opacity-100 group-hover:text-slate-900 md:pl-4">
+                                    <div className="flex shrink-0 items-center gap-2 text-[12px] font-semibold text-slate-400 opacity-100 transition-all group-hover:text-slate-900 md:opacity-0 md:group-hover:opacity-100 md:pl-4">
                                         Open Task
                                         <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" aria-hidden="true" />
                                     </div>

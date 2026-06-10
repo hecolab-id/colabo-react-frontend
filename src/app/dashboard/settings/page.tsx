@@ -427,7 +427,7 @@ export default function SettingsPage() {
                 <div className="lg:grid lg:grid-cols-[280px_minmax(0,1fr)] lg:items-start lg:gap-6">
                     <aside className="mb-5 lg:sticky lg:top-24 lg:mb-0">
                         <nav
-                            className="flex gap-2 overflow-x-auto rounded-[1.4rem] border border-white/70 bg-white/80 p-2 shadow-[0_20px_60px_-42px_rgba(15,23,42,0.38)] backdrop-blur-2xl lg:flex-col lg:overflow-visible"
+                            className="flex snap-x gap-2 overflow-x-auto rounded-[1.4rem] border border-white/70 bg-white/80 p-2 shadow-[0_20px_60px_-42px_rgba(15,23,42,0.38)] backdrop-blur-2xl lg:flex-col lg:overflow-visible"
                             aria-label="Account settings sections"
                         >
                             {settingsTabs.map((tab) => {
@@ -440,7 +440,7 @@ export default function SettingsPage() {
                                         type="button"
                                         onClick={() => setActiveTab(tab.id)}
                                         className={cn(
-                                            "flex min-w-[11rem] items-center gap-3 rounded-[1.05rem] px-3 py-3 text-left transition-[background-color,color,box-shadow] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15 lg:min-w-0",
+                                            "flex min-w-[8.5rem] snap-start items-center gap-3 rounded-[1.05rem] px-3 py-3 text-left transition-[background-color,color,box-shadow] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15 sm:min-w-[11rem] lg:min-w-0",
                                             isActive
                                                 ? "bg-primary-dark text-white shadow-[0_18px_36px_-28px_rgba(51,35,127,0.62)]"
                                                 : "text-slate-600 hover:bg-white hover:text-slate-950",

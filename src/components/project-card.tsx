@@ -34,7 +34,7 @@ export function ProjectCard({ project, teamSlug, canDelete = false, onDelete }: 
                     {canDelete && (
                         <Link
                             href={`/${teamSlug}/${project.slug}/settings`}
-                            className="inline-flex h-8 items-center justify-center gap-1.5 rounded-full border border-black/5 bg-white px-3 text-xs font-semibold text-slate-600 shadow-sm transition-[background-color,border-color,color,transform] hover:scale-105 hover:bg-slate-50 hover:text-slate-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-200"
+                            className="inline-flex h-11 md:h-8 items-center justify-center gap-1.5 rounded-full border border-black/5 bg-white px-3 text-xs font-semibold text-slate-600 shadow-sm transition-[background-color,border-color,color,transform] hover:scale-105 hover:bg-slate-50 hover:text-slate-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-200"
                             aria-label={`View project settings for ${project.name}`}
                             title="View project"
                         >
@@ -46,7 +46,7 @@ export function ProjectCard({ project, teamSlug, canDelete = false, onDelete }: 
                         <button
                             type="button"
                             onClick={() => onDelete(project)}
-                            className="inline-flex h-8 items-center justify-center gap-1.5 rounded-full border border-rose-100 bg-white px-3 text-xs font-semibold text-rose-600 shadow-sm transition-[background-color,border-color,color,transform] hover:scale-105 hover:border-rose-200 hover:bg-rose-50 hover:text-rose-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-200"
+                            className="inline-flex h-11 md:h-8 items-center justify-center gap-1.5 rounded-full border border-rose-100 bg-white px-3 text-xs font-semibold text-rose-600 shadow-sm transition-[background-color,border-color,color,transform] hover:scale-105 hover:border-rose-200 hover:bg-rose-50 hover:text-rose-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-200"
                             aria-label={`Delete ${project.name}`}
                             title="Delete project"
                         >

@@ -176,9 +176,9 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
     return (
         <div className="h-full flex flex-col">
             {/* Header */}
-            <div className="flex items-center justify-between mb-8">
-                <div>
-                    <h1 className="text-3xl font-bold tracking-tight text-foreground">{project.name}</h1>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-8">
+                <div className="min-w-0">
+                    <h1 className="text-3xl font-bold tracking-tight text-foreground break-words">{project.name}</h1>
                     <p className="text-muted-foreground mt-1">
                         Manage your tasks and track progress.
                     </p>
@@ -186,7 +186,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                 <div className="flex gap-3">
                     <button
                         onClick={() => openCreateTask()}
-                        className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 flex items-center gap-2 transition-colors font-medium shadow-sm hover:shadow"
+                        className="min-h-11 md:min-h-0 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 flex items-center gap-2 transition-colors font-medium shadow-sm hover:shadow"
                     >
                         <Plus className="w-4 h-4" />
                         New Task
@@ -195,11 +195,11 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
             </div>
 
             {/* Toolbar */}
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
                 <div className="flex items-center gap-2 bg-card border border-border p-1 rounded-lg">
                     <button
                         onClick={() => setViewMode("board")}
-                        className={`p-2 rounded-md transition-all ${viewMode === "board"
+                        className={`inline-flex min-h-11 min-w-11 items-center justify-center md:min-h-0 md:min-w-0 p-2 rounded-md transition-all ${viewMode === "board"
                             ? "bg-primary/10 text-primary shadow-sm"
                             : "text-muted-foreground hover:bg-muted hover:text-foreground"
                             }`}
@@ -209,7 +209,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                     </button>
                     <button
                         onClick={() => setViewMode("list")}
-                        className={`p-2 rounded-md transition-all ${viewMode === "list"
+                        className={`inline-flex min-h-11 min-w-11 items-center justify-center md:min-h-0 md:min-w-0 p-2 rounded-md transition-all ${viewMode === "list"
                             ? "bg-primary/10 text-primary shadow-sm"
                             : "text-muted-foreground hover:bg-muted hover:text-foreground"
                             }`}
@@ -220,11 +220,11 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                 </div>
 
                 <div className="flex items-center gap-3">
-                    <button className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground border border-border rounded-lg bg-card hover:bg-muted/50 transition-colors">
+                    <button className="flex min-h-11 md:min-h-0 items-center gap-2 px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground border border-border rounded-lg bg-card hover:bg-muted/50 transition-colors">
                         <Filter className="w-4 h-4" />
                         Filter
                     </button>
-                    <button className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground border border-border rounded-lg bg-card hover:bg-muted/50 transition-colors">
+                    <button className="flex min-h-11 md:min-h-0 items-center gap-2 px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground border border-border rounded-lg bg-card hover:bg-muted/50 transition-colors">
                         <ArrowUpDown className="w-4 h-4" />
                         Sort
                     </button>

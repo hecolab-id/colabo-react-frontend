@@ -50,13 +50,13 @@ export default function NotificationsPage() {
 
     return (
         <div className="mx-auto max-w-5xl space-y-6 p-2 md:p-3">
-            <div className="flex items-center justify-between gap-4">
+            <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex items-center gap-3">
                     <div className="flex h-12 w-12 items-center justify-center rounded-[1.2rem] border border-white/75 bg-white/72 text-primary shadow-[0_14px_34px_rgba(15,23,42,0.08)] backdrop-blur-xl">
                         <Bell className="h-6 w-6 text-primary" />
                     </div>
                     <div>
-                        <h1 className=" text-3xl font-semibold tracking-tight text-foreground">Notifications</h1>
+                        <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground">Notifications</h1>
                         <p className="text-sm text-muted-foreground">
                             Assignments, mentions, and updates that need your attention.
                         </p>
@@ -66,7 +66,7 @@ export default function NotificationsPage() {
                     <button
                         type="button"
                         onClick={handleMarkAllRead}
-                        className="rounded-full border border-white/80 bg-white/78 px-4 py-2 text-sm font-medium text-slate-700 shadow-sm backdrop-blur-xl transition-colors hover:bg-primary-dark hover:text-white"
+                        className="inline-flex min-h-11 md:min-h-0 items-center justify-center rounded-full border border-white/80 bg-white/78 px-4 py-2 text-sm font-medium text-slate-700 shadow-sm backdrop-blur-xl transition-colors hover:bg-primary-dark hover:text-white"
                     >
                         Mark all read
                     </button>
@@ -153,7 +153,7 @@ export default function NotificationsPage() {
                                             {!notification.read_at && (
                                                 <button
                                                     type="button"
-                                                    className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
+                                                    className="-my-3.5 inline-flex min-h-11 md:my-0 md:min-h-0 items-center gap-1 text-xs font-medium text-primary hover:underline"
                                                     onClick={() => handleMarkRead(notification.id)}
                                                 >
                                                     <Check className="h-3 w-3" />
