@@ -425,7 +425,7 @@ function TeamSettingsPageContent({ params }: { params: Promise<{ teamSlug: strin
                         </div>
                     </div>
 
-                    <aside className="flex flex-col justify-between rounded-[32px] bg-primary-dark p-8 text-white shadow-[0_24px_54px_-32px_rgba(51,35,127,0.72)]">
+                    <aside className="flex flex-col justify-between rounded-[32px] bg-primary-dark p-6 text-white shadow-[0_24px_54px_-32px_rgba(51,35,127,0.72)] sm:p-8">
                         <div>
                             <p className="text-[12px] font-medium uppercase tracking-wide text-slate-400">Current Plan</p>
                             <h2 className="mt-3 text-[22px] font-semibold text-white tracking-tight">
@@ -465,7 +465,7 @@ function TeamSettingsPageContent({ params }: { params: Promise<{ teamSlug: strin
             <div className="grid gap-5 lg:grid-cols-[280px_minmax(0,1fr)] lg:items-start">
                 <aside className="lg:sticky lg:top-24">
                     <nav
-                        className="flex gap-2 overflow-x-auto rounded-[1.4rem] border border-white/70 bg-white/80 p-2 shadow-[0_20px_60px_-42px_rgba(15,23,42,0.38)] backdrop-blur-2xl lg:flex-col lg:overflow-visible"
+                        className="flex snap-x gap-2 overflow-x-auto rounded-[1.4rem] border border-white/70 bg-white/80 p-2 shadow-[0_20px_60px_-42px_rgba(15,23,42,0.38)] backdrop-blur-2xl lg:flex-col lg:overflow-visible"
                         aria-label="Team settings sections"
                     >
                     {[
@@ -478,7 +478,7 @@ function TeamSettingsPageContent({ params }: { params: Promise<{ teamSlug: strin
                             type="button"
                             onClick={() => setActiveTab(tab.key as SettingsTab)}
                             className={cn(
-                                "flex min-w-[13rem] items-center gap-3 rounded-[1.05rem] px-3 py-3 text-left transition-[background-color,color,box-shadow] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15 lg:min-w-0",
+                                "flex min-w-[13rem] snap-start items-center gap-3 rounded-[1.05rem] px-3 py-3 text-left transition-[background-color,color,box-shadow] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15 lg:min-w-0",
                                 activeTab === tab.key
                                     ? tab.key === "danger"
                                         ? "bg-[var(--danger-fg)] text-white shadow-[0_18px_36px_-28px_rgba(179,66,66,0.6)]"
@@ -832,7 +832,7 @@ function TeamSettingsPageContent({ params }: { params: Promise<{ teamSlug: strin
                         </p>
                     </div>
 
-                    <div className="grid gap-6 lg:grid-cols-3">
+                    <div className="grid gap-4 sm:gap-6 lg:grid-cols-3">
                         <div className="rounded-[2rem] border border-white/70 bg-white/82 p-6 shadow-[0_24px_70px_-40px_rgba(15,23,42,0.25)] backdrop-blur-2xl sm:p-8">
                             <div className="mb-4 flex items-center gap-2 text-red-600">
                                 <LogOut className="h-5 w-5" aria-hidden="true" />

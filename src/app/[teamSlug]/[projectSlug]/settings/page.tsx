@@ -377,7 +377,7 @@ function ProjectSettingsPageContent({ params }: { params: Promise<{ teamSlug: st
             <div className="grid gap-5 lg:grid-cols-[280px_minmax(0,1fr)] lg:items-start">
                 <aside className="lg:sticky lg:top-24">
                     <nav
-                        className="flex gap-2 overflow-x-auto rounded-[1.4rem] border border-white/70 bg-white/80 p-2 shadow-[0_20px_60px_-42px_rgba(15,23,42,0.38)] backdrop-blur-2xl lg:flex-col lg:overflow-visible"
+                        className="flex snap-x gap-2 overflow-x-auto rounded-[1.4rem] border border-white/70 bg-white/80 p-2 shadow-[0_20px_60px_-42px_rgba(15,23,42,0.38)] backdrop-blur-2xl lg:flex-col lg:overflow-visible"
                         aria-label="Project settings sections"
                     >
                         {([
@@ -391,7 +391,7 @@ function ProjectSettingsPageContent({ params }: { params: Promise<{ teamSlug: st
                                 type="button"
                                 onClick={() => setActiveTab(tab)}
                                 className={cn(
-                                    "flex min-w-[11rem] items-center gap-3 rounded-[1.05rem] px-3 py-3 text-left transition-[background-color,color,box-shadow] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15 lg:min-w-0",
+                                    "flex min-w-[11rem] snap-start items-center gap-3 rounded-[1.05rem] px-3 py-3 text-left transition-[background-color,color,box-shadow] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15 lg:min-w-0",
                                     activeTab === tab
                                         ? "bg-primary-dark text-white shadow-[0_18px_36px_-28px_rgba(51,35,127,0.62)]"
                                         : "text-slate-600 hover:bg-white hover:text-slate-950",
@@ -544,7 +544,7 @@ function ProjectSettingsPageContent({ params }: { params: Promise<{ teamSlug: st
                                                         href={document.url}
                                                         target="_blank"
                                                         rel="noreferrer"
-                                                        className="rounded-full p-2 text-slate-500 transition-colors hover:bg-slate-100 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+                                                        className="flex min-h-11 min-w-11 items-center justify-center rounded-full p-2 text-slate-500 transition-colors hover:bg-slate-100 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 md:min-h-0 md:min-w-0"
                                                         aria-label={`Open ${document.name}`}
                                                     >
                                                         {document.kind === "file" ? <Download className="h-4 w-4" aria-hidden="true" /> : <ExternalLink className="h-4 w-4" aria-hidden="true" />}
@@ -553,7 +553,7 @@ function ProjectSettingsPageContent({ params }: { params: Promise<{ teamSlug: st
                                                         <button
                                                             type="button"
                                                             onClick={() => deleteDocumentMutation.mutate(document.id)}
-                                                            className="rounded-full p-2 text-slate-500 transition-colors hover:bg-[var(--danger-bg)] hover:text-[var(--danger-fg)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--danger-fg)]"
+                                                            className="flex min-h-11 min-w-11 items-center justify-center rounded-full p-2 text-slate-500 transition-colors hover:bg-[var(--danger-bg)] hover:text-[var(--danger-fg)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--danger-fg)] md:min-h-0 md:min-w-0"
                                                             aria-label={`Delete ${document.name}`}
                                                         >
                                                             <Trash2 className="h-4 w-4" aria-hidden="true" />
@@ -775,7 +775,7 @@ function ProjectSettingsPageContent({ params }: { params: Promise<{ teamSlug: st
                                                     <button
                                                         type="button"
                                                         onClick={() => handleEditMeetingNote(note)}
-                                                        className="rounded-full p-2 text-slate-500 transition-colors hover:bg-slate-100 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+                                                        className="flex min-h-11 min-w-11 items-center justify-center rounded-full p-2 text-slate-500 transition-colors hover:bg-slate-100 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 md:min-h-0 md:min-w-0"
                                                         aria-label={`Edit meeting note from ${formatMeetingDate(note.meeting_at)}`}
                                                     >
                                                         <Edit3 className="h-4 w-4" aria-hidden="true" />
@@ -784,7 +784,7 @@ function ProjectSettingsPageContent({ params }: { params: Promise<{ teamSlug: st
                                                         type="button"
                                                         onClick={() => handleDeleteMeetingNote(note.id)}
                                                         disabled={deleteMeetingNoteMutation.isPending}
-                                                        className="rounded-full p-2 text-slate-500 transition-colors hover:bg-[var(--danger-bg)] hover:text-[var(--danger-fg)] disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--danger-fg)]"
+                                                        className="flex min-h-11 min-w-11 items-center justify-center rounded-full p-2 text-slate-500 transition-colors hover:bg-[var(--danger-bg)] hover:text-[var(--danger-fg)] disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--danger-fg)] md:min-h-0 md:min-w-0"
                                                         aria-label={`Delete meeting note from ${formatMeetingDate(note.meeting_at)}`}
                                                     >
                                                         <Trash2 className="h-4 w-4" aria-hidden="true" />

@@ -128,10 +128,10 @@ export function Checklist({ checklist, onUpdate, onDelete }: ChecklistProps) {
                     <CheckSquare className="w-4 h-4 text-primary" />
                     <h3 className="font-medium text-foreground">{checklist.title}</h3>
                 </div>
-                <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="flex items-center gap-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                     <button
                         onClick={() => setShowDeleteDialog(true)}
-                        className="rounded px-2 py-1 text-xs text-muted-foreground transition-[background-color,color] hover:bg-[var(--danger-bg)] hover:text-[var(--danger-fg)]"
+                        className="-my-2 flex min-h-11 items-center rounded px-3 py-1 text-xs text-muted-foreground transition-[background-color,color] hover:bg-[var(--danger-bg)] hover:text-[var(--danger-fg)] md:my-0 md:min-h-0 md:px-2"
                     >
                         Delete
                     </button>
@@ -188,14 +188,14 @@ export function Checklist({ checklist, onUpdate, onDelete }: ChecklistProps) {
                         <button
                             type="submit"
                             disabled={!newItemContent.trim()}
-                            className="text-xs bg-primary text-primary-foreground px-2 rounded disabled:opacity-50"
+                            className="min-h-11 text-xs bg-primary text-primary-foreground px-3 rounded disabled:opacity-50 md:min-h-0 md:px-2"
                         >
                             Add
                         </button>
                         <button
                             type="button"
                             onClick={() => setIsAddingItem(false)}
-                            className="text-xs hover:bg-muted px-2 rounded"
+                            className="min-h-11 text-xs hover:bg-muted px-3 rounded md:min-h-0 md:px-2"
                         >
                             Cancel
                         </button>
@@ -204,7 +204,7 @@ export function Checklist({ checklist, onUpdate, onDelete }: ChecklistProps) {
             ) : (
                 <button
                     onClick={() => setIsAddingItem(true)}
-                    className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary pl-2 py-1 transition-colors"
+                    className="flex min-h-11 items-center gap-2 text-sm text-muted-foreground hover:text-primary pl-2 py-1 transition-colors md:min-h-0"
                 >
                     <Plus className="w-4 h-4" /> Add an item
                 </button>

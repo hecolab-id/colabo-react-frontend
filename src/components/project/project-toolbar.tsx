@@ -183,7 +183,7 @@ export function ProjectControlsContent({
     canDeleteProject: boolean;
 }) {
     return (
-        <div className="max-h-[min(62vh,34rem)] space-y-5 overflow-y-auto pr-1">
+        <div className="max-h-[min(calc(100dvh-20rem),34rem)] space-y-5 overflow-y-auto pr-1 md:max-h-[min(62vh,34rem)]">
             <div className="rounded-[1.15rem] border border-black/5 bg-white/76 p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]">
                 <p className="text-xs uppercase tracking-wide text-muted-foreground">Summary</p>
                 <p className="mt-1 text-sm text-foreground">

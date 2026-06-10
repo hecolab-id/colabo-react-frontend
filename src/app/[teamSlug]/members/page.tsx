@@ -140,15 +140,15 @@ export default function MembersPage({ params }: { params: Promise<{ teamSlug: st
                 <Link href="/dashboard" className="transition-colors hover:text-foreground">
                     Dashboard
                 </Link>
-                <ChevronRight className="h-4 w-4" aria-hidden="true" />
-                <span className="font-medium text-foreground">{team.name}</span>
-                <ChevronRight className="h-4 w-4" aria-hidden="true" />
+                <ChevronRight className="h-4 w-4 shrink-0" aria-hidden="true" />
+                <span className="min-w-0 truncate font-medium text-foreground">{team.name}</span>
+                <ChevronRight className="h-4 w-4 shrink-0" aria-hidden="true" />
                 <span className="text-foreground">Members</span>
             </div>
 
             <main className="space-y-8">
                 <section className="overflow-hidden rounded-[32px] border border-black/5 bg-white shadow-sm">
-                    <div className="border-b border-black/5 bg-slate-50 px-8 py-10">
+                    <div className="border-b border-black/5 bg-slate-50 px-5 py-7 sm:px-8 sm:py-10">
                         <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
                             <div className="max-w-2xl">
                                 <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-black/5 bg-white px-3 py-1.5 text-[12px] font-bold uppercase tracking-wide text-slate-500 shadow-sm">
@@ -337,7 +337,7 @@ export default function MembersPage({ params }: { params: Promise<{ teamSlug: st
                                                                 value={member.roles?.[0]?.id || ""}
                                                                 onChange={(e) => handleRoleChange(member.id, e.target.value)}
                                                                 disabled={roleTargetId === member.id}
-                                                                className="w-full appearance-none rounded-full border border-black/5 bg-white px-4 py-2.5 pr-10 text-[14px] font-semibold text-slate-700 shadow-sm transition-all focus:border-transparent focus:outline-none focus:ring-2 focus:ring-slate-200 disabled:opacity-50"
+                                                                className="min-h-11 w-full appearance-none rounded-full border border-black/5 bg-white px-4 py-2.5 pr-10 text-[14px] font-semibold text-slate-700 shadow-sm transition-all focus:border-transparent focus:outline-none focus:ring-2 focus:ring-slate-200 disabled:opacity-50 md:min-h-0"
                                                             >
                                                                 {allRoles
                                                                     .filter((role) => role.name !== "OWNER")
@@ -364,7 +364,7 @@ export default function MembersPage({ params }: { params: Promise<{ teamSlug: st
                                                     <Menu as="div" className="relative inline-block text-left w-full lg:max-w-[240px]">
                                                         <Menu.Button
                                                             aria-label={`Open actions for ${member.name}`}
-                                                            className="inline-flex w-full justify-center items-center gap-2 rounded-full bg-slate-100 px-4 py-2.5 text-[14px] font-semibold text-slate-600 transition-all hover:bg-slate-200"
+                                                            className="inline-flex min-h-11 w-full justify-center items-center gap-2 rounded-full bg-slate-100 px-4 py-2.5 text-[14px] font-semibold text-slate-600 transition-all hover:bg-slate-200 md:min-h-0"
                                                         >
                                                             <MoreHorizontal className="h-4 w-4" aria-hidden="true" />
                                                             Actions
@@ -383,7 +383,7 @@ export default function MembersPage({ params }: { params: Promise<{ teamSlug: st
                                                                     {({ active }) => (
                                                                         <button
                                                                             onClick={() => setMemberToRemove(member)}
-                                                                            className={`flex w-full items-center gap-2 rounded-[16px] px-4 py-2.5 text-[14px] font-medium transition-colors ${
+                                                                            className={`flex min-h-11 w-full items-center gap-2 rounded-[16px] px-4 py-2.5 text-[14px] font-medium transition-colors md:min-h-0 ${
                                                                                 active
                                                                                     ? "bg-red-50 text-red-600"
                                                                                     : "text-red-500"

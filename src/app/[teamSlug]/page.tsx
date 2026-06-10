@@ -72,7 +72,7 @@ function MobileProjectRow({
                             event.stopPropagation();
                             onDelete(project);
                         }}
-                        className="relative z-30 shrink-0 rounded-xl border border-rose-100 bg-rose-50 px-2.5 py-1.5 text-[11px] font-semibold text-rose-600 active:scale-[0.98]"
+                        className="relative z-30 inline-flex min-h-11 shrink-0 items-center justify-center rounded-xl border border-rose-100 bg-rose-50 px-3 text-[11px] font-semibold text-rose-600 active:scale-[0.98]"
                         aria-label={`Delete ${project.name}`}
                     >
                         Delete
@@ -176,7 +176,7 @@ export default function TeamDashboardPage() {
 
     if (!team) {
         return (
-            <section className="rounded-[32px] border border-black/5 bg-white p-8 shadow-sm">
+            <section className="rounded-[32px] border border-black/5 bg-white p-5 shadow-sm sm:p-8">
                 <div className="max-w-xl space-y-4">
                     <div className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-[12px] font-semibold uppercase tracking-wide text-slate-500">
                         Workspace Missing
@@ -212,7 +212,7 @@ export default function TeamDashboardPage() {
                         <button
                             type="button"
                             onClick={() => setIsModalOpen(true)}
-                            className="inline-flex h-9 shrink-0 items-center justify-center gap-1.5 rounded-xl bg-primary-dark px-3 text-xs font-semibold text-white active:scale-[0.98]"
+                            className="inline-flex h-11 shrink-0 items-center justify-center gap-1.5 rounded-xl bg-primary-dark px-3 text-xs font-semibold text-white active:scale-[0.98]"
                         >
                             <Plus className="h-3.5 w-3.5" aria-hidden="true" />
                             New
@@ -265,7 +265,7 @@ export default function TeamDashboardPage() {
                             <button
                                 type="button"
                                 onClick={() => setIsModalOpen(true)}
-                                className="mt-4 inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-primary-dark px-4 text-sm font-semibold text-white active:scale-[0.98]"
+                                className="mt-4 inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-primary-dark px-4 text-sm font-semibold text-white active:scale-[0.98]"
                             >
                                 <Plus className="h-4 w-4" aria-hidden="true" />
                                 New Project

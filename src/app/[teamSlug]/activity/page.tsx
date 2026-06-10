@@ -76,7 +76,7 @@ export default function TeamActivityPage() {
                     Dashboard
                 </Link>
                 <ChevronRight className="h-4 w-4 text-slate-400" aria-hidden="true" />
-                <Link href={`/${team.slug}`} className="transition-colors hover:text-slate-900 line-clamp-1 max-w-[120px]">
+                <Link href={`/${team.slug}`} className="transition-colors hover:text-slate-900 line-clamp-1 max-w-[35vw] md:max-w-[120px]">
                     {team.name}
                 </Link>
                 <ChevronRight className="h-4 w-4 text-slate-400" aria-hidden="true" />
@@ -95,7 +95,7 @@ export default function TeamActivityPage() {
 
                 <Link
                     href={`/${team.slug}`}
-                    className="inline-flex items-center justify-center rounded-full border border-slate-200 bg-white px-4 py-2.5 text-[14px] font-semibold text-slate-900 transition-all hover:bg-slate-50 hover:scale-[1.02] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-200"
+                    className="inline-flex min-h-11 items-center justify-center rounded-full border border-slate-200 bg-white px-4 py-2.5 text-[14px] font-semibold text-slate-900 transition-all hover:bg-slate-50 hover:scale-[1.02] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-200 md:min-h-0"
                 >
                     Back to Projects
                 </Link>

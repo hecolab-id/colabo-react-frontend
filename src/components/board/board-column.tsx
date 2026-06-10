@@ -116,7 +116,7 @@ const BoardColumnBase = forwardRef<HTMLDivElement, BoardColumnProps>(({
                                     setIsMobileMenuOpen((prev) => !prev);
                                 }}
                                 aria-label={`Open ${title} column options`}
-                                className="kanban-icon-button flex h-9 w-9 touch-manipulation items-center justify-center rounded-xl text-muted-foreground hover:bg-slate-100 hover:text-slate-950"
+                                className="kanban-icon-button flex h-11 w-11 touch-manipulation items-center justify-center rounded-xl text-muted-foreground hover:bg-slate-100 hover:text-slate-950"
                                 title="Column options"
                             >
                                 <MoreHorizontal className="h-4 w-4" />
@@ -129,7 +129,7 @@ const BoardColumnBase = forwardRef<HTMLDivElement, BoardColumnProps>(({
                                             setIsMobileMenuOpen(false);
                                             onEditColumn(column);
                                         }}
-                                        className="flex min-h-10 w-full touch-manipulation items-center gap-2 rounded-xl px-3 py-2 text-sm text-foreground transition-colors hover:bg-slate-100"
+                                        className="flex min-h-11 w-full touch-manipulation items-center gap-2 rounded-xl px-3 py-2 text-sm text-foreground transition-colors hover:bg-slate-100"
                                     >
                                         <Settings className="h-4 w-4 text-muted-foreground" />
                                         Edit Column
@@ -153,7 +153,7 @@ const BoardColumnBase = forwardRef<HTMLDivElement, BoardColumnProps>(({
                     <button
                         onClick={(e) => { e.stopPropagation(); onAddTask?.(); }}
                         aria-label={`Add task to ${title}`}
-                        className="kanban-icon-button flex h-9 w-9 touch-manipulation items-center justify-center rounded-xl border border-black/5 bg-white/80 text-muted-foreground hover:border-slate-300 hover:bg-white hover:text-slate-950 hover:shadow-[0_12px_24px_-20px_rgba(15,23,42,0.45)] md:h-8 md:w-8"
+                        className="kanban-icon-button flex h-11 w-11 touch-manipulation items-center justify-center rounded-xl border border-black/5 bg-white/80 text-muted-foreground hover:border-slate-300 hover:bg-white hover:text-slate-950 hover:shadow-[0_12px_24px_-20px_rgba(15,23,42,0.45)] md:h-8 md:w-8"
                         title="Add task"
                     >
                         <Plus className="w-4 h-4" />
