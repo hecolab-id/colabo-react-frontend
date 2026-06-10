@@ -65,7 +65,7 @@ export default function InvitePage() {
 
     if (status === "loading") {
         return (
-            <div className="flex h-screen items-center justify-center bg-background">
+            <div className="flex min-h-[100dvh] items-center justify-center bg-background">
                 <Loader2 className="w-8 h-8 animate-spin text-primary" />
             </div>
         );
@@ -73,14 +73,14 @@ export default function InvitePage() {
 
     if (status === "invalid") {
         return (
-            <div className="flex h-screen items-center justify-center bg-background p-4">
+            <div className="flex min-h-[100dvh] items-center justify-center bg-background p-4">
                 <div className="max-w-md w-full text-center space-y-4">
                     <div className="bg-red-100 text-red-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto">
                         <AlertCircle className="w-8 h-8" />
                     </div>
                     <h1 className="text-2xl font-bold text-foreground">Invalid Invite</h1>
                     <p className="text-muted-foreground">{error}</p>
-                    <Link href="/dashboard" className="text-primary hover:underline">
+                    <Link href="/dashboard" className="inline-block px-4 py-3 text-primary hover:underline md:inline md:px-0 md:py-0">
                         Go to Dashboard
                     </Link>
                 </div>
@@ -90,7 +90,7 @@ export default function InvitePage() {
 
     if (status === "success") {
         return (
-            <div className="flex h-screen items-center justify-center bg-background p-4">
+            <div className="flex min-h-[100dvh] items-center justify-center bg-background p-4">
                 <div className="max-w-md w-full text-center space-y-4">
                     <div className="bg-green-100 text-green-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto">
                         <CheckCircle className="w-8 h-8" />
@@ -104,13 +104,13 @@ export default function InvitePage() {
     }
 
     return (
-        <div className="flex h-screen items-center justify-center bg-background p-4">
+        <div className="flex min-h-[100dvh] items-center justify-center bg-background p-4">
             <div className="max-w-md w-full bg-card border border-border rounded-xl shadow-lg p-8 text-center space-y-6">
                 <div className="space-y-2">
                     <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
                         You have been invited to join
                     </h2>
-                    <h1 className="text-3xl font-bold text-foreground">
+                    <h1 className="break-words text-3xl font-bold text-foreground">
                         {inviteData?.team.name}
                     </h1>
                 </div>
@@ -139,7 +139,7 @@ export default function InvitePage() {
                         </p>
                     )}
                     {user && (
-                        <Link href="/dashboard" className="block text-sm text-muted-foreground hover:text-foreground">
+                        <Link href="/dashboard" className="block py-3 text-sm text-muted-foreground hover:text-foreground md:py-0">
                             Cancel
                         </Link>
                     )}

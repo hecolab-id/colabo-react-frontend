@@ -19,7 +19,7 @@ function InviteContent() {
 
     if (!token) {
         return (
-            <div className="flex h-screen items-center justify-center bg-background p-4">
+            <div className="flex min-h-[100dvh] items-center justify-center bg-background p-4">
                 <div className="max-w-md w-full text-center space-y-4">
                     <div className="bg-red-100 text-red-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto">
                         <AlertCircle className="w-8 h-8" />
@@ -61,7 +61,7 @@ function InviteContent() {
 
     if (status === "success") {
         return (
-            <div className="flex h-screen items-center justify-center bg-background p-4">
+            <div className="flex min-h-[100dvh] items-center justify-center bg-background p-4">
                 <div className="max-w-md w-full text-center space-y-4">
                     <div className="bg-green-100 text-green-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto">
                         <CheckCircle className="w-8 h-8" />
@@ -75,13 +75,13 @@ function InviteContent() {
     }
 
     return (
-        <div className="flex h-screen items-center justify-center bg-background p-4">
+        <div className="flex min-h-[100dvh] items-center justify-center bg-background p-4">
             <div className="max-w-md w-full bg-card border border-border rounded-xl shadow-lg p-8 space-y-6">
                 <div className="text-center space-y-2">
                     <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
                         You have been invited to join
                     </h2>
-                    <h1 className="text-3xl font-bold text-foreground">
+                    <h1 className="break-words text-3xl font-bold text-foreground">
                         {projectName || "a Project"}
                     </h1>
                 </div>
@@ -103,13 +103,13 @@ function InviteContent() {
                             Set your Password
                         </label>
                         <div className="relative">
-                            <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                            <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                             <input
                                 id="password"
                                 type="password"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
-                                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 pl-10"
+                                className="flex h-11 md:h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 pl-10"
                                 placeholder="Enter your password"
                                 required
                             />
@@ -120,13 +120,13 @@ function InviteContent() {
                             Confirm Password
                         </label>
                         <div className="relative">
-                            <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                            <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                             <input
                                 id="confirmPassword"
                                 type="password"
                                 value={confirmPassword}
                                 onChange={(e) => setConfirmPassword(e.target.value)}
-                                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 pl-10"
+                                className="flex h-11 md:h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 pl-10"
                                 placeholder="Confirm your password"
                                 required
                             />
@@ -159,7 +159,7 @@ function InviteContent() {
 
 export default function ProjectInvitePage() {
     return (
-        <Suspense fallback={<div className="flex h-screen items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>}>
+        <Suspense fallback={<div className="flex min-h-[100dvh] items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>}>
             <InviteContent />
         </Suspense>
     );

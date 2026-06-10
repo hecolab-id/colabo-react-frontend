@@ -15,9 +15,9 @@ export function AuthShell({
   className?: string;
 }) {
   return (
-    <div className="relative min-h-screen overflow-hidden bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.82),transparent_20%),radial-gradient(circle_at_top_right,rgba(109,93,252,0.10),transparent_28%),linear-gradient(180deg,#fdfefe_0%,#eff4fb_100%)] px-4 py-10">
+    <div className="relative min-h-[100dvh] overflow-hidden bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.82),transparent_20%),radial-gradient(circle_at_top_right,rgba(109,93,252,0.10),transparent_28%),linear-gradient(180deg,#fdfefe_0%,#eff4fb_100%)] px-4 py-10">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_30%_12%,rgba(255,255,255,0.8),transparent_16%),radial-gradient(circle_at_80%_18%,rgba(197,217,255,0.45),transparent_18%)]" />
-      <div className="relative mx-auto flex min-h-[calc(100vh-5rem)] w-full max-w-[1100px] items-center justify-center">
+      <div className="relative mx-auto flex min-h-[calc(100dvh-5rem)] w-full max-w-[1100px] items-center justify-center">
         <div className="grid w-full gap-8 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
           <section className="hidden lg:block">
             <div className="max-w-[520px] space-y-6">
@@ -47,7 +47,7 @@ export function AuthShell({
           </section>
 
           <Card className={cn("mx-auto w-full max-w-[560px]", className)}>
-            <CardHeader className="pb-6">
+            <CardHeader className="p-5 sm:p-8 sm:pb-6">
               <div className="mb-6 flex items-center justify-center lg:justify-start">
                 <div className="flex h-16 w-16 items-center justify-center rounded-[1.7rem] bg-primary-dark shadow-[0_16px_40px_rgba(51,35,127,0.24)]">
                   <AppImage
@@ -62,7 +62,7 @@ export function AuthShell({
               <CardTitle className="text-center lg:text-left">{title}</CardTitle>
               <CardDescription className="text-center lg:text-left">{description}</CardDescription>
             </CardHeader>
-            <CardContent>{children}</CardContent>
+            <CardContent className="px-5 pb-6 sm:px-8 sm:pb-8">{children}</CardContent>
           </Card>
         </div>
       </div>

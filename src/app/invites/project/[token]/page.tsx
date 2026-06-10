@@ -47,7 +47,7 @@ export default function ProjectInvitePage() {
     }, [params.token, router, user]);
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="min-h-[100dvh] flex items-center justify-center bg-background p-4">
             <div className="max-w-md w-full p-8 bg-card border border-border rounded-xl shadow-lg text-center">
                 {status === 'loading' && (
                     <div className="flex flex-col items-center gap-4">
@@ -70,7 +70,7 @@ export default function ProjectInvitePage() {
                         <p className="text-muted-foreground">{message}</p>
                         <button
                             onClick={() => router.push("/dashboard")}
-                            className="mt-4 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90"
+                            className="mt-4 min-h-11 px-4 py-2.5 md:min-h-0 md:py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90"
                         >
                             Go to Dashboard
                         </button>

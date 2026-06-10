@@ -90,7 +90,7 @@ function LoginPageContent() {
       <div className="space-y-6">
         {inviteType === "team" && teamName ? (
           <Alert variant="success">
-            <AlertDescription className="space-y-2">
+            <AlertDescription className="space-y-2 break-words">
               <p className="text-[12px] font-semibold uppercase tracking-[0.18em] text-emerald-700">
                 Team Invitation
               </p>
@@ -138,7 +138,7 @@ function LoginPageContent() {
               <div className="space-y-2">
                 <div className="flex items-center justify-between gap-3">
                   <span className="text-[12px] font-semibold uppercase tracking-[0.16em] text-slate-400">Password</span>
-                  <AppLink href="/forgot-password" className="text-[13px] font-semibold text-slate-700 transition-colors hover:text-slate-950">
+                  <AppLink href="/forgot-password" className="inline-flex min-h-11 items-center text-[13px] font-semibold text-slate-700 transition-colors hover:text-slate-950 md:min-h-0">
                     Forgot password?
                   </AppLink>
                 </div>

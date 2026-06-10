@@ -77,7 +77,7 @@ export default function VerifyRequestPage() {
           <button
             type="button"
             onClick={() => logout()}
-            className="mx-auto block text-sm font-medium text-slate-500 transition-colors hover:text-slate-900"
+            className="mx-auto flex min-h-11 items-center px-4 text-sm font-medium text-slate-500 transition-colors hover:text-slate-900 md:min-h-0 md:px-0"
           >
             Sign out
           </button>

@@ -73,14 +73,14 @@ export default function TeamInvitePage() {
     }, [params.token, router, user]);
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="min-h-[100dvh] flex items-center justify-center bg-background p-4">
             <div className="max-w-md w-full p-8 bg-card border border-border rounded-xl shadow-lg text-center">
                 {status === "loading" && (
                     <div className="flex flex-col items-center gap-4">
                         <Loader2 className="w-12 h-12 text-primary animate-spin" />
                         <h2 className="text-xl font-semibold text-foreground">Accepting Invitation</h2>
                         {preview?.team_name ? (
-                            <p className="text-sm text-foreground">
+                            <p className="w-full break-words text-sm text-foreground">
                                 You&apos;ve been invited to join <span className="font-semibold">{preview.team_name}</span>
                                 {preview.inviter_name ? <> by <span className="font-semibold">{preview.inviter_name}</span></> : null}.
                             </p>
@@ -102,7 +102,7 @@ export default function TeamInvitePage() {
                         <p className="text-muted-foreground">{message}</p>
                         <button
                             onClick={() => router.push("/dashboard")}
-                            className="mt-4 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90"
+                            className="mt-4 min-h-11 px-4 py-2.5 md:min-h-0 md:py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90"
                         >
                             Go to Dashboard
                         </button>

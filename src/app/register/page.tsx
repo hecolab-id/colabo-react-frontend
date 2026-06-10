@@ -77,7 +77,7 @@ function RegisterPageContent() {
       <div className="space-y-6">
         {inviteType === "team" && teamName ? (
           <Alert variant="success">
-            <AlertDescription className="space-y-2">
+            <AlertDescription className="space-y-2 break-words">
               <p className="text-[12px] font-semibold uppercase tracking-[0.18em] text-emerald-700">
                 Team Invitation
               </p>
