@@ -285,6 +285,14 @@ export function TaskDetailModal({ task, projectColumns: initialProjectColumns, o
     const [showAllAttachments, setShowAllAttachments] = useState(false);
     const [activePdfPreview, setActivePdfPreview] = useState<{ url: string; name: string } | null>(null);
     const [imagePreviewIndex, setImagePreviewIndex] = useState<number | null>(null);
+    const [pendingReplace, setPendingReplace] = useState<{ files: File[]; collisions: string[] } | null>(null);
+    const [recentlyReplaced, setRecentlyReplaced] = useState<string[]>([]);
+
+    useEffect(() => {
+        if (recentlyReplaced.length === 0) return;
+        const timeout = setTimeout(() => setRecentlyReplaced([]), 1600);
+        return () => clearTimeout(timeout);
+    }, [recentlyReplaced]);
 
     useEffect(() => {
         setTaskState(task);
@@ -301,6 +309,8 @@ export function TaskDetailModal({ task, projectColumns: initialProjectColumns, o
         setAttachments(task.attachments || []);
         setActivePdfPreview(null);
         setImagePreviewIndex(null);
+        setPendingReplace(null);
+        setRecentlyReplaced([]);
         setIsEditingTitle(false);
         setIsEditingDesc(false);
         setIsAssigning(false);
@@ -657,36 +667,88 @@ export function TaskDetailModal({ task, projectColumns: initialProjectColumns, o
         onUpdate?.(updatedTask);
     };
 
-    const handleFileUpload = async (event: ChangeEvent<HTMLInputElement>) => {
-        const files = event.target.files;
-        if (!files || files.length === 0) return;
-
-        const maxFileSize = 5 * 1024 * 1024;
-        const oversizedFiles = Array.from(files).filter((file) => file.size > maxFileSize);
-
-        if (oversizedFiles.length > 0) {
-            alert(`The following files exceed the 5 MB limit:\n${oversizedFiles.map((file) => file.name).join("\n")}`);
-            if (fileInputRef.current) fileInputRef.current.value = "";
-            return;
-        }
-
+    // Uploads files, then replaces any same-named attachment in place (preserving
+    // its position) and appends the rest. Old URLs are dropped from the task.
+    const performUpload = async (files: File[]) => {
         setIsUploading(true);
 
         try {
-            const uploadedFiles = await Promise.all(Array.from(files).map((file) => uploadFile(file)));
-            const newAttachments = [...attachments, ...uploadedFiles.map((file) => file.url)];
+            const uploadedFiles = await Promise.all(files.map((file) => uploadFile(file)));
+            const nextAttachments = [...attachments];
+            const usedIndexes = new Set<number>();
+            const appended: string[] = [];
+            const replacedNames: string[] = [];
+
+            files.forEach((file, fileIndex) => {
+                const url = uploadedFiles[fileIndex].url;
+                const targetName = file.name.toLowerCase();
+                const existingIndex = nextAttachments.findIndex(
+                    (item, itemIndex) =>
+                        !usedIndexes.has(itemIndex) && getFileName(item).toLowerCase() === targetName,
+                );
+
+                if (existingIndex !== -1) {
+                    nextAttachments[existingIndex] = url;
+                    usedIndexes.add(existingIndex);
+                    replacedNames.push(targetName);
+                } else {
+                    appended.push(url);
+                }
+            });
+
+            const newAttachments = [...nextAttachments, ...appended];
             const updated = await updateTask(task.id, { attachments: newAttachments });
 
             setAttachments(newAttachments);
             setTaskState(updated);
             onUpdate?.(updated);
+            if (replacedNames.length > 0) {
+                setRecentlyReplaced(replacedNames);
+            }
         } catch (error) {
             console.error("Failed to upload file:", error);
             alert("Failed to upload file. Please try again.");
         } finally {
             setIsUploading(false);
-            if (fileInputRef.current) fileInputRef.current.value = "";
         }
+    };
+
+    const handleFileUpload = (event: ChangeEvent<HTMLInputElement>) => {
+        const fileList = event.target.files;
+        if (!fileList || fileList.length === 0) return;
+
+        const files = Array.from(fileList);
+        const maxFileSize = 5 * 1024 * 1024;
+        const oversizedFiles = files.filter((file) => file.size > maxFileSize);
+
+        if (fileInputRef.current) fileInputRef.current.value = "";
+
+        if (oversizedFiles.length > 0) {
+            alert(`The following files exceed the 5 MB limit:\n${oversizedFiles.map((file) => file.name).join("\n")}`);
+            return;
+        }
+
+        const existingNames = new Set(attachments.map((item) => getFileName(item).toLowerCase()));
+        const collisions = files
+            .filter((file) => existingNames.has(file.name.toLowerCase()))
+            .map((file) => file.name);
+
+        if (collisions.length > 0) {
+            setPendingReplace({ files, collisions });
+            return;
+        }
+
+        void performUpload(files);
+    };
+
+    const confirmReplace = async () => {
+        if (!pendingReplace) return;
+        await performUpload(pendingReplace.files);
+        setPendingReplace(null);
+    };
+
+    const cancelReplace = () => {
+        setPendingReplace(null);
     };
 
     const handleRemoveAttachment = async (url: string) => {
@@ -1322,11 +1384,15 @@ export function TaskDetailModal({ task, projectColumns: initialProjectColumns, o
                                                 const fileInfo = getFileIcon(url);
                                                 const FileIcon = fileInfo.icon;
                                                 const fileName = getFileName(url);
+                                                const isReplaced = recentlyReplaced.includes(fileName.toLowerCase());
 
                                                 return (
                                                     <div
                                                         key={`${url}-${index}`}
-                                                        className="flex items-center gap-3 rounded-[1.15rem] border border-slate-200/80 bg-white/68 p-3 transition-[border-color,background-color] hover:border-primary/30 hover:bg-white"
+                                                        className={cn(
+                                                            "flex items-center gap-3 rounded-[1.15rem] border border-slate-200/80 bg-white/68 p-3 transition-[border-color,background-color] hover:border-primary/30 hover:bg-white",
+                                                            isReplaced && "attachment-replaced-flash",
+                                                        )}
                                                     >
                                                         {isImage ? (
                                                             <button
@@ -1867,6 +1933,25 @@ export function TaskDetailModal({ task, projectColumns: initialProjectColumns, o
                     isLoading={isDeleting}
                     onConfirm={confirmDelete}
                     onCancel={() => setShowDeleteDialog(false)}
+                />
+
+                <ConfirmationDialog
+                    isOpen={pendingReplace !== null}
+                    title={
+                        pendingReplace && pendingReplace.collisions.length > 1
+                            ? `Replace ${pendingReplace.collisions.length} attachments?`
+                            : "Replace attachment?"
+                    }
+                    description={
+                        pendingReplace && pendingReplace.collisions.length > 1
+                            ? `These files already exist and will be replaced: ${pendingReplace.collisions.join(", ")}. The current versions will be removed and replaced with the files you just selected.`
+                            : `"${pendingReplace?.collisions[0] ?? ""}" already exists on this task. The current version will be removed and replaced with the file you just selected.`
+                    }
+                    confirmText={pendingReplace && pendingReplace.collisions.length > 1 ? "Replace files" : "Replace"}
+                    variant="warning"
+                    isLoading={isUploading}
+                    onConfirm={confirmReplace}
+                    onCancel={cancelReplace}
                 />
 
                 {activePdfPreview ? (
