@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "@/components/app-link";
+import { toast } from "@/components/ui/toast";
 import { getTeamActivities } from "@/lib/api";
 import { TeamActivityItem } from "@/lib/types";
 
@@ -61,6 +62,7 @@ export function TeamActivityFeed({
             setTotalPages(response.total_pages || totalPages);
         } catch (error) {
             console.error("Failed to load more team activities:", error);
+            toast.error("Couldn't load more activity. Please try again.");
         } finally {
             setIsLoadingMore(false);
         }

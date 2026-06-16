@@ -7,6 +7,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { sendVerificationEmail } from "@/lib/api";
 import { useStore } from "@/lib/store";
+import { toast } from "@/components/ui/toast";
 
 export default function VerifyRequestPage() {
   const { user, logout, refreshUser } = useStore();
@@ -27,6 +28,7 @@ export default function VerifyRequestPage() {
       setSent(true);
     } catch (error) {
       console.error(error);
+      toast.error("Couldn't resend the email. Please try again.");
     } finally {
       setSending(false);
     }
