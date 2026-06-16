@@ -8,6 +8,7 @@ import {
     getProjectColumns,
     updateProject,
     createTask,
+    getTask,
     addLabelToTask,
     updateTask,
     deleteTask,
@@ -328,6 +329,17 @@ export function useCreateTask(projectId: string) {
                         console.warn(`Failed to attach label ${labelIds[index]} to task ${created.id}:`, result.reason);
                     }
                 });
+
+                // The create response predates label attachment, so it carries no labels.
+                // Re-fetch the hydrated task so the board/list shows labels immediately,
+                // instead of staying blank until a manual refresh.
+                if (attachResults.some((result) => result.status === "fulfilled")) {
+                    try {
+                        return await getTask(created.id);
+                    } catch (error) {
+                        console.warn(`Failed to refetch task ${created.id} after attaching labels:`, error);
+                    }
+                }
             }
             return created;
         },
