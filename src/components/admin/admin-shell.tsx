@@ -8,6 +8,7 @@ import {
     Building2,
     CreditCard,
     LayoutDashboard,
+    Mail,
     Menu,
     LogOut,
     PanelsTopLeft,
@@ -27,6 +28,7 @@ const navItems = [
     { href: "/admin/users", label: "Users", description: "Accounts and support", icon: UserCog },
     { href: "/admin/plans", label: "Plans", description: "Pricing tiers", icon: PanelsTopLeft },
     { href: "/admin/ai-usage", label: "AI Usage", description: "Tokens by team & feature", icon: Sparkles },
+    { href: "/admin/email-reminders", label: "Email Reminders", description: "Weekly digest health", icon: Mail },
 ];
 
 export function AdminShell({ children }: { children: ReactNode }) {

@@ -471,6 +471,55 @@ export type AdminListResponse<T> = {
     meta: AdminListMeta;
 };
 
+export type AdminEmailReminderDailyPoint = {
+    date: string; // YYYY-MM-DD (Asia/Jakarta)
+    sent: number;
+    skipped: number;
+    failed: number;
+};
+
+export type AdminEmailReminderSummary = {
+    total_users: number;
+    total_preferences: number;
+    enabled_count: number;
+    disabled_count: number;
+    missing_count: number;
+    sent_this_week: number;
+    sent_7d: number;
+    skipped_7d: number;
+    failed_7d: number;
+    last_sent_at: string | null;
+    daily: AdminEmailReminderDailyPoint[];
+};
+
+export type AdminEmailReminderLogStatus = "sent" | "skipped" | "failed";
+
+export type AdminEmailReminderLogRow = {
+    id: string;
+    user_id: string;
+    user_name: string;
+    recipient_email: string;
+    kind: string;
+    status: AdminEmailReminderLogStatus;
+    task_count: number;
+    error_message: string | null;
+    created_at: string;
+};
+
+export type AdminEmailReminderRecipientState = "enabled" | "disabled" | "missing";
+
+export type AdminEmailReminderRecipientRow = {
+    user_id: string;
+    user_name: string;
+    user_email: string;
+    state: AdminEmailReminderRecipientState;
+    day_of_week: number | null;
+    hour_local: number | null;
+    timezone: string | null;
+    last_sent_at: string | null;
+    created_at: string | null;
+};
+
 export type AdminSessionSnapshot = {
     user: User;
     accessToken: string;

@@ -1,5 +1,5 @@
 import axios from "axios";
-import { AuthResponse, Plan, Project, ProjectDocument, ProjectDocumentKind, ProjectMeetingNote, WeeklyProjectSummary, Task, Team, Comment, Notification, User, ActivityLog, Column, Checklist, ChecklistItem, Label, Role, TeamUsage, CommentMention, LinkPreview, MessengerConnection, NotificationPreference, MessengerPlatform, TeamMessengerPolicy, MessengerLinkToken, BrowserPushSettings, BrowserPushSubscriptionInput, AdminImpersonationState, AdminOverview, AdminPaymentTransaction, AdminPlan, AdminProjectRow, AdminTeamRow, AdminUserRow, AdminListResponse, AdminAIUsageSummary, AdminAIUsageTeamRow, AdminAIUsageUserRow, AdminAIUsageFeatureRow, AdminAIUsageGranularity, AdminAIUsageTimeseries, DashboardActionBucketId, DashboardActionItem, DashboardActionSeverity, DashboardHealthMetric, DashboardOverview, DashboardProjectSummary, DashboardRecommendedAction, PaginatedResult, TeamActivityItem, TeamActivityOverview, TeamInvite, TeamInvitePreview, EmailReminderPreference, EmailReminderUpdate } from "./types";
+import { AuthResponse, Plan, Project, ProjectDocument, ProjectDocumentKind, ProjectMeetingNote, WeeklyProjectSummary, Task, Team, Comment, Notification, User, ActivityLog, Column, Checklist, ChecklistItem, Label, Role, TeamUsage, CommentMention, LinkPreview, MessengerConnection, NotificationPreference, MessengerPlatform, TeamMessengerPolicy, MessengerLinkToken, BrowserPushSettings, BrowserPushSubscriptionInput, AdminImpersonationState, AdminOverview, AdminPaymentTransaction, AdminPlan, AdminProjectRow, AdminTeamRow, AdminUserRow, AdminListResponse, AdminAIUsageSummary, AdminAIUsageTeamRow, AdminAIUsageUserRow, AdminAIUsageFeatureRow, AdminAIUsageGranularity, AdminAIUsageTimeseries, DashboardActionBucketId, DashboardActionItem, DashboardActionSeverity, DashboardHealthMetric, DashboardOverview, DashboardProjectSummary, DashboardRecommendedAction, PaginatedResult, TeamActivityItem, TeamActivityOverview, TeamInvite, TeamInvitePreview, EmailReminderPreference, EmailReminderUpdate, AdminEmailReminderSummary, AdminEmailReminderLogRow, AdminEmailReminderRecipientRow } from "./types";
 import { recordNotificationPromptIntent } from "@/lib/notification-soft-prompt";
 
 export const API_ORIGIN = (import.meta.env.VITE_API_URL || "").replace(/\/$/, "");
@@ -1170,6 +1170,41 @@ export const getAdminAIUsageTimeseries = async (
 ): Promise<AdminAIUsageTimeseries> => {
     const { data } = await api.get(`/admin/ai-usage/timeseries?${buildAIUsageParams(query).toString()}`, { signal });
     return data.data || { granularity: "day", points: [], from: "", to: "" };
+};
+
+// Weekly task reminder admin dashboard.
+
+type AdminEmailReminderQuery = AdminListQuery & {
+    state?: string;
+};
+
+const buildEmailReminderParams = (query?: AdminEmailReminderQuery) => {
+    const params = buildAdminListParams(query);
+    if (query?.state) params.set("state", query.state);
+    return params;
+};
+
+export const getAdminEmailReminderSummary = async (
+    signal?: AbortSignal,
+): Promise<AdminEmailReminderSummary> => {
+    const { data } = await api.get("/admin/email-reminders/summary", { signal });
+    return data.data;
+};
+
+export const getAdminEmailReminderLogs = async (
+    query?: AdminListQuery,
+    signal?: AbortSignal,
+): Promise<AdminListResponse<AdminEmailReminderLogRow>> => {
+    const { data } = await api.get(`/admin/email-reminders/logs?${buildAdminListParams(query).toString()}`, { signal });
+    return data.data || { items: [], meta: { total: 0, page: 1, page_size: query?.page_size || 12 } };
+};
+
+export const getAdminEmailReminderRecipients = async (
+    query?: AdminEmailReminderQuery,
+    signal?: AbortSignal,
+): Promise<AdminListResponse<AdminEmailReminderRecipientRow>> => {
+    const { data } = await api.get(`/admin/email-reminders/recipients?${buildEmailReminderParams(query).toString()}`, { signal });
+    return data.data || { items: [], meta: { total: 0, page: 1, page_size: query?.page_size || 12 } };
 };
 
 export const impersonateUser = async (userId: string): Promise<{ user: User; tokens: AuthResponse["tokens"]; impersonation?: AdminImpersonationState }> => {
