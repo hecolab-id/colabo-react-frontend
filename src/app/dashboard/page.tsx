@@ -18,6 +18,7 @@ import Link from "@/components/app-link";
 import { useRouter } from "@/lib/navigation";
 import { EmptyState } from "@/components/ui/empty-state";
 import { CreateProjectModal } from "@/components/modals/create-project-modal";
+import { toast } from "@/components/ui/toast";
 import { InstallPrompt } from "@/components/pwa/install-prompt";
 import { MobilePremiumPrompt } from "@/components/layout/mobile-premium-prompt";
 import { EmailReminderBanner } from "@/components/dashboard/email-reminder-banner";
@@ -816,6 +817,7 @@ export default function DashboardPage() {
                         await loadDashboardData();
                     } catch (error) {
                         console.error(error);
+                        toast.error("Couldn't create the project. Please try again.");
                     }
                 }}
                 currentCount={dashboardOverview?.utility.projectsUsed}

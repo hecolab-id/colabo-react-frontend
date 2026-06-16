@@ -14,6 +14,7 @@ import { CreateProjectModal } from "@/components/modals/create-project-modal";
 import { CreateTaskFormValues, CreateTaskModal } from "@/components/modals/create-task-modal";
 import { ManageProjectMembersModal } from "@/components/modals/manage-project-members-modal";
 import { addLabelToTask, createProject, createTask, getTeamBySlug } from "@/lib/api";
+import { toast } from "@/components/ui/toast";
 import { useStore } from "@/lib/store";
 import { useUsage } from "@/lib/hooks/use-billing";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -131,6 +132,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
             router.push(`/${currentTeam.slug}/${newProject.slug}`);
         } catch (error) {
             console.error("Failed to create project:", error);
+            toast.error("Couldn't create the project. Please try again.");
         }
     };
 

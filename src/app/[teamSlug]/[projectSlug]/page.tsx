@@ -32,6 +32,7 @@ import {
     projectKeys
 } from "@/lib/hooks/use-project";
 import { useStore } from "@/lib/store";
+import { toast } from "@/components/ui/toast";
 
 const KanbanBoard = lazy(() => import("@/components/board/kanban-board").then((module) => ({ default: module.KanbanBoard })));
 const TaskCalendarView = lazy(() => import("@/components/board/task-calendar-view").then((module) => ({ default: module.TaskCalendarView })));
@@ -270,7 +271,12 @@ function ProjectSlugPageContent({ params }: { params: Promise<{ teamSlug: string
     };
 
     const handleTaskDelete = async (taskId: string) => {
-        await deleteTaskMutation.mutateAsync(taskId);
+        try {
+            await deleteTaskMutation.mutateAsync(taskId);
+        } catch (error) {
+            console.error("Failed to delete task:", error);
+            toast.error("Couldn't delete the task. Please try again.");
+        }
     };
 
     const handleAddColumn = async (name: string, color: string, type?: string) => {
@@ -287,15 +293,25 @@ function ProjectSlugPageContent({ params }: { params: Promise<{ teamSlug: string
     };
 
     const handleColumnReorder = async (columnIds: string[]) => {
-        await reorderColumnsMutation.mutateAsync(columnIds);
+        try {
+            await reorderColumnsMutation.mutateAsync(columnIds);
+        } catch (error) {
+            console.error("Failed to reorder columns:", error);
+            toast.error("Couldn't reorder columns. Please try again.");
+        }
     };
 
     const handleTaskMove = async (taskId: string, columnId: string, newPosition: number) => {
         const nextStatus = getStatusFromColumn(columnId, columns);
-        await updateTaskMutation.mutateAsync({
-            taskId,
-            updates: { column_id: columnId, position: newPosition, status: nextStatus }
-        });
+        try {
+            await updateTaskMutation.mutateAsync({
+                taskId,
+                updates: { column_id: columnId, position: newPosition, status: nextStatus }
+            });
+        } catch (error) {
+            console.error("Failed to move task:", error);
+            toast.error("Couldn't move the task. It has been reverted.");
+        }
     };
 
     const handleProjectDelete = async (id: string) => {

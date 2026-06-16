@@ -17,6 +17,7 @@ import { ModalShell } from "@/components/ui/modal-shell";
 import { SettingsField } from "@/components/ui/settings-field";
 import { AiTitleRefineBanner, AiTitleRefineButton, useAiTitleRefine } from "@/components/ai/ai-title-refine";
 import { getProjectColumns } from "@/lib/api";
+import { toast } from "@/components/ui/toast";
 
 export type CreateTaskFormValues = {
     title: string;
@@ -469,6 +470,7 @@ export function CreateTaskModal({
             .catch((error) => {
                 if (!isActive) return;
                 console.error("Failed to load project columns", error);
+                toast.error("Couldn't load columns for this project.");
                 setAvailableColumns([]);
                 setSelectedColumnId("");
             })

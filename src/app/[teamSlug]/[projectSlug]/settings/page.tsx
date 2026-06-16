@@ -31,6 +31,7 @@ import { Input } from "@/components/ui/input";
 import { SettingsField } from "@/components/ui/settings-field";
 import { SettingsSection } from "@/components/ui/settings-section";
 import { ToggleSwitch } from "@/components/ui/toggle-switch";
+import { toast } from "@/components/ui/toast";
 import { useProjectBySlugs, useProjectDocuments, useProjectMeetingNotes, useProjectWeeklySummaries, useGenerateProjectWeeklySummary, useDownloadProjectWeeklySummaryPdf, useUpdateProject, useCreateProjectDocument, useDeleteProjectDocument, useCreateProjectMeetingNote, useUpdateProjectMeetingNote, useDeleteProjectMeetingNote } from "@/lib/hooks/use-project";
 import { useTeam } from "@/lib/hooks/use-team";
 import { uploadFile } from "@/lib/api";
@@ -218,6 +219,9 @@ function ProjectSettingsPageContent({ params }: { params: Promise<{ teamSlug: st
                 });
             }
             setMessage(files.length === 1 ? "Document uploaded." : "Documents uploaded.");
+        } catch (error) {
+            console.error("Failed to upload document:", error);
+            toast.error("Upload failed. Please try again.");
         } finally {
             setIsUploading(false);
             if (fileInputRef.current) fileInputRef.current.value = "";
@@ -230,14 +234,19 @@ function ProjectSettingsPageContent({ params }: { params: Promise<{ teamSlug: st
 
         const trimmedUrl = linkUrl.trim();
         const trimmedName = linkName.trim();
-        await createDocumentMutation.mutateAsync({
-            name: trimmedName || new URL(trimmedUrl).hostname.replace(/^www\./, ""),
-            url: trimmedUrl,
-            kind: "link",
-        });
-        setLinkName("");
-        setLinkUrl("");
-        setMessage("Link attached.");
+        try {
+            await createDocumentMutation.mutateAsync({
+                name: trimmedName || new URL(trimmedUrl).hostname.replace(/^www\./, ""),
+                url: trimmedUrl,
+                kind: "link",
+            });
+            setLinkName("");
+            setLinkUrl("");
+            setMessage("Link attached.");
+        } catch (error) {
+            console.error("Failed to attach link:", error);
+            toast.error("Couldn't attach the link. Please try again.");
+        }
     };
 
     const resetMeetingNoteForm = () => {
@@ -512,8 +521,8 @@ function ProjectSettingsPageContent({ params }: { params: Promise<{ teamSlug: st
                                         <Input value={linkUrl} onChange={(event) => setLinkUrl(event.target.value)} placeholder="https://docs.google.com/…" type="url" required />
                                     </SettingsField>
                                     <Button type="submit" disabled={createDocumentMutation.isPending || !linkUrl.trim()}>
-                                        <LinkIcon className="h-4 w-4" aria-hidden="true" />
-                                        Attach
+                                        {createDocumentMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : <LinkIcon className="h-4 w-4" aria-hidden="true" />}
+                                        {createDocumentMutation.isPending ? "Attaching…" : "Attach"}
                                     </Button>
                                 </form>
                             ) : null}

@@ -23,6 +23,7 @@ import {
 } from "@/lib/hooks/use-project";
 import { getTaskColumnId } from "@/lib/task-ui";
 import { useStore } from "@/lib/store";
+import { toast } from "@/components/ui/toast";
 import { getTeamBySlug } from "@/lib/api";
 
 type ViewMode = "board" | "list";
@@ -159,10 +160,15 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
 
     const handleTaskMove = async (taskId: string, columnId: string, newPosition: number) => {
         const nextStatus = getStatusFromColumn(columnId, columns);
-        await updateTaskMutation.mutateAsync({
-            taskId,
-            updates: { column_id: columnId, position: newPosition, status: nextStatus }
-        });
+        try {
+            await updateTaskMutation.mutateAsync({
+                taskId,
+                updates: { column_id: columnId, position: newPosition, status: nextStatus }
+            });
+        } catch (error) {
+            console.error("Failed to move task:", error);
+            toast.error("Couldn't move the task. It has been reverted.");
+        }
     };
 
     if (isLoading || !project) {
