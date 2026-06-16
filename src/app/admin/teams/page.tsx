@@ -14,6 +14,7 @@ import {
 } from "@/components/admin/admin-ui";
 import { useAdminQuery } from "@/lib/hooks/use-admin-query";
 import { TeamEditDrawer } from "@/components/admin/team-edit-drawer";
+import { toast } from "@/components/ui/toast";
 
 const REFRESHING_CLASS = "opacity-60 transition-opacity duration-200";
 const STEADY_CLASS = "transition-opacity duration-200";
@@ -99,6 +100,7 @@ export default function AdminTeamsPage() {
             setEditingTeamId(null);
         } catch (error) {
             console.error("Failed to update team subscription:", error);
+            toast.error("Couldn't save the subscription. Please try again.");
         } finally {
             setSavingTeamId(null);
         }

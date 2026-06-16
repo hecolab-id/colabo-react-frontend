@@ -1,7 +1,9 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
+import { Loader2 } from "lucide-react";
 import { createAdminPlan, deleteAdminPlan, getAdminPlans, updateAdminPlan } from "@/lib/api";
+import { toast } from "@/components/ui/toast";
 import { AdminListResponse, AdminPlan } from "@/lib/types";
 import {
     EmptyState,
@@ -40,6 +42,8 @@ const emptyPlanDraft: PlanDraft = {
 export default function AdminPlansPage() {
     const [editingPlanId, setEditingPlanId] = useState<string | null>(null);
     const [planDraft, setPlanDraft] = useState<PlanDraft>(emptyPlanDraft);
+    const [isSubmittingPlan, setIsSubmittingPlan] = useState(false);
+    const [deletingPlanId, setDeletingPlanId] = useState<string | null>(null);
     const [query, setQuery] = useState("");
     const [page, setPage] = useState(1);
     const pageSize = 8;
@@ -63,6 +67,7 @@ export default function AdminPlansPage() {
     const handlePlanSubmit = async (event: FormEvent) => {
         event.preventDefault();
 
+        setIsSubmittingPlan(true);
         try {
             if (editingPlanId) {
                 await updateAdminPlan(editingPlanId, planDraft);
@@ -75,6 +80,9 @@ export default function AdminPlansPage() {
             plansQ.reload();
         } catch (error) {
             console.error("Failed to save plan:", error);
+            toast.error("Couldn't save the plan. Please try again.");
+        } finally {
+            setIsSubmittingPlan(false);
         }
     };
 
@@ -95,11 +103,15 @@ export default function AdminPlansPage() {
     };
 
     const handlePlanDelete = async (planId: string) => {
+        setDeletingPlanId(planId);
         try {
             await deleteAdminPlan(planId);
             plansQ.reload();
         } catch (error) {
             console.error("Failed to delete plan:", error);
+            toast.error("Couldn't delete the plan. Please try again.");
+        } finally {
+            setDeletingPlanId(null);
         }
     };
 
@@ -131,8 +143,9 @@ export default function AdminPlansPage() {
                             />
                         </label>
                         <div className="flex flex-col gap-3 sm:flex-row">
-                            <button type="submit" className="rounded-full bg-[#b8adff] px-5 py-3 text-sm font-semibold text-[#111827] transition hover:bg-[#c8c1ff]">
-                                {editingPlanId ? "Update plan" : "Create plan"}
+                            <button type="submit" disabled={isSubmittingPlan} className="inline-flex items-center justify-center gap-2 rounded-full bg-[#b8adff] px-5 py-3 text-sm font-semibold text-[#111827] transition hover:bg-[#c8c1ff] disabled:cursor-not-allowed disabled:opacity-60">
+                                {isSubmittingPlan && <Loader2 className="h-4 w-4 animate-spin" />}
+                                {isSubmittingPlan ? "Saving…" : editingPlanId ? "Update plan" : "Create plan"}
                             </button>
                             {editingPlanId && (
                                 <button
@@ -189,8 +202,10 @@ export default function AdminPlansPage() {
                                             <button
                                                 type="button"
                                                 onClick={() => void handlePlanDelete(plan.id)}
-                                                className="min-h-11 rounded-full border border-[#d56f6f]/20 bg-[#d56f6f]/10 px-3 py-2 text-xs font-semibold text-[#ffc9c9] md:min-h-0"
+                                                disabled={deletingPlanId === plan.id}
+                                                className="inline-flex min-h-11 items-center justify-center gap-1.5 rounded-full border border-[#d56f6f]/20 bg-[#d56f6f]/10 px-3 py-2 text-xs font-semibold text-[#ffc9c9] disabled:cursor-not-allowed disabled:opacity-60 md:min-h-0"
                                             >
+                                                {deletingPlanId === plan.id && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
                                                 Delete
                                             </button>
                                         </div>

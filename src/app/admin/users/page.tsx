@@ -7,6 +7,8 @@ import { useStore } from "@/lib/store";
 import { AdminListResponse, AdminUserRow } from "@/lib/types";
 import { EmptyState, Metric, PaginationControls, Panel, SearchField, SkeletonRows, StatusPill, formatDate, formatNumber } from "@/components/admin/admin-ui";
 import { useAdminQuery } from "@/lib/hooks/use-admin-query";
+import { toast } from "@/components/ui/toast";
+import { Loader2 } from "lucide-react";
 
 const REFRESHING_CLASS = "opacity-60 transition-opacity duration-200";
 const STEADY_CLASS = "transition-opacity duration-200";
@@ -16,6 +18,7 @@ export default function AdminUsersPage() {
     const { startImpersonation } = useStore();
     const [query, setQuery] = useState("");
     const [page, setPage] = useState(1);
+    const [impersonatingId, setImpersonatingId] = useState<string | null>(null);
     const pageSize = 12;
 
     const usersQ = useAdminQuery<AdminListResponse<AdminUserRow>>(
@@ -88,13 +91,22 @@ export default function AdminUsersPage() {
                                                 <button
                                                     type="button"
                                                     onClick={async () => {
-                                                        await startImpersonation(adminUser.id);
-                                                        router.push("/dashboard");
+                                                        setImpersonatingId(adminUser.id);
+                                                        try {
+                                                            await startImpersonation(adminUser.id);
+                                                            router.push("/dashboard");
+                                                        } catch (error) {
+                                                            console.error(error);
+                                                            toast.error("Couldn't log in as this user. Please try again.");
+                                                        } finally {
+                                                            setImpersonatingId(null);
+                                                        }
                                                     }}
-                                                    disabled={adminUser.is_super_admin}
+                                                    disabled={adminUser.is_super_admin || impersonatingId === adminUser.id}
                                                     aria-label={`Log in as ${adminUser.name}`}
-                                                    className="whitespace-nowrap rounded-full border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+                                                    className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
                                                 >
+                                                    {impersonatingId === adminUser.id && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
                                                     Log in
                                                 </button>
                                             </td>
@@ -126,13 +138,22 @@ export default function AdminUsersPage() {
                                 <button
                                     type="button"
                                     onClick={async () => {
-                                        await startImpersonation(adminUser.id);
-                                        router.push("/dashboard");
+                                        setImpersonatingId(adminUser.id);
+                                        try {
+                                            await startImpersonation(adminUser.id);
+                                            router.push("/dashboard");
+                                        } catch (error) {
+                                            console.error(error);
+                                            toast.error("Couldn't log in as this user. Please try again.");
+                                        } finally {
+                                            setImpersonatingId(null);
+                                        }
                                     }}
-                                    disabled={adminUser.is_super_admin}
+                                    disabled={adminUser.is_super_admin || impersonatingId === adminUser.id}
                                     aria-label={`Log in as ${adminUser.name}`}
-                                    className="mt-4 w-full rounded-full border border-white/10 px-4 py-3 text-sm font-semibold text-slate-200 transition hover:bg-white/[0.06] disabled:cursor-not-allowed disabled:opacity-40"
+                                    className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-full border border-white/10 px-4 py-3 text-sm font-semibold text-slate-200 transition hover:bg-white/[0.06] disabled:cursor-not-allowed disabled:opacity-40"
                                 >
+                                    {impersonatingId === adminUser.id && <Loader2 className="h-4 w-4 animate-spin" />}
                                     Login as User
                                 </button>
                             </div>
