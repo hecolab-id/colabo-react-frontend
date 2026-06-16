@@ -8,6 +8,7 @@ import { createPortal } from "react-dom";
 import { createInvite, removeMember, getTeamInvites } from "@/lib/api";
 import { useEscapeKey } from "@/lib/hooks/use-escape-key";
 import { Avatar } from "@/components/ui/avatar";
+import { toast } from "@/components/ui/toast";
 
 interface TeamMembersModalProps {
     team: Team;
@@ -89,6 +90,7 @@ export function TeamMembersModal({ team, currentUser, onClose, onUpdate }: TeamM
             onUpdate(); // Reload team data
         } catch (e) {
             console.error(e);
+            toast.error("Couldn't remove the member. Please try again.");
         } finally {
             setRemovingId(null);
         }

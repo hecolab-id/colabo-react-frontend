@@ -22,6 +22,7 @@ import { InviteMemberModal } from "@/components/modals/invite-member-modal";
 import { useUsage } from "@/lib/hooks/use-billing";
 import { useTeam, useRemoveMember } from "@/lib/hooks/use-team";
 import { leaveTeam, updateMemberRole, getRoles } from "@/lib/api";
+import { toast } from "@/components/ui/toast";
 import { useStore } from "@/lib/store";
 import { Role, User } from "@/lib/types";
 import { Avatar } from "@/components/ui/avatar";
@@ -99,7 +100,7 @@ export default function MembersPage({ params }: { params: Promise<{ teamSlug: st
             console.error("Failed to update role", error);
             const message =
                 error instanceof Error ? error.message : "Failed to update member role.";
-            alert(message);
+            toast.error(message);
         } finally {
             setRoleTargetId(null);
         }
@@ -114,7 +115,7 @@ export default function MembersPage({ params }: { params: Promise<{ teamSlug: st
             router.push("/dashboard");
         } catch (error) {
             console.error("Failed to leave team", error);
-            alert("Failed to leave team. Please try again.");
+            toast.error("Failed to leave team. Please try again.");
         } finally {
             setIsLeaving(false);
         }

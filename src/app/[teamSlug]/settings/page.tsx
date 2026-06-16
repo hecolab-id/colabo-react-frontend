@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { PlanPackageDialog } from "@/components/billing/plan-package-dialog";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
+import { toast } from "@/components/ui/toast";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -121,6 +122,7 @@ function TeamSettingsPageContent({ params }: { params: Promise<{ teamSlug: strin
     const [selectedPlanId, setSelectedPlanId] = useState("");
     const [showLeaveModal, setShowLeaveModal] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [isDeletingTeam, setIsDeletingTeam] = useState(false);
     const [showCancelSubModal, setShowCancelSubModal] = useState(false);
     const [showTransferModal, setShowTransferModal] = useState(false);
     const [selectedNewOwner, setSelectedNewOwner] = useState("");
@@ -306,11 +308,14 @@ function TeamSettingsPageContent({ params }: { params: Promise<{ teamSlug: strin
     const handleDeleteTeam = async () => {
         if (!team) return;
 
+        setIsDeletingTeam(true);
         try {
             await deleteTeam(team.id);
             router.push("/dashboard");
         } catch (error) {
             console.error("Failed to delete team", error);
+            toast.error("Couldn't delete the team. Please try again.");
+            setIsDeletingTeam(false);
         }
     };
 
@@ -912,6 +917,7 @@ function TeamSettingsPageContent({ params }: { params: Promise<{ teamSlug: strin
                 description="Are you very sure? This permanently deletes the team, all projects, columns, tasks, comments, and files. This action cannot be undone."
                 confirmText="Delete Permanently"
                 variant="danger"
+                isLoading={isDeletingTeam}
                 onConfirm={handleDeleteTeam}
             />
 
