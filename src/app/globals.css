@@ -514,3 +514,31 @@
     animation: none;
   }
 }
+
+/* Transient "Saved" confirmation in the Description header */
+@keyframes description-saved-indicator {
+  0% {
+    opacity: 0;
+    transform: translateY(-2px);
+  }
+  12% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  80% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+.description-saved-indicator {
+  animation: description-saved-indicator 2000ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .description-saved-indicator {
+    animation: none;
+  }
+}

@@ -270,6 +270,9 @@ export function TaskDetailModal({ task, projectColumns: initialProjectColumns, o
     const [isEditingDesc, setIsEditingDesc] = useState(false);
     const [description, setDescription] = useState(task.description || "");
     const [isUploadingDescImage, setIsUploadingDescImage] = useState(false);
+    const [isSavingDesc, setIsSavingDesc] = useState(false);
+    const [descSaveError, setDescSaveError] = useState<string | null>(null);
+    const [descSaved, setDescSaved] = useState(false);
     const [isAssigning, setIsAssigning] = useState(false);
     const [isPriorityOpen, setIsPriorityOpen] = useState(false);
     const [activeMobileSection, setActiveMobileSection] = useState<"description" | "checklist" | "comments" | "attachments" | "settings">("description");
@@ -295,6 +298,12 @@ export function TaskDetailModal({ task, projectColumns: initialProjectColumns, o
     }, [recentlyReplaced]);
 
     useEffect(() => {
+        if (!descSaved) return;
+        const timeout = setTimeout(() => setDescSaved(false), 2000);
+        return () => clearTimeout(timeout);
+    }, [descSaved]);
+
+    useEffect(() => {
         setTaskState(task);
         setTitle(task.title);
         setDescription(task.description || "");
@@ -313,6 +322,9 @@ export function TaskDetailModal({ task, projectColumns: initialProjectColumns, o
         setRecentlyReplaced([]);
         setIsEditingTitle(false);
         setIsEditingDesc(false);
+        setIsSavingDesc(false);
+        setDescSaveError(null);
+        setDescSaved(false);
         setIsAssigning(false);
         setIsPriorityOpen(false);
         setShowAllAttachments(false);
@@ -539,11 +551,26 @@ export function TaskDetailModal({ task, projectColumns: initialProjectColumns, o
     };
 
     const handleDescSave = async () => {
-        if (description !== (taskState.description || "")) {
-            await handleUpdateTask({ description });
-            await refreshActivities();
+        if (description === (taskState.description || "")) {
+            setIsEditingDesc(false);
+            return;
         }
+
+        setIsSavingDesc(true);
+        setDescSaveError(null);
+        const updated = await handleUpdateTask({ description });
+
+        if (!updated) {
+            setIsSavingDesc(false);
+            setDescSaveError("Couldn't save. Please try again.");
+            return;
+        }
+
+        setIsSavingDesc(false);
         setIsEditingDesc(false);
+        setDescSaved(true);
+        // Activity feed is non-blocking; don't make the editor wait on it.
+        void refreshActivities();
     };
 
     const handleAssign = async (userId: string | null) => {
@@ -1210,7 +1237,22 @@ export function TaskDetailModal({ task, projectColumns: initialProjectColumns, o
                         ) : null}
                         <div className="grid gap-4 px-4 pb-[calc(env(safe-area-inset-bottom)+7rem)] pt-4 md:grid-cols-[minmax(0,1.85fr)_minmax(280px,0.75fr)] md:gap-5 md:p-6 md:pb-6">
                             <div className="space-y-5">
-                                <SectionCard title="Description" className="scroll-mt-28" contentClassName="space-y-3">
+                                <SectionCard
+                                    title="Description"
+                                    className="scroll-mt-28"
+                                    contentClassName="space-y-3"
+                                    action={
+                                        descSaved && !isEditingDesc ? (
+                                            <span
+                                                role="status"
+                                                className="description-saved-indicator inline-flex items-center gap-1 text-xs font-medium text-emerald-600"
+                                            >
+                                                <Check className="h-3.5 w-3.5" aria-hidden="true" />
+                                                Saved
+                                            </span>
+                                        ) : undefined
+                                    }
+                                >
                                     <span ref={sectionRefs.description} className="block h-0" aria-hidden="true" />
                                     {isEditingDesc ? (
                                         <div className="space-y-3">
@@ -1224,24 +1266,40 @@ export function TaskDetailModal({ task, projectColumns: initialProjectColumns, o
                                                 maxImageSizeMb={maxImageSizeMb}
                                                 onUploadingChange={setIsUploadingDescImage}
                                             />
+                                            {descSaveError ? (
+                                                <p role="alert" className="text-sm text-[var(--danger-fg)]">
+                                                    {descSaveError}
+                                                </p>
+                                            ) : null}
                                             <div className="flex justify-end gap-2">
                                                 <button
                                                     type="button"
                                                     onClick={() => {
                                                         setDescription(taskState.description || "");
+                                                        setDescSaveError(null);
                                                         setIsEditingDesc(false);
                                                     }}
-                                                    className="touch-manipulation rounded-full px-4 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-950 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15"
+                                                    disabled={isSavingDesc}
+                                                    className="touch-manipulation rounded-full px-4 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-950 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15 disabled:cursor-not-allowed disabled:opacity-50"
                                                 >
                                                     Cancel
                                                 </button>
                                                 <button
                                                     type="button"
                                                     onClick={handleDescSave}
-                                                    disabled={isUploadingDescImage}
+                                                    disabled={isUploadingDescImage || isSavingDesc}
                                                     className="touch-manipulation rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-95 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15 disabled:cursor-not-allowed disabled:opacity-50"
                                                 >
-                                                    {isUploadingDescImage ? "Mengunggah gambar…" : "Save Description"}
+                                                    {isSavingDesc ? (
+                                                        <span className="inline-flex items-center gap-2">
+                                                            <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+                                                            Saving…
+                                                        </span>
+                                                    ) : isUploadingDescImage ? (
+                                                        "Mengunggah gambar…"
+                                                    ) : (
+                                                        "Save Description"
+                                                    )}
                                                 </button>
                                             </div>
                                         </div>
