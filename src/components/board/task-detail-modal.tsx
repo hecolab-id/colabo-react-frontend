@@ -27,6 +27,7 @@ import {
     FileText,
     Flag,
     Loader2,
+    Maximize2,
     Paperclip,
     Presentation,
     Send,
@@ -52,6 +53,7 @@ import {
     uploadFile,
 } from "@/lib/api";
 import { Checklist } from "./checklist";
+import { ImageAttachmentPreview } from "./image-attachment-preview";
 import { useStore } from "@/lib/store";
 import { useUsage } from "@/lib/hooks/use-billing";
 import { useEscapeKey } from "@/lib/hooks/use-escape-key";
@@ -282,6 +284,7 @@ export function TaskDetailModal({ task, projectColumns: initialProjectColumns, o
     const [isUploading, setIsUploading] = useState(false);
     const [showAllAttachments, setShowAllAttachments] = useState(false);
     const [activePdfPreview, setActivePdfPreview] = useState<{ url: string; name: string } | null>(null);
+    const [imagePreviewIndex, setImagePreviewIndex] = useState<number | null>(null);
 
     useEffect(() => {
         setTaskState(task);
@@ -297,6 +300,7 @@ export function TaskDetailModal({ task, projectColumns: initialProjectColumns, o
         setLabels(task.labels || []);
         setAttachments(task.attachments || []);
         setActivePdfPreview(null);
+        setImagePreviewIndex(null);
         setIsEditingTitle(false);
         setIsEditingDesc(false);
         setIsAssigning(false);
@@ -812,6 +816,11 @@ export function TaskDetailModal({ task, projectColumns: initialProjectColumns, o
         );
     }, [mentionQuery, mentionRange, mentionableMembers]);
     const visibleAttachments = showAllAttachments ? attachments : attachments.slice(0, 3);
+    const imageAttachments = attachments.filter((item) => isImageFile(item));
+    const openImagePreview = (url: string) => {
+        const index = imageAttachments.indexOf(url);
+        if (index !== -1) setImagePreviewIndex(index);
+    };
     const completedChecklistItems = checklists.reduce(
         (total, checklist) => total + (checklist.items?.filter((item) => item.is_done).length || 0),
         0
@@ -1320,15 +1329,23 @@ export function TaskDetailModal({ task, projectColumns: initialProjectColumns, o
                                                         className="flex items-center gap-3 rounded-[1.15rem] border border-slate-200/80 bg-white/68 p-3 transition-[border-color,background-color] hover:border-primary/30 hover:bg-white"
                                                     >
                                                         {isImage ? (
-                                                            <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-[1rem] border border-border bg-slate-100">
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => openImagePreview(url)}
+                                                                aria-label={`Preview ${fileName}`}
+                                                                className="group relative h-14 w-14 shrink-0 cursor-zoom-in overflow-hidden rounded-[1rem] border border-border bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+                                                            >
                                                                 <Image
                                                                     src={url}
                                                                     alt={fileName}
                                                                     fill
                                                                     sizes="56px"
-                                                                    className="object-cover"
+                                                                    className="object-cover transition-transform duration-200 motion-safe:group-hover:scale-[1.06]"
                                                                 />
-                                                            </div>
+                                                                <span className="pointer-events-none absolute inset-0 flex items-center justify-center bg-slate-950/0 opacity-0 transition-[background-color,opacity] duration-200 group-hover:bg-slate-950/35 group-hover:opacity-100 group-focus-visible:bg-slate-950/35 group-focus-visible:opacity-100">
+                                                                    <Maximize2 className="h-4 w-4 text-white" aria-hidden="true" />
+                                                                </span>
+                                                            </button>
                                                         ) : (
                                                             <div className={cn("flex h-14 w-14 shrink-0 items-center justify-center rounded-[1rem]", fileInfo.color)}>
                                                                 <FileIcon className="h-6 w-6" aria-hidden="true" />
@@ -1896,6 +1913,15 @@ export function TaskDetailModal({ task, projectColumns: initialProjectColumns, o
                             />
                         </div>
                     </div>
+                ) : null}
+
+                {imagePreviewIndex !== null && imageAttachments.length > 0 ? (
+                    <ImageAttachmentPreview
+                        images={imageAttachments}
+                        startIndex={imagePreviewIndex}
+                        getDisplayName={getFileName}
+                        onClose={() => setImagePreviewIndex(null)}
+                    />
                 ) : null}
             </div>
         </div>
