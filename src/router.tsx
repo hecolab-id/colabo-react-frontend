@@ -1,6 +1,7 @@
 import { Component, lazy, Suspense, useEffect, useState, type ReactNode } from "react";
 import { BrowserRouter, Navigate, Route, Routes, useLocation, useNavigate, useParams } from "react-router-dom";
 import { AppShell } from "@/app/app-shell";
+import { Toaster } from "@/components/ui/toast";
 import { AdminLayoutRoute, DashboardLayoutRoute } from "@/routes/layouts";
 import { GoogleAuthPage } from "@/routes/google-auth-page";
 import DashboardPage from "@/app/dashboard/page";
@@ -175,6 +176,7 @@ export function AppRouter() {
       <AppShell>
         <OfflineAwareRoutes />
       </AppShell>
+      <Toaster />
     </BrowserRouter>
   );
 }
