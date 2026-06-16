@@ -59,6 +59,7 @@ import { useUsage } from "@/lib/hooks/use-billing";
 import { useEscapeKey } from "@/lib/hooks/use-escape-key";
 import { Avatar } from "@/components/ui/avatar";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
+import { toast } from "@/components/ui/toast";
 import { RichTextEditor } from "@/components/ui/rich-text-editor";
 import { LabelSelector } from "@/components/modals/label-selector";
 import { AiTitleRefineBanner, AiTitleRefineButton, useAiTitleRefine } from "@/components/ai/ai-title-refine";
@@ -275,6 +276,13 @@ export function TaskDetailModal({ task, projectColumns: initialProjectColumns, o
     const [descSaved, setDescSaved] = useState(false);
     const [isAssigning, setIsAssigning] = useState(false);
     const [isPriorityOpen, setIsPriorityOpen] = useState(false);
+    const [isSubmittingComment, setIsSubmittingComment] = useState(false);
+    const [assigningUserId, setAssigningUserId] = useState<string | null>(null);
+    const [changingPriority, setChangingPriority] = useState<string | null>(null);
+    const [isSavingTitle, setIsSavingTitle] = useState(false);
+    const [isSavingDueDate, setIsSavingDueDate] = useState(false);
+    const [isSavingChecklist, setIsSavingChecklist] = useState(false);
+    const [removingAttachmentUrl, setRemovingAttachmentUrl] = useState<string | null>(null);
     const [activeMobileSection, setActiveMobileSection] = useState<"description" | "checklist" | "comments" | "attachments" | "settings">("description");
     const [isMobileDangerOpen, setIsMobileDangerOpen] = useState(false);
 
@@ -327,6 +335,13 @@ export function TaskDetailModal({ task, projectColumns: initialProjectColumns, o
         setDescSaved(false);
         setIsAssigning(false);
         setIsPriorityOpen(false);
+        setIsSubmittingComment(false);
+        setAssigningUserId(null);
+        setChangingPriority(null);
+        setIsSavingTitle(false);
+        setIsSavingDueDate(false);
+        setIsSavingChecklist(false);
+        setRemovingAttachmentUrl(null);
         setShowAllAttachments(false);
         setDoneActionError(null);
         if (initialProjectColumns) {
@@ -430,7 +445,7 @@ export function TaskDetailModal({ task, projectColumns: initialProjectColumns, o
         return () => container.removeEventListener("scroll", handleScroll);
     }, [sectionRefs.attachments, sectionRefs.checklist, sectionRefs.comments, sectionRefs.description, sectionRefs.settings]);
 
-    const handleUpdateTask = async (updates: Partial<Task>) => {
+    const handleUpdateTask = async (updates: Partial<Task>, options?: { silent?: boolean }) => {
         try {
             const updated = await updateTask(task.id, updates);
             setTaskState(updated);
@@ -442,6 +457,10 @@ export function TaskDetailModal({ task, projectColumns: initialProjectColumns, o
             return updated;
         } catch (error) {
             console.error("Failed to update task:", error);
+            // Centralized error feedback for every task-update action (assign,
+            // priority, title, due date, etc.). Callers can opt out via `silent`
+            // when they show their own inline error.
+            if (!options?.silent) toast.error("Couldn't save your change. Please try again.");
             return null;
         }
     };
@@ -499,8 +518,9 @@ export function TaskDetailModal({ task, projectColumns: initialProjectColumns, o
 
     const handleSend = async (event: FormEvent) => {
         event.preventDefault();
-        if (!comment.trim()) return;
+        if (!comment.trim() || isSubmittingComment) return;
 
+        setIsSubmittingComment(true);
         try {
             const newComment = await addComment(task.id, {
                 content: comment,
@@ -531,6 +551,9 @@ export function TaskDetailModal({ task, projectColumns: initialProjectColumns, o
             onUpdate?.(updatedTask);
         } catch (error) {
             console.error(error);
+            toast.error("Couldn't post your comment. Please try again.");
+        } finally {
+            setIsSubmittingComment(false);
         }
     };
 
@@ -543,7 +566,10 @@ export function TaskDetailModal({ task, projectColumns: initialProjectColumns, o
         }
 
         if (nextTitle !== taskState.title) {
-            await handleUpdateTask({ title: nextTitle });
+            setIsSavingTitle(true);
+            const updated = await handleUpdateTask({ title: nextTitle });
+            setIsSavingTitle(false);
+            if (!updated) return; // keep editing so the user can retry; toast already shown
             await refreshActivities();
         }
 
@@ -558,7 +584,7 @@ export function TaskDetailModal({ task, projectColumns: initialProjectColumns, o
 
         setIsSavingDesc(true);
         setDescSaveError(null);
-        const updated = await handleUpdateTask({ description });
+        const updated = await handleUpdateTask({ description }, { silent: true });
 
         if (!updated) {
             setIsSavingDesc(false);
@@ -574,7 +600,10 @@ export function TaskDetailModal({ task, projectColumns: initialProjectColumns, o
     };
 
     const handleAssign = async (userId: string | null) => {
+        if (assigningUserId) return;
+        setAssigningUserId(userId ?? "__unassign__");
         const updated = await handleUpdateTask({ assignee_id: userId });
+        setAssigningUserId(null);
         if (updated) {
             setIsAssigning(false);
             await refreshActivities();
@@ -582,7 +611,10 @@ export function TaskDetailModal({ task, projectColumns: initialProjectColumns, o
     };
 
     const handlePriorityChange = async (priority: string) => {
+        if (changingPriority) return;
+        setChangingPriority(priority);
         const updated = await handleUpdateTask({ priority: priority as Task["priority"] });
+        setChangingPriority(null);
         if (updated) {
             setIsPriorityOpen(false);
             await refreshActivities();
@@ -659,8 +691,9 @@ export function TaskDetailModal({ task, projectColumns: initialProjectColumns, o
 
     const handleCreateChecklist = async (event: FormEvent) => {
         event.preventDefault();
-        if (!newChecklistTitle.trim()) return;
+        if (!newChecklistTitle.trim() || isSavingChecklist) return;
 
+        setIsSavingChecklist(true);
         try {
             const newChecklist = await createChecklist(task.id, newChecklistTitle);
             const updatedChecklists = [...checklists, newChecklist];
@@ -673,6 +706,9 @@ export function TaskDetailModal({ task, projectColumns: initialProjectColumns, o
             onUpdate?.(updatedTask);
         } catch (error) {
             console.error("Failed to create checklist:", error);
+            toast.error("Couldn't add the checklist. Please try again.");
+        } finally {
+            setIsSavingChecklist(false);
         }
     };
 
@@ -779,8 +815,10 @@ export function TaskDetailModal({ task, projectColumns: initialProjectColumns, o
     };
 
     const handleRemoveAttachment = async (url: string) => {
+        if (removingAttachmentUrl) return;
         const newAttachments = attachments.filter((item) => item !== url);
 
+        setRemovingAttachmentUrl(url);
         try {
             const updated = await updateTask(task.id, { attachments: newAttachments });
             setAttachments(newAttachments);
@@ -788,6 +826,9 @@ export function TaskDetailModal({ task, projectColumns: initialProjectColumns, o
             onUpdate?.(updated);
         } catch (error) {
             console.error("Failed to remove attachment:", error);
+            toast.error("Couldn't remove the attachment. Please try again.");
+        } finally {
+            setRemovingAttachmentUrl(null);
         }
     };
 
@@ -1155,10 +1196,15 @@ export function TaskDetailModal({ task, projectColumns: initialProjectColumns, o
                                             <button
                                                 type="button"
                                                 onClick={handleTitleSave}
+                                                disabled={isSavingTitle}
                                                 aria-label="Save title"
-                                                className="touch-manipulation rounded-2xl border border-slate-300 bg-white p-3 text-slate-700 transition-[border-color,background-color,color] hover:border-primary/30 hover:bg-slate-50 hover:text-primary focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15"
+                                                className="touch-manipulation rounded-2xl border border-slate-300 bg-white p-3 text-slate-700 transition-[border-color,background-color,color] hover:border-primary/30 hover:bg-slate-50 hover:text-primary focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15 disabled:cursor-not-allowed disabled:opacity-50"
                                             >
-                                                <Check className="h-4 w-4" aria-hidden="true" />
+                                                {isSavingTitle ? (
+                                                    <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+                                                ) : (
+                                                    <Check className="h-4 w-4" aria-hidden="true" />
+                                                )}
                                             </button>
                                         </div>
                                         <div onMouseDown={(e) => e.preventDefault()}>
@@ -1381,10 +1427,17 @@ export function TaskDetailModal({ task, projectColumns: initialProjectColumns, o
                                                     </button>
                                                     <button
                                                         type="submit"
-                                                        disabled={!newChecklistTitle.trim()}
+                                                        disabled={!newChecklistTitle.trim() || isSavingChecklist}
                                                         className="touch-manipulation rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15"
                                                     >
-                                                        Create
+                                                        {isSavingChecklist ? (
+                                                            <span className="inline-flex items-center gap-2">
+                                                                <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />
+                                                                Creating…
+                                                            </span>
+                                                        ) : (
+                                                            "Create"
+                                                        )}
                                                     </button>
                                                 </div>
                                             </form>
@@ -1506,10 +1559,15 @@ export function TaskDetailModal({ task, projectColumns: initialProjectColumns, o
                                                             <button
                                                                 type="button"
                                                                 onClick={() => handleRemoveAttachment(url)}
+                                                                disabled={removingAttachmentUrl !== null}
                                                                 aria-label={`Remove ${fileName}`}
-                                                                className="touch-manipulation rounded-full p-2 text-slate-500 transition-colors hover:bg-[var(--danger-bg)] hover:text-[var(--danger-fg)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[var(--danger-fg)]/15"
+                                                                className="touch-manipulation rounded-full p-2 text-slate-500 transition-colors hover:bg-[var(--danger-bg)] hover:text-[var(--danger-fg)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[var(--danger-fg)]/15 disabled:cursor-not-allowed disabled:opacity-50"
                                                             >
-                                                                <X className="h-4 w-4" aria-hidden="true" />
+                                                                {removingAttachmentUrl === url ? (
+                                                                    <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+                                                                ) : (
+                                                                    <X className="h-4 w-4" aria-hidden="true" />
+                                                                )}
                                                             </button>
                                                         </div>
                                                     </div>
@@ -1620,11 +1678,15 @@ export function TaskDetailModal({ task, projectColumns: initialProjectColumns, o
                                                         />
                                                         <button
                                                             type="submit"
-                                                            disabled={!comment.trim()}
+                                                            disabled={!comment.trim() || isSubmittingComment}
                                                             aria-label="Send comment"
                                                             className="touch-manipulation self-end rounded-[1rem] bg-primary p-2.5 text-primary-foreground transition-opacity hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15"
                                                         >
-                                                            <Send className="h-4 w-4" aria-hidden="true" />
+                                                            {isSubmittingComment ? (
+                                                                <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+                                                            ) : (
+                                                                <Send className="h-4 w-4" aria-hidden="true" />
+                                                            )}
                                                         </button>
                                                     </div>
 
@@ -1758,23 +1820,30 @@ export function TaskDetailModal({ task, projectColumns: initialProjectColumns, o
                                                             <button
                                                                 type="button"
                                                                 onClick={() => handleAssign(null)}
-                                                                className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left text-sm transition-colors hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15"
+                                                                disabled={assigningUserId !== null}
+                                                                className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left text-sm transition-colors hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15 disabled:cursor-not-allowed disabled:opacity-60"
                                                             >
                                                                 <div className="flex h-8 w-8 items-center justify-center rounded-full border border-dashed border-slate-300 text-slate-500">
                                                                     <User className="h-4 w-4" aria-hidden="true" />
                                                                 </div>
                                                                 <span className="text-slate-700">Unassigned</span>
+                                                                {assigningUserId === "__unassign__" ? (
+                                                                    <Loader2 className="ml-auto h-4 w-4 animate-spin text-primary" aria-hidden="true" />
+                                                                ) : null}
                                                             </button>
                                                             {currentTeam?.members?.map((member) => (
                                                                 <button
                                                                     key={member.id}
                                                                     type="button"
                                                                     onClick={() => handleAssign(member.id)}
-                                                                    className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left text-sm transition-colors hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15"
+                                                                    disabled={assigningUserId !== null}
+                                                                    className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left text-sm transition-colors hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15 disabled:cursor-not-allowed disabled:opacity-60"
                                                                 >
                                                                     <Avatar user={member} size="sm" tone="tint" />
                                                                     <span className="min-w-0 flex-1 truncate text-slate-900">{member.name}</span>
-                                                                    {taskState.assignee_id === member.id ? (
+                                                                    {assigningUserId === member.id ? (
+                                                                        <Loader2 className="h-4 w-4 animate-spin text-primary" aria-hidden="true" />
+                                                                    ) : taskState.assignee_id === member.id ? (
                                                                         <Check className="h-4 w-4 text-primary" aria-hidden="true" />
                                                                     ) : null}
                                                                 </button>
@@ -1813,15 +1882,20 @@ export function TaskDetailModal({ task, projectColumns: initialProjectColumns, o
                                                                 key={key}
                                                                 type="button"
                                                                 onClick={() => handlePriorityChange(key)}
+                                                                disabled={changingPriority !== null}
                                                                 className={cn(
-                                                                    "flex w-full items-center justify-between gap-3 px-3 py-2 text-left text-sm transition-colors hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15",
+                                                                    "flex w-full items-center justify-between gap-3 px-3 py-2 text-left text-sm transition-colors hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15 disabled:cursor-not-allowed disabled:opacity-60",
                                                                     taskState.priority === key ? "bg-slate-50" : ""
                                                                 )}
                                                             >
                                                                 <span className={cn("rounded-full px-2.5 py-1 text-xs font-semibold", config.badgeClassName)}>
                                                                     {config.label}
                                                                 </span>
-                                                                {taskState.priority === key ? <Check className="h-4 w-4 text-primary" aria-hidden="true" /> : null}
+                                                                {changingPriority === key ? (
+                                                                    <Loader2 className="h-4 w-4 animate-spin text-primary" aria-hidden="true" />
+                                                                ) : taskState.priority === key ? (
+                                                                    <Check className="h-4 w-4 text-primary" aria-hidden="true" />
+                                                                ) : null}
                                                             </button>
                                                         ))}
                                                     </div>
@@ -1864,20 +1938,28 @@ export function TaskDetailModal({ task, projectColumns: initialProjectColumns, o
                                                 id="task-due-date"
                                                 name="task_due_date"
                                                 type="date"
+                                                disabled={isSavingDueDate}
                                                 value={taskState.due_date ? new Date(taskState.due_date).toISOString().split("T")[0] : ""}
                                                 onChange={async (event) => {
                                                     const newDate = event.target.value ? new Date(event.target.value).toISOString() : null;
+                                                    setIsSavingDueDate(true);
                                                     const updated = await handleUpdateTask({ due_date: newDate });
+                                                    setIsSavingDueDate(false);
                                                     if (updated) {
                                                         await refreshActivities();
                                                     }
                                                 }}
                                                 className={cn(
-                                                    "w-full rounded-[1.15rem] border border-slate-300 bg-white px-3 py-3 text-sm text-slate-950 outline-none transition-[border-color,box-shadow] focus-visible:border-primary focus-visible:ring-4 focus-visible:ring-primary/15",
+                                                    "w-full rounded-[1.15rem] border border-slate-300 bg-white px-3 py-3 text-sm text-slate-950 outline-none transition-[border-color,box-shadow] focus-visible:border-primary focus-visible:ring-4 focus-visible:ring-primary/15 disabled:cursor-not-allowed disabled:opacity-60",
                                                     dueDateTone.isOverdue && "border-[var(--danger-border)] text-[var(--danger-fg)]"
                                                 )}
                                             />
-                                            {taskState.due_date ? (
+                                            {isSavingDueDate ? (
+                                                <p className="mt-2 inline-flex items-center gap-2 text-sm text-slate-500">
+                                                    <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />
+                                                    Saving…
+                                                </p>
+                                            ) : taskState.due_date ? (
                                                 <p className={cn("mt-2 text-sm", dueDateTone.isOverdue ? "text-[var(--danger-fg)]" : "text-slate-500")}>
                                                     {dueDateTone.isOverdue ? "Overdue" : `Due ${formatTaskDate(taskState.due_date)}`}
                                                 </p>
@@ -1940,11 +2022,15 @@ export function TaskDetailModal({ task, projectColumns: initialProjectColumns, o
                                 />
                                 <button
                                     type="submit"
-                                    disabled={!comment.trim()}
+                                    disabled={!comment.trim() || isSubmittingComment}
                                     aria-label="Send comment"
                                     className="touch-manipulation rounded-2xl bg-primary p-3 text-primary-foreground transition-opacity hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15"
                                 >
-                                    <Send className="h-4 w-4" aria-hidden="true" />
+                                    {isSubmittingComment ? (
+                                        <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+                                    ) : (
+                                        <Send className="h-4 w-4" aria-hidden="true" />
+                                    )}
                                 </button>
                             </div>
 

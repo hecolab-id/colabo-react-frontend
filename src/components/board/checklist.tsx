@@ -8,6 +8,7 @@ import { createChecklistItem, deleteChecklist, deleteChecklistItem, updateCheckl
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from "@dnd-kit/core";
 import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy, arrayMove } from "@dnd-kit/sortable";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
+import { toast } from "@/components/ui/toast";
 
 interface ChecklistProps {
     checklist: ChecklistType;
@@ -18,7 +19,9 @@ interface ChecklistProps {
 export function Checklist({ checklist, onUpdate, onDelete }: ChecklistProps) {
     const [newItemContent, setNewItemContent] = useState("");
     const [isAddingItem, setIsAddingItem] = useState(false);
+    const [isSavingItem, setIsSavingItem] = useState(false);
     const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+    const [isDeletingChecklist, setIsDeletingChecklist] = useState(false);
 
     const sensors = useSensors(
         useSensor(PointerSensor),
@@ -33,8 +36,9 @@ export function Checklist({ checklist, onUpdate, onDelete }: ChecklistProps) {
 
     const handleAddItem = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!newItemContent.trim()) return;
+        if (!newItemContent.trim() || isSavingItem) return;
 
+        setIsSavingItem(true);
         try {
             const newItem = await createChecklistItem(checklist.id, newItemContent);
             onUpdate({
@@ -45,56 +49,58 @@ export function Checklist({ checklist, onUpdate, onDelete }: ChecklistProps) {
             setIsAddingItem(false);
         } catch (error) {
             console.error("Failed to add item:", error);
+            toast.error("Couldn't add the item. Please try again.");
+        } finally {
+            setIsSavingItem(false);
         }
     };
 
     const handleToggleItem = async (itemId: string, isDone: boolean) => {
+        const previousItems = checklist.items || [];
+        // Optimistic update, roll back if the request fails.
+        onUpdate({ ...checklist, items: previousItems.map(item => item.id === itemId ? { ...item, is_done: isDone } : item) });
         try {
-            // Optimistic update
-            const updatedItems = checklist.items?.map(item =>
-                item.id === itemId ? { ...item, is_done: isDone } : item
-            ) || [];
-
-            onUpdate({ ...checklist, items: updatedItems });
-
             await updateChecklistItem(itemId, { is_done: isDone });
         } catch (error) {
             console.error("Failed to toggle item:", error);
-            // Revert on error would go here
+            onUpdate({ ...checklist, items: previousItems });
+            toast.error("Couldn't update the item. Please try again.");
         }
     };
 
     const handleDeleteItem = async (itemId: string) => {
+        const previousItems = checklist.items || [];
+        onUpdate({ ...checklist, items: previousItems.filter(item => item.id !== itemId) });
         try {
-            // Optimistic update
-            const updatedItems = checklist.items?.filter(item => item.id !== itemId) || [];
-            onUpdate({ ...checklist, items: updatedItems });
-
             await deleteChecklistItem(itemId);
         } catch (error) {
             console.error("Failed to delete item:", error);
+            onUpdate({ ...checklist, items: previousItems });
+            toast.error("Couldn't delete the item. Please try again.");
         }
     };
 
     const handleUpdateItemContent = async (itemId: string, content: string) => {
+        const previousItems = checklist.items || [];
+        onUpdate({ ...checklist, items: previousItems.map(item => item.id === itemId ? { ...item, content } : item) });
         try {
-            const updatedItems = checklist.items?.map(item =>
-                item.id === itemId ? { ...item, content } : item
-            ) || [];
-            onUpdate({ ...checklist, items: updatedItems });
-
             await updateChecklistItem(itemId, { content });
         } catch (error) {
             console.error("Failed to update item content:", error);
+            onUpdate({ ...checklist, items: previousItems });
+            toast.error("Couldn't save the item. Please try again.");
         }
     };
 
     const handleDeleteChecklist = async () => {
+        setIsDeletingChecklist(true);
         try {
             await deleteChecklist(checklist.id);
             onDelete(checklist.id);
         } catch (error) {
             console.error("Failed to delete checklist:", error);
+            toast.error("Couldn't delete the checklist. Please try again.");
+            setIsDeletingChecklist(false);
         }
     };
 
@@ -187,10 +193,10 @@ export function Checklist({ checklist, onUpdate, onDelete }: ChecklistProps) {
                     <div className="flex gap-1">
                         <button
                             type="submit"
-                            disabled={!newItemContent.trim()}
-                            className="min-h-11 text-xs bg-primary text-primary-foreground px-3 rounded disabled:opacity-50 md:min-h-0 md:px-2"
+                            disabled={!newItemContent.trim() || isSavingItem}
+                            className="min-h-11 text-xs bg-primary text-primary-foreground px-3 rounded disabled:cursor-not-allowed disabled:opacity-50 md:min-h-0 md:px-2"
                         >
-                            Add
+                            {isSavingItem ? "Adding…" : "Add"}
                         </button>
                         <button
                             type="button"
@@ -216,6 +222,7 @@ export function Checklist({ checklist, onUpdate, onDelete }: ChecklistProps) {
                 description="Are you sure you want to delete this checklist? All items will be removed."
                 confirmText="Delete"
                 variant="danger"
+                isLoading={isDeletingChecklist}
                 onConfirm={handleDeleteChecklist}
                 onCancel={() => setShowDeleteDialog(false)}
             />

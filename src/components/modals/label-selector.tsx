@@ -28,6 +28,7 @@ export function LabelSelector({ taskId, teamSlug, currentLabels, onUpdate, canMa
     const [selectedColor, setSelectedColor] = useState("#6366F1");
     const [isCreating, setIsCreating] = useState(false);
     const [deletingLabelId, setDeletingLabelId] = useState<string | null>(null);
+    const [pendingLabelId, setPendingLabelId] = useState<string | null>(null);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
     const colorOptions = ["#6366F1", "#0EA5E9", "#10B981", "#F59E0B", "#EF4444", "#8B5CF6", "#EC4899", "#64748B"];
@@ -110,22 +111,28 @@ export function LabelSelector({ taskId, teamSlug, currentLabels, onUpdate, canMa
     };
 
     const handleAddLabel = async (labelId: string) => {
+        setPendingLabelId(labelId);
         try {
             await addLabelToTask(taskId, labelId);
             onUpdate();
         } catch (error) {
             console.error("Failed to add label:", error);
             setErrorMessage("Label could not be added to this task.");
+        } finally {
+            setPendingLabelId(null);
         }
     };
 
     const handleRemoveLabel = async (labelId: string) => {
+        setPendingLabelId(labelId);
         try {
             await removeLabelFromTask(taskId, labelId);
             onUpdate();
         } catch (error) {
             console.error("Failed to remove label:", error);
             setErrorMessage("Label could not be removed from this task.");
+        } finally {
+            setPendingLabelId(null);
         }
     };
 
@@ -284,7 +291,8 @@ export function LabelSelector({ taskId, teamSlug, currentLabels, onUpdate, canMa
                                                 void handleAddLabel(label.id);
                                             }
                                         }}
-                                        className="flex min-w-0 flex-1 items-center justify-between gap-2 rounded-[0.95rem] px-3 py-2 text-left focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15"
+                                        disabled={pendingLabelId !== null}
+                                        className="flex min-w-0 flex-1 items-center justify-between gap-2 rounded-[0.95rem] px-3 py-2 text-left focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15 disabled:cursor-not-allowed disabled:opacity-60"
                                     >
                                         <div className="flex min-w-0 items-center gap-2">
                                             <span
@@ -293,7 +301,11 @@ export function LabelSelector({ taskId, teamSlug, currentLabels, onUpdate, canMa
                                             />
                                             <span className="truncate text-sm text-slate-900">{label.name}</span>
                                         </div>
-                                        {selected ? <Check className="h-4 w-4 shrink-0 text-primary" aria-hidden="true" /> : null}
+                                        {pendingLabelId === label.id ? (
+                                            <Loader2 className="h-4 w-4 shrink-0 animate-spin text-primary" aria-hidden="true" />
+                                        ) : selected ? (
+                                            <Check className="h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
+                                        ) : null}
                                     </button>
                                     {canManageLabels ? (
                                         <button
