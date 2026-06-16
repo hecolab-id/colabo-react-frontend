@@ -88,7 +88,12 @@ export function RichTextEditor({
             StarterKit.configure({ link: false, underline: false }),
             Placeholder.configure({ placeholder }),
             Underline,
-            Link.configure({ openOnClick: false }),
+            Link.configure({
+                openOnClick: false,
+                autolink: true,
+                defaultProtocol: "https",
+                HTMLAttributes: { target: "_blank", rel: "noopener noreferrer nofollow" },
+            }),
             UploadableImage.configure({ inline: false, allowBase64: false }),
         ],
         content,
@@ -98,7 +103,7 @@ export function RichTextEditor({
         },
         editorProps: {
             attributes: {
-                class: "prose prose-sm max-w-none focus:outline-none min-h-[150px] p-4",
+                class: "rich-text prose prose-sm max-w-none focus:outline-none min-h-[150px] p-4",
             },
             // editorProps is captured once when the editor mounts, so the
             // handlers read the live upload fn through a ref instead of

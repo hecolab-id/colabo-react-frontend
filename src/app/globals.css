@@ -573,3 +573,24 @@
     animation: toast-enter-reduced 120ms ease-out;
   }
 }
+
+/* Clickable links inside rendered rich text. Tailwind Preflight resets anchors
+   to inherit color/decoration and the typography plugin is not installed, so
+   links need explicit styling to read as links. */
+.rich-text a {
+  color: var(--primary-600);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  overflow-wrap: anywhere;
+  transition: color 150ms ease;
+}
+
+.rich-text a:hover {
+  color: var(--primary-700);
+}
+
+.rich-text a:focus-visible {
+  outline: 2px solid var(--primary-500);
+  outline-offset: 2px;
+  border-radius: 2px;
+}

@@ -60,6 +60,7 @@ import { useEscapeKey } from "@/lib/hooks/use-escape-key";
 import { Avatar } from "@/components/ui/avatar";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 import { toast } from "@/components/ui/toast";
+import DOMPurify from "dompurify";
 import { RichTextEditor } from "@/components/ui/rich-text-editor";
 import { LabelSelector } from "@/components/modals/label-selector";
 import { AiTitleRefineBanner, AiTitleRefineButton, useAiTitleRefine } from "@/components/ai/ai-title-refine";
@@ -222,6 +223,24 @@ function EmptyState({
 
 function FieldLabel({ children }: { children: ReactNode }) {
     return <span className="mb-2 block text-xs font-medium text-slate-500">{children}</span>;
+}
+
+// The description HTML comes from the editor and is rendered to other users, so
+// sanitize it (defense against stored XSS) and force every link to open safely
+// in a new tab.
+let domPurifyLinkHookReady = false;
+function enhanceRichTextLinks(html: string): string {
+    if (typeof window === "undefined" || !html) return html;
+    if (!domPurifyLinkHookReady) {
+        DOMPurify.addHook("afterSanitizeAttributes", (node) => {
+            if (node.tagName === "A" && node.getAttribute("href")) {
+                node.setAttribute("target", "_blank");
+                node.setAttribute("rel", "noopener noreferrer nofollow");
+            }
+        });
+        domPurifyLinkHookReady = true;
+    }
+    return DOMPurify.sanitize(html, { ADD_ATTR: ["target"] });
 }
 
 export function TaskDetailModal({ task, projectColumns: initialProjectColumns, onClose, onDelete, onUpdate }: TaskDetailModalProps) {
@@ -947,6 +966,10 @@ export function TaskDetailModal({ task, projectColumns: initialProjectColumns, o
     }, [mentionQuery, mentionRange, mentionableMembers]);
     const visibleAttachments = showAllAttachments ? attachments : attachments.slice(0, 3);
     const imageAttachments = attachments.filter((item) => isImageFile(item));
+    const descriptionHtml = useMemo(
+        () => enhanceRichTextLinks(taskState.description || ""),
+        [taskState.description],
+    );
     const openImagePreview = (url: string) => {
         const index = imageAttachments.indexOf(url);
         if (index !== -1) setImagePreviewIndex(index);
@@ -1349,23 +1372,25 @@ export function TaskDetailModal({ task, projectColumns: initialProjectColumns, o
                                                 </button>
                                             </div>
                                         </div>
+                                    ) : taskState.description ? (
+                                        // Not a <button>: it holds clickable links. Clicking empty
+                                        // space enters edit mode; clicking a link lets it navigate.
+                                        <div
+                                            onClick={(event) => {
+                                                if ((event.target as HTMLElement).closest("a")) return;
+                                                setIsEditingDesc(true);
+                                            }}
+                                            className="rich-text prose prose-sm w-full max-w-none break-words rounded-[1.2rem] border border-slate-200/80 bg-white/58 p-4 text-slate-700 transition-[border-color,background-color] hover:border-primary/30 hover:bg-white"
+                                            dangerouslySetInnerHTML={{ __html: descriptionHtml }}
+                                        />
                                     ) : (
                                         <button
                                             type="button"
                                             onClick={() => setIsEditingDesc(true)}
-                                            className="w-full rounded-[1.2rem] border border-slate-200/80 bg-white/58 p-4 text-left transition-[border-color,background-color,transform] hover:border-primary/30 hover:bg-white focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15"
+                                            className="flex w-full items-center justify-between gap-3 rounded-[1.2rem] border border-slate-200/80 bg-white/58 p-4 text-left text-sm text-slate-500 transition-[border-color,background-color,transform] hover:border-primary/30 hover:bg-white focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15"
                                         >
-                                            {taskState.description ? (
-                                                <div
-                                                    className="prose prose-sm max-w-none break-words text-slate-700"
-                                                    dangerouslySetInnerHTML={{ __html: taskState.description }}
-                                                />
-                                            ) : (
-                                                <div className="flex items-center justify-between gap-3 text-sm text-slate-500">
-                                                    <span>Add context, links, or acceptance notes.</span>
-                                                    <span className="shrink-0 rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600">Add</span>
-                                                </div>
-                                            )}
+                                            <span>Add context, links, or acceptance notes.</span>
+                                            <span className="shrink-0 rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600">Add</span>
                                         </button>
                                     )}
                                 </SectionCard>
