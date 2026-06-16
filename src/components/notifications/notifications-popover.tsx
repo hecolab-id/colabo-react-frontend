@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { Bell } from "lucide-react";
 import { getNotifications, markNotificationRead, markAllNotificationsRead } from "@/lib/api";
 import { Notification } from "@/lib/types";
+import { toast } from "@/components/ui/toast";
 import { cn } from "@/lib/utils";
 import Link from "@/components/app-link";
 import { formatDistanceToNow } from "date-fns";
@@ -37,15 +38,34 @@ export function NotificationsPopover() {
     }, [isOpen]);
 
     const handleMarkRead = async (id: string) => {
-        await markNotificationRead(id);
+        const previousNotifications = notifications;
+        const previousUnread = unreadCount;
+        // Optimistic: update immediately, roll back if the request fails.
         setNotifications(notifications.map(n => n.id === id ? { ...n, read_at: new Date().toISOString() } : n));
         setUnreadCount(prev => Math.max(0, prev - 1));
+        try {
+            await markNotificationRead(id);
+        } catch (error) {
+            console.error("Failed to mark notification read", error);
+            setNotifications(previousNotifications);
+            setUnreadCount(previousUnread);
+            toast.error("Couldn't mark as read. Please try again.");
+        }
     };
 
     const handleMarkAllRead = async () => {
-        await markAllNotificationsRead();
+        const previousNotifications = notifications;
+        const previousUnread = unreadCount;
         setNotifications(notifications.map(n => ({ ...n, read_at: new Date().toISOString() })));
         setUnreadCount(0);
+        try {
+            await markAllNotificationsRead();
+        } catch (error) {
+            console.error("Failed to mark all notifications read", error);
+            setNotifications(previousNotifications);
+            setUnreadCount(previousUnread);
+            toast.error("Couldn't mark all as read. Please try again.");
+        }
     };
 
     return (

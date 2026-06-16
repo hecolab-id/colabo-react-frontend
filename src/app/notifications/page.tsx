@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Bell, Check } from "lucide-react";
 import { getNotifications, markAllNotificationsRead, markNotificationRead } from "@/lib/api";
 import { Notification } from "@/lib/types";
+import { toast } from "@/components/ui/toast";
 import { formatDistanceToNow } from "date-fns";
 import { cn } from "@/lib/utils";
 import Link from "@/components/app-link";
@@ -31,7 +32,8 @@ export default function NotificationsPage() {
     const unreadCount = notifications.filter((notification) => !notification.read_at).length;
 
     const handleMarkRead = async (id: string) => {
-        await markNotificationRead(id);
+        const previous = notifications;
+        // Optimistic: update immediately, roll back if the request fails.
         setNotifications((current) =>
             current.map((notification) =>
                 notification.id === id
@@ -39,13 +41,27 @@ export default function NotificationsPage() {
                     : notification
             )
         );
+        try {
+            await markNotificationRead(id);
+        } catch (error) {
+            console.error("Failed to mark notification read", error);
+            setNotifications(previous);
+            toast.error("Couldn't mark as read. Please try again.");
+        }
     };
 
     const handleMarkAllRead = async () => {
-        await markAllNotificationsRead();
+        const previous = notifications;
         setNotifications((current) =>
             current.map((notification) => ({ ...notification, read_at: new Date().toISOString() }))
         );
+        try {
+            await markAllNotificationsRead();
+        } catch (error) {
+            console.error("Failed to mark all notifications read", error);
+            setNotifications(previous);
+            toast.error("Couldn't mark all as read. Please try again.");
+        }
     };
 
     return (
