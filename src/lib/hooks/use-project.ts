@@ -312,16 +312,17 @@ export function useCreateTask(projectId: string) {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: async ({ title, status, columnId, assigneeId, priority, dueDate, labelIds }: {
+        mutationFn: async ({ title, status, columnId, assigneeId, priority, dueDate, startDate, labelIds }: {
             title: string;
             status: string;
             columnId?: string;
             assigneeId?: string;
             priority?: TaskPriority;
             dueDate?: string | null;
+            startDate?: string | null;
             labelIds?: string[];
         }) => {
-            const created = await createTask(projectId, title, status, columnId, undefined, priority, assigneeId, dueDate);
+            const created = await createTask(projectId, title, status, columnId, undefined, priority, assigneeId, dueDate, startDate);
             if (labelIds && labelIds.length > 0) {
                 const attachResults = await Promise.allSettled(labelIds.map((id) => addLabelToTask(created.id, id)));
                 attachResults.forEach((result, index) => {
@@ -357,6 +358,7 @@ export function useCreateTask(projectId: string) {
                 position: Date.now(),
                 assignee_id: variables.assigneeId || null,
                 column_id: variables.columnId,
+                start_date: variables.startDate || null,
                 due_date: variables.dueDate || null,
                 created_at: now,
                 updated_at: now,

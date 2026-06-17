@@ -299,6 +299,7 @@ export function TaskDetailModal({ task, projectColumns: initialProjectColumns, o
     const [assigningUserId, setAssigningUserId] = useState<string | null>(null);
     const [changingPriority, setChangingPriority] = useState<string | null>(null);
     const [isSavingTitle, setIsSavingTitle] = useState(false);
+    const [isSavingStartDate, setIsSavingStartDate] = useState(false);
     const [isSavingDueDate, setIsSavingDueDate] = useState(false);
     const [isSavingChecklist, setIsSavingChecklist] = useState(false);
     const [removingAttachmentUrl, setRemovingAttachmentUrl] = useState<string | null>(null);
@@ -358,6 +359,7 @@ export function TaskDetailModal({ task, projectColumns: initialProjectColumns, o
         setAssigningUserId(null);
         setChangingPriority(null);
         setIsSavingTitle(false);
+        setIsSavingStartDate(false);
         setIsSavingDueDate(false);
         setIsSavingChecklist(false);
         setRemovingAttachmentUrl(null);
@@ -1956,6 +1958,44 @@ export function TaskDetailModal({ task, projectColumns: initialProjectColumns, o
                                         </div>
 
                                         <div className="pt-4">
+                                            <label htmlFor="task-start-date">
+                                                <FieldLabel>Start date</FieldLabel>
+                                            </label>
+                                            <input
+                                                id="task-start-date"
+                                                name="task_start_date"
+                                                type="date"
+                                                disabled={isSavingStartDate}
+                                                max={taskState.due_date ? new Date(taskState.due_date).toISOString().split("T")[0] : undefined}
+                                                value={taskState.start_date ? new Date(taskState.start_date).toISOString().split("T")[0] : ""}
+                                                onChange={async (event) => {
+                                                    const newDate = event.target.value ? new Date(event.target.value).toISOString() : null;
+                                                    setIsSavingStartDate(true);
+                                                    const updated = await handleUpdateTask({ start_date: newDate });
+                                                    setIsSavingStartDate(false);
+                                                    if (updated) {
+                                                        await refreshActivities();
+                                                    }
+                                                }}
+                                                className="w-full rounded-[1.15rem] border border-slate-300 bg-white px-3 py-3 text-sm text-slate-950 outline-none transition-[border-color,box-shadow] focus-visible:border-primary focus-visible:ring-4 focus-visible:ring-primary/15 disabled:cursor-not-allowed disabled:opacity-60"
+                                            />
+                                            {isSavingStartDate ? (
+                                                <p className="mt-2 inline-flex items-center gap-2 text-sm text-slate-500">
+                                                    <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />
+                                                    Saving…
+                                                </p>
+                                            ) : taskState.start_date ? (
+                                                <p className="mt-2 text-sm text-slate-500">
+                                                    Starts {formatTaskDate(taskState.start_date)}
+                                                </p>
+                                            ) : (
+                                                <p className="mt-2 text-sm text-slate-500">
+                                                    Add a start date to show this task as a duration on the timeline.
+                                                </p>
+                                            )}
+                                        </div>
+
+                                        <div className="pt-4">
                                             <label htmlFor="task-due-date">
                                                 <FieldLabel>Due date</FieldLabel>
                                             </label>
@@ -1964,6 +2004,7 @@ export function TaskDetailModal({ task, projectColumns: initialProjectColumns, o
                                                 name="task_due_date"
                                                 type="date"
                                                 disabled={isSavingDueDate}
+                                                min={taskState.start_date ? new Date(taskState.start_date).toISOString().split("T")[0] : undefined}
                                                 value={taskState.due_date ? new Date(taskState.due_date).toISOString().split("T")[0] : ""}
                                                 onChange={async (event) => {
                                                     const newDate = event.target.value ? new Date(event.target.value).toISOString() : null;

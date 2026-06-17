@@ -635,6 +635,7 @@ export type Task = {
     assignee?: User;
     column_id?: string;
     column?: Column;
+    start_date?: string | null;
     due_date?: string | null;
     created_at: string;
     updated_at: string;

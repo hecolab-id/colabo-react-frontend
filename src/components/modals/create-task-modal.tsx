@@ -27,6 +27,7 @@ export type CreateTaskFormValues = {
     assigneeId?: string;
     priority?: TaskPriority;
     dueDate?: string | null;
+    startDate?: string | null;
     labelIds?: string[];
 };
 
@@ -411,6 +412,7 @@ export function CreateTaskModal({
     const [isColumnsLoading, setIsColumnsLoading] = useState(false);
     const [assigneeId, setAssigneeId] = useState(initialAssigneeId);
     const [priority, setPriority] = useState<TaskPriority>("MEDIUM");
+    const [startDate, setStartDate] = useState<string>("");
     const [dueDate, setDueDate] = useState<string>("");
     const [labelIds, setLabelIds] = useState<string[]>([]);
     const [hasTriedSubmit, setHasTriedSubmit] = useState(false);
@@ -427,6 +429,7 @@ export function CreateTaskModal({
         setAvailableColumns(projectColumns || []);
         setAssigneeId(initialAssigneeId);
         setPriority("MEDIUM");
+        setStartDate("");
         setDueDate("");
         setLabelIds([]);
         setHasTriedSubmit(false);
@@ -518,6 +521,7 @@ export function CreateTaskModal({
             columnId: selectedColumnId || seededColumnId,
             assigneeId: assigneeId || undefined,
             priority,
+            startDate: startDate ? new Date(startDate).toISOString() : null,
             dueDate: dueDate ? new Date(dueDate).toISOString() : null,
             labelIds,
         });
@@ -529,6 +533,7 @@ export function CreateTaskModal({
             setSelectedColumnId(seededColumnId || availableColumns[0]?.id || "");
             setAssigneeId(initialAssigneeId);
             setPriority("MEDIUM");
+            setStartDate("");
             setDueDate("");
             setLabelIds([]);
             setHasTriedSubmit(false);
@@ -681,7 +686,8 @@ export function CreateTaskModal({
                                     placeholder="Medium"
                                     options={priorityListOptions}
                                 />
-                                <DueDateRow value={dueDate} onChange={setDueDate} variant="row" />
+                                <DueDateRow label="Start" value={startDate} onChange={setStartDate} variant="row" />
+                                <DueDateRow value={dueDate} onChange={setDueDate} variant="row" min={startDate || undefined} />
                                 {teamSlug ? (
                                     <DraftLabelPicker
                                         teamSlug={teamSlug}
@@ -751,9 +757,14 @@ export function CreateTaskModal({
                                 />
                             </SettingsField>
 
-                            <SettingsField label="Deadline" className="hidden sm:block">
-                                <DueDateInput value={dueDate} onChange={setDueDate} priorityTone={priorityToneMap[priority]?.iconClassName} />
-                            </SettingsField>
+                            <div className="hidden grid-cols-1 gap-3 sm:grid sm:grid-cols-2 sm:gap-4">
+                                <SettingsField label="Start date">
+                                    <DueDateInput value={startDate} onChange={setStartDate} clearLabel="Clear start date" />
+                                </SettingsField>
+                                <SettingsField label="Deadline">
+                                    <DueDateInput value={dueDate} onChange={setDueDate} priorityTone={priorityToneMap[priority]?.iconClassName} min={startDate || undefined} />
+                                </SettingsField>
+                            </div>
 
                             {teamSlug ? (
                                 <SettingsField label="Labels" className="relative z-[10] hidden sm:block">
@@ -795,16 +806,21 @@ function DueDateInput({
     value,
     onChange,
     priorityTone,
+    clearLabel = "Clear deadline",
+    min,
 }: {
     value: string;
     onChange: (next: string) => void;
     priorityTone?: string;
+    clearLabel?: string;
+    min?: string;
 }) {
     return (
         <div className="relative">
             <input
                 type="date"
                 value={value}
+                min={min}
                 onChange={(event) => onChange(event.target.value)}
                 className="h-12 w-full appearance-none rounded-[1.05rem] border border-slate-200/80 bg-white/90 px-4 pr-12 text-[15px] font-medium text-slate-900 shadow-none transition-[border-color,box-shadow,background-color] focus:border-primary/35 focus:bg-white focus:outline-none focus:ring-4 focus:ring-primary/15 sm:rounded-2xl sm:bg-slate-50 sm:shadow-[inset_0_1px_0_rgba(255,255,255,0.72)] sm:focus:bg-slate-100 [&::-webkit-calendar-picker-indicator]:appearance-none [&::-webkit-calendar-picker-indicator]:opacity-0"
                 placeholder="Pick a date"
@@ -817,7 +833,7 @@ function DueDateInput({
                     type="button"
                     onClick={() => onChange("")}
                     className="absolute inset-y-0 right-10 flex items-center px-1 text-slate-400 transition-colors hover:text-slate-700"
-                    aria-label="Clear deadline"
+                    aria-label={clearLabel}
                 >
                     <X className="h-3.5 w-3.5" aria-hidden="true" />
                 </button>
@@ -830,22 +846,27 @@ function DueDateRow({
     value,
     onChange,
     variant,
+    label = "Deadline",
+    min,
 }: {
     value: string;
     onChange: (next: string) => void;
     variant?: "field" | "row";
+    label?: string;
+    min?: string;
 }) {
     if (variant !== "row") {
-        return <DueDateInput value={value} onChange={onChange} />;
+        return <DueDateInput value={value} onChange={onChange} min={min} clearLabel={`Clear ${label.toLowerCase()}`} />;
     }
 
     return (
         <label className="relative flex h-12 w-full items-center justify-between rounded-[1rem] border border-slate-200/80 bg-white/90 px-4 text-left text-[15px] font-medium text-slate-900 shadow-none transition-[border-color,box-shadow,background-color] focus-within:border-primary/35 focus-within:bg-white focus-within:ring-4 focus-within:ring-primary/15">
-            <span className="shrink-0 text-[12px] font-semibold text-slate-400">Deadline</span>
+            <span className="shrink-0 text-[12px] font-semibold text-slate-400">{label}</span>
             <span className="ml-4 flex flex-1 items-center justify-end pr-6">
                 <input
                     type="date"
                     value={value}
+                    min={min}
                     onChange={(event) => onChange(event.target.value)}
                     className="w-full max-w-[140px] bg-transparent text-right text-[15px] font-medium text-slate-900 outline-none focus:ring-0 [&::-webkit-calendar-picker-indicator]:appearance-none [&::-webkit-calendar-picker-indicator]:opacity-0"
                 />
