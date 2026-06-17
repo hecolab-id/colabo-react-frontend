@@ -36,6 +36,7 @@ import { toast } from "@/components/ui/toast";
 
 const KanbanBoard = lazy(() => import("@/components/board/kanban-board").then((module) => ({ default: module.KanbanBoard })));
 const TaskCalendarView = lazy(() => import("@/components/board/task-calendar-view").then((module) => ({ default: module.TaskCalendarView })));
+const TaskTimelineView = lazy(() => import("@/components/board/task-timeline-view").then((module) => ({ default: module.TaskTimelineView })));
 const TaskListView = lazy(() => import("@/components/board/task-list-view").then((module) => ({ default: module.TaskListView })));
 const CreateTaskModal = lazy(() => import("@/components/modals/create-task-modal").then((module) => ({ default: module.CreateTaskModal })));
 const CreateColumnModal = lazy(() => import("@/components/modals/create-column-modal").then((module) => ({ default: module.CreateColumnModal })));
@@ -210,7 +211,7 @@ function ProjectSlugPageContent({ params }: { params: Promise<{ teamSlug: string
     const reorderColumnsMutation = useReorderColumns(projectId);
     const deleteProjectMutation = useDeleteProject();
 
-    const handleCreateTask = async ({ title, status, columnId, assigneeId, priority, dueDate, labelIds }: CreateTaskFormValues) => {
+    const handleCreateTask = async ({ title, status, columnId, assigneeId, priority, dueDate, startDate, labelIds }: CreateTaskFormValues) => {
         // Find column ID by status if using legacy status
         const targetColumn = columns.find((c) => c.name.toUpperCase() === status) || columns[0];
 
@@ -221,6 +222,7 @@ function ProjectSlugPageContent({ params }: { params: Promise<{ teamSlug: string
             assigneeId,
             priority,
             dueDate,
+            startDate,
             labelIds,
         });
         setIsTaskModalOpen(false);
@@ -346,7 +348,7 @@ function ProjectSlugPageContent({ params }: { params: Promise<{ teamSlug: string
         if (window.matchMedia("(max-width: 767px)").matches) {
             const savedViewMode = window.localStorage.getItem(mobileViewStorageKey) as ProjectViewMode | null;
             frameId = window.requestAnimationFrame(() => {
-                setViewMode(savedViewMode === "board" || savedViewMode === "list" || savedViewMode === "calendar" ? savedViewMode : "list");
+                setViewMode(savedViewMode === "board" || savedViewMode === "list" || savedViewMode === "calendar" || savedViewMode === "timeline" ? savedViewMode : "list");
             });
         } else {
             frameId = window.requestAnimationFrame(() => {
@@ -538,6 +540,14 @@ function ProjectSlugPageContent({ params }: { params: Promise<{ teamSlug: string
                                 onDelete={handleTaskDelete}
                             />
                         </div>
+                    ) : viewMode === "timeline" ? (
+                        <TaskTimelineView
+                            tasks={visibleTasks}
+                            columns={columns}
+                            initialTaskId={initialTaskId}
+                            onUpdate={handleTaskUpdateWrapper}
+                            onDelete={handleTaskDelete}
+                        />
                     ) : null}
                 </Suspense>
             </div>

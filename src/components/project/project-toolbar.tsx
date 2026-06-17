@@ -1,11 +1,11 @@
 import { Listbox, ListboxButton, ListboxOption, ListboxOptions } from "@headlessui/react";
-import { CalendarDays, Check, ChevronsUpDown, Columns, FolderCog, List, SlidersHorizontal, Trash2, Users } from "lucide-react";
+import { CalendarDays, ChartGantt, Check, ChevronsUpDown, Columns, FolderCog, List, SlidersHorizontal, Trash2, Users } from "lucide-react";
 import type { RefObject, ReactNode } from "react";
 import type { Column, Task } from "@/lib/types";
 import type { DueDateFilter, TaskSortOption } from "@/lib/task-ui";
 import { cn } from "@/lib/utils";
 
-export type ProjectViewMode = "board" | "list" | "calendar";
+export type ProjectViewMode = "board" | "list" | "calendar" | "timeline";
 
 export type ProjectFilterState = {
     columnIds: string[];
@@ -39,13 +39,14 @@ export function ProjectViewModeSwitcher({
         ["board", "Board", Columns],
         ["list", "List", List],
         ["calendar", "Calendar", CalendarDays],
+        ["timeline", "Timeline", ChartGantt],
     ] as const).filter(([value]) => !availableModes || availableModes.includes(value));
 
     return (
         <div
             className={cn(
                 "grid gap-1 rounded-[0.95rem] border border-white/70 bg-white/78 p-1 shadow-[0_10px_24px_rgba(15,23,42,0.05)] backdrop-blur-xl md:flex md:items-center md:rounded-[1.1rem] md:p-1",
-                modes.length === 3 ? "grid-cols-3" : modes.length === 2 ? "grid-cols-2" : "grid-cols-1",
+                modes.length >= 4 ? "grid-cols-4" : modes.length === 3 ? "grid-cols-3" : modes.length === 2 ? "grid-cols-2" : "grid-cols-1",
             )}
         >
             {modes.map(([value, label, Icon]) => (
@@ -88,8 +89,9 @@ export function ProjectMobileActionBar({
         board: "Board",
         list: "List",
         calendar: "Calendar",
+        timeline: "Timeline",
     };
-    const viewOptions: ProjectViewMode[] = ["board", "list", "calendar"];
+    const viewOptions: ProjectViewMode[] = ["board", "list", "calendar", "timeline"];
 
     return (
         <div className="fixed inset-x-4 bottom-[calc(env(safe-area-inset-bottom)+108px)] z-30 mx-auto flex h-[64px] max-w-sm items-center gap-2 rounded-[1.65rem] border border-white/80 bg-white/88 p-2 shadow-[0_22px_50px_-28px_rgba(15,23,42,0.38)] backdrop-blur-2xl md:hidden">
