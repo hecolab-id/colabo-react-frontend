@@ -36,6 +36,11 @@ export default defineConfig(({ mode }) => {
         output: {
           manualChunks(id) {
             if (id.includes("node_modules")) {
+              // Keep the PDF parser out of the eager vendor bundle; it is
+              // dynamically imported only when a PRD PDF is uploaded.
+              if (id.includes("pdfjs-dist")) {
+                return;
+              }
               if (id.includes("react-router") || id.includes("@remix-run")) {
                 return "router-vendor";
               }
