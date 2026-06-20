@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { AlertCircle, Check, FileText, FileUp, Loader2, Plus, Sparkles, X } from "lucide-react";
+import { AlertCircle, CalendarRange, Check, FileText, FileUp, Loader2, Plus, Sparkles, X } from "lucide-react";
 import { createTask, GeneratedTask, generateTasksWithAI } from "@/lib/api";
 import {
     ACCEPTED_DOCUMENT_TYPES,
@@ -10,6 +10,7 @@ import {
     isAcceptedDocument,
 } from "@/lib/extract-document-text";
 import { useEscapeKey } from "@/lib/hooks/use-escape-key";
+import { formatTaskDate } from "@/lib/task-ui";
 import { cn } from "@/lib/utils";
 
 type PlannerMode = "quick" | "prd";
@@ -40,12 +41,16 @@ function buildPlannerPrompt({
     mode,
     prompt,
     detailLevel,
+    withTimeline,
+    timelineStart,
     projectName,
     projectDescription,
 }: {
     mode: PlannerMode;
     prompt: string;
     detailLevel: DetailLevel;
+    withTimeline: boolean;
+    timelineStart?: string;
     projectName?: string;
     projectDescription?: string;
 }) {
@@ -65,6 +70,9 @@ function buildPlannerPrompt({
             "- Keep tasks concise, actionable, and implementation-ready.",
             "- Prefer clear descriptions with acceptance criteria or checklist-style details inside the description.",
             "- Do not assign users, create labels, create dependencies, or assume estimates.",
+            withTimeline
+                ? `- Build a timeline: give every task a realistic start date and due date.${timelineStart ? ` Start the plan on ${timelineStart}.` : ""} If the PRD mentions a schedule, milestones, or deadlines, follow them as the reference; otherwise sequence the work sensibly.`
+                : null,
             `- Detail level: ${detailLevel}.`,
             projectContext ? `\nProject context:\n${projectContext}` : null,
             `\nPRD:\n${prompt.trim()}`,
@@ -94,6 +102,8 @@ export function AITaskGenerator({
     const [mode, setMode] = useState<PlannerMode>("quick");
     const [prompt, setPrompt] = useState("");
     const [detailLevel, setDetailLevel] = useState<DetailLevel>("balanced");
+    const [withTimeline, setWithTimeline] = useState(false);
+    const [timelineStart, setTimelineStart] = useState("");
     const [quickCount, setQuickCount] = useState(5);
     const [isGenerating, setIsGenerating] = useState(false);
     const [isCreating, setIsCreating] = useState(false);
@@ -219,14 +229,18 @@ export function AITaskGenerator({
         setAiMessage("");
 
         try {
+            const useTimeline = mode === "prd" && withTimeline;
+            const startAnchor = useTimeline ? timelineStart : "";
             const plannerPrompt = buildPlannerPrompt({
                 mode,
                 prompt: sourceText,
                 detailLevel,
+                withTimeline: useTimeline,
+                timelineStart: startAnchor,
                 projectName,
                 projectDescription,
             });
-            const response = await generateTasksWithAI(projectId, plannerPrompt, generatedCount);
+            const response = await generateTasksWithAI(projectId, plannerPrompt, generatedCount, useTimeline, startAnchor);
             if (runTokenRef.current !== token) return;
             setGeneratedTasks(response.tasks);
             setAiMessage(response.message);
@@ -250,7 +264,17 @@ export function AITaskGenerator({
             const tasksToCreate = generatedTasks.filter((_, index) => selectedTasks.has(index));
 
             for (const task of tasksToCreate) {
-                await createTask(projectId, task.title, "TODO", undefined, task.description, task.priority);
+                await createTask(
+                    projectId,
+                    task.title,
+                    "TODO",
+                    undefined,
+                    task.description,
+                    task.priority,
+                    undefined,
+                    task.due_date || null,
+                    task.start_date || null,
+                );
             }
 
             onTasksCreated?.();
@@ -267,6 +291,8 @@ export function AITaskGenerator({
         setMode("quick");
         setPrompt("");
         setDetailLevel("balanced");
+        setWithTimeline(false);
+        setTimelineStart("");
         setQuickCount(5);
         setGeneratedTasks([]);
         setSelectedTasks(new Set());
@@ -528,6 +554,72 @@ export function AITaskGenerator({
                                 </div>
                             )}
 
+                            {mode === "prd" ? (
+                                <label
+                                    className={cn(
+                                        "flex cursor-pointer items-start gap-3 rounded-[1rem] border px-4 py-3 transition-colors",
+                                        withTimeline ? "border-primary/35 bg-primary/[0.04]" : "border-slate-200 bg-white hover:border-slate-300"
+                                    )}
+                                >
+                                    <input
+                                        type="checkbox"
+                                        checked={withTimeline}
+                                        onChange={(event) => setWithTimeline(event.target.checked)}
+                                        className="peer sr-only"
+                                    />
+                                    <span
+                                        aria-hidden="true"
+                                        className={cn(
+                                            "mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md border transition-colors peer-focus-visible:ring-4 peer-focus-visible:ring-primary/20",
+                                            withTimeline ? "border-primary bg-primary text-primary-foreground" : "border-slate-300 bg-white"
+                                        )}
+                                    >
+                                        {withTimeline ? <Check className="h-3.5 w-3.5" /> : null}
+                                    </span>
+                                    <span className="min-w-0">
+                                        <span className="flex items-center gap-1.5 text-sm font-semibold text-slate-900">
+                                            <CalendarRange className="h-4 w-4 text-slate-500" aria-hidden="true" />
+                                            Generate a timeline
+                                        </span>
+                                        <span className="mt-0.5 block text-xs leading-5 text-slate-500">
+                                            Set a start and due date for every task. If the PRD names a schedule or deadlines, the plan follows it; otherwise it sequences the work from your start date.
+                                        </span>
+                                    </span>
+                                </label>
+                            ) : null}
+
+                            {mode === "prd" && withTimeline ? (
+                                <div className="rounded-[1rem] border border-slate-200 bg-white px-4 py-3">
+                                    <div className="flex items-center justify-between gap-3">
+                                        <label htmlFor="ai-planner-timeline-start" className="text-sm font-medium text-slate-900">
+                                            Start the plan from
+                                        </label>
+                                        <div className="flex items-center gap-2">
+                                            <input
+                                                id="ai-planner-timeline-start"
+                                                type="date"
+                                                value={timelineStart}
+                                                onChange={(event) => setTimelineStart(event.target.value)}
+                                                className="h-9 rounded-[0.7rem] border border-slate-300 bg-white px-3 text-sm font-medium text-slate-900 outline-none transition-[border-color,box-shadow] focus:border-primary focus:ring-4 focus:ring-primary/15 [&::-webkit-calendar-picker-indicator]:opacity-60"
+                                            />
+                                            {timelineStart ? (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setTimelineStart("")}
+                                                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15"
+                                                    aria-label="Clear start date"
+                                                >
+                                                    <X className="h-4 w-4" aria-hidden="true" />
+                                                </button>
+                                            ) : null}
+                                        </div>
+                                    </div>
+                                    <p className="mt-1 text-xs text-slate-500">
+                                        Leave empty to start from today{timelineStart ? "" : ` (${formatTaskDate(new Date().toISOString())})`}.
+                                    </p>
+                                </div>
+                            ) : null}
+
                             {error ? (
                                 <div className="rounded-[1rem] border border-[var(--danger-border)] bg-[var(--danger-bg)] px-4 py-3 text-sm text-[var(--danger-fg)]">
                                     {error}
@@ -617,6 +709,16 @@ export function AITaskGenerator({
                                                         </span>
                                                     </div>
                                                     <p className="mt-2 text-sm leading-6 text-slate-600">{task.description}</p>
+                                                    {task.start_date || task.due_date ? (
+                                                        <span className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-[11px] font-medium text-slate-600">
+                                                            <CalendarRange className="h-3.5 w-3.5 text-slate-400" aria-hidden="true" />
+                                                            {task.start_date && task.due_date
+                                                                ? `${formatTaskDate(task.start_date)} – ${formatTaskDate(task.due_date)}`
+                                                                : task.due_date
+                                                                    ? `Due ${formatTaskDate(task.due_date)}`
+                                                                    : `Starts ${formatTaskDate(task.start_date)}`}
+                                                        </span>
+                                                    ) : null}
                                                 </div>
                                             </div>
                                         </button>

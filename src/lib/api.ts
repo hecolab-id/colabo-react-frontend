@@ -1286,6 +1286,8 @@ export interface GeneratedTask {
     description: string;
     priority: "LOW" | "MEDIUM" | "HIGH";
     column_name?: string;
+    start_date?: string;
+    due_date?: string;
 }
 
 export interface GenerateTasksResponse {
@@ -1296,12 +1298,16 @@ export interface GenerateTasksResponse {
 export const generateTasksWithAI = async (
     projectId: string,
     prompt: string,
-    count?: number
+    count?: number,
+    withTimeline?: boolean,
+    timelineStart?: string
 ): Promise<GenerateTasksResponse> => {
     const response = await api.post<GenerateTasksResponse>("/ai/generate-tasks", {
         project_id: projectId,
         prompt: prompt,
         count: count || 5,
+        with_timeline: withTimeline ?? false,
+        timeline_start: timelineStart || undefined,
     });
     return response.data;
 };
