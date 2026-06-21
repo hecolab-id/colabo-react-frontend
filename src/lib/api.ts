@@ -838,6 +838,96 @@ export const unsubscribeFromEmailReminder = async (token: string): Promise<void>
     await axios.post(`${API_BASE_URL}/email-reminders/unsubscribe`, { token });
 };
 
+// Public Progress Page ------------------------------------------------------
+
+export interface PublicProjectAssignee {
+    first_name: string;
+    initial: string;
+    avatar_url?: string;
+}
+
+export interface PublicProjectLabel {
+    name: string;
+    color: string;
+}
+
+export interface PublicProjectChecklist {
+    done: number;
+    total: number;
+}
+
+export interface PublicProjectTask {
+    id: string;
+    column_id: string;
+    title: string;
+    description: string;
+    start_date: string | null;
+    due_date: string | null;
+    is_done: boolean;
+    labels: PublicProjectLabel[];
+    checklist: PublicProjectChecklist | null;
+    assignee: PublicProjectAssignee | null;
+}
+
+export interface PublicProjectColumn {
+    id: string;
+    name: string;
+    color: string;
+    order: number;
+    type: string;
+}
+
+export interface PublicProjectSummary {
+    total: number;
+    done: number;
+    in_progress: number;
+    todo: number;
+    overdue: number;
+    percent_complete: number;
+}
+
+export interface PublicProject {
+    name: string;
+    description: string;
+    team_name: string;
+    updated_at: string;
+    summary: PublicProjectSummary;
+    columns: PublicProjectColumn[];
+    tasks: PublicProjectTask[];
+}
+
+// Unauthenticated: the share token is the credential. Bypass the shared `api`
+// instance so no JWT is attached and logged-out clients can read it.
+export const getPublicProject = async (token: string): Promise<PublicProject> => {
+    const { data } = await axios.get(`${API_BASE_URL}/public/projects/${encodeURIComponent(token)}`);
+    return data.data;
+};
+
+export interface ProjectShareState {
+    enabled: boolean;
+    token: string;
+}
+
+export const getProjectShare = async (projectId: string): Promise<ProjectShareState> => {
+    const { data } = await api.get(`/projects/${projectId}/share`);
+    return data.data;
+};
+
+export const enableProjectShare = async (projectId: string): Promise<ProjectShareState> => {
+    const { data } = await api.post(`/projects/${projectId}/share/enable`);
+    return data.data;
+};
+
+export const disableProjectShare = async (projectId: string): Promise<ProjectShareState> => {
+    const { data } = await api.post(`/projects/${projectId}/share/disable`);
+    return data.data;
+};
+
+export const regenerateProjectShare = async (projectId: string): Promise<ProjectShareState> => {
+    const { data } = await api.post(`/projects/${projectId}/share/regenerate`);
+    return data.data;
+};
+
 export const refineTaskTitle = async (title: string, teamId: string): Promise<RefineTitleResult> => {
     const { data } = await api.post("/ai/refine-title", {
         title,

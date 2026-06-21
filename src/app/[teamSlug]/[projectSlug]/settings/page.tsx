@@ -37,9 +37,10 @@ import { useTeam } from "@/lib/hooks/use-team";
 import { uploadFile } from "@/lib/api";
 import { ProjectDocument, ProjectMeetingNote, WeeklyProjectSummary } from "@/lib/types";
 import { useStore } from "@/lib/store";
+import { ProjectShareSettings } from "@/components/project/project-share-settings";
 import { cn } from "@/lib/utils";
 
-type ProjectSettingsTab = "details" | "documents" | "meeting-notes" | "weekly-summary";
+type ProjectSettingsTab = "details" | "documents" | "meeting-notes" | "weekly-summary" | "public-share";
 
 function formatBytes(bytes = 0) {
     if (!bytes) return "External reference";
@@ -394,6 +395,7 @@ function ProjectSettingsPageContent({ params }: { params: Promise<{ teamSlug: st
                             ["documents", "Documents", Paperclip, `${documents.length} shared item${documents.length === 1 ? "" : "s"}`],
                             ["meeting-notes", "Meeting Notes", CalendarClock, `${meetingNotes.length} note${meetingNotes.length === 1 ? "" : "s"}`],
                             ["weekly-summary", "Weekly Summary", FileText, `${weeklySummaries.length} report${weeklySummaries.length === 1 ? "" : "s"}`],
+                            ["public-share", "Public Share", LinkIcon, "Read-only client link"],
                         ] as const).map(([tab, label, Icon, description]) => (
                             <button
                                 key={tab}
@@ -700,6 +702,8 @@ function ProjectSettingsPageContent({ params }: { params: Promise<{ teamSlug: st
                                 />
                             )}
                         </SettingsSection>
+                    ) : activeTab === "public-share" ? (
+                        <ProjectShareSettings projectId={projectId} canManage={canManageProject} />
                     ) : (
                         <SettingsSection
                             eyebrow="Meeting Notes"

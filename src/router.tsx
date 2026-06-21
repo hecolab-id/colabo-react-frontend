@@ -21,6 +21,7 @@ const NotificationsPage = lazy(() => import("@/app/notifications/page"));
 const OnboardingPage = lazy(() => import("@/app/onboarding/page"));
 const AuthCallbackPage = lazy(() => import("@/app/auth/callback/page"));
 const EmailUnsubscribePage = lazy(() => import("@/app/email/unsubscribe/page"));
+const PublicProgressPage = lazy(() => import("@/app/share/[token]/page"));
 const InvitePage = lazy(() => import("@/app/invite/[code]/page"));
 const TeamInvitePage = lazy(() => import("@/app/invites/team/[token]/page"));
 const ProjectInviteTokenPage = lazy(() => import("@/app/invites/project/[token]/page"));
@@ -233,6 +234,7 @@ function OfflineAwareRoutes() {
           <Route path="/auth/callback" element={<AuthCallbackPage />} />
           <Route path="/auth/google" element={<GoogleAuthPage />} />
           <Route path="/email/unsubscribe" element={<EmailUnsubscribePage />} />
+          <Route path="/share/:token" element={<PublicProgressPage />} />
           <Route path="/project-invite" element={<ProjectInvitePage />} />
           <Route path="/invite/:code" element={<InvitePage />} />
           <Route path="/invites/team/:token" element={<TeamInvitePage />} />
