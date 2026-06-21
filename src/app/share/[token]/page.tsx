@@ -96,7 +96,7 @@ function ShareScaffold({ children }: { children: React.ReactNode }) {
     return (
         <div className="flex min-h-[100dvh] flex-col bg-[#f4f7fb] text-slate-900">
             <header className="border-b border-slate-200/70 bg-white/80 backdrop-blur">
-                <div className="mx-auto flex w-full max-w-[72rem] items-center justify-between px-5 py-3.5 sm:px-8">
+                <div className="mx-auto flex w-full max-w-[110rem] items-center justify-between px-5 py-3.5 sm:px-8">
                     <Wordmark />
                     <span className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-medium text-slate-500">
                         <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" aria-hidden="true" />
@@ -104,7 +104,7 @@ function ShareScaffold({ children }: { children: React.ReactNode }) {
                     </span>
                 </div>
             </header>
-            <main className="mx-auto w-full max-w-[72rem] flex-1 px-5 py-8 sm:px-8 sm:py-12">{children}</main>
+            <main className="mx-auto w-full max-w-[110rem] flex-1 px-5 py-8 sm:px-8 sm:py-12">{children}</main>
             <BrandFooter />
         </div>
     );
@@ -122,7 +122,7 @@ function Wordmark() {
 function BrandFooter() {
     return (
         <footer className="border-t border-slate-200/70 py-6">
-            <div className="mx-auto flex w-full max-w-[72rem] flex-col items-center gap-1 px-5 text-center sm:px-8">
+            <div className="mx-auto flex w-full max-w-[110rem] flex-col items-center gap-1 px-5 text-center sm:px-8">
                 <p className="text-xs text-slate-400">
                     Powered by <span className="font-semibold text-slate-500">Colabo</span>
                 </p>
