@@ -318,12 +318,51 @@ export function TaskDetailModal({ task, projectColumns: initialProjectColumns, o
     const [imagePreviewIndex, setImagePreviewIndex] = useState<number | null>(null);
     const [pendingReplace, setPendingReplace] = useState<{ files: File[]; collisions: string[] } | null>(null);
     const [recentlyReplaced, setRecentlyReplaced] = useState<string[]>([]);
+    // URLs of images just auto-added to attachments straight from the
+    // description editor; drives a brief, calm highlight on the new row.
+    const [recentlyAdded, setRecentlyAdded] = useState<string[]>([]);
+    // Polite, screen-reader-only announcement when an image auto-lands in the
+    // attachments list (the visual cue is the row highlight).
+    const [attachmentAnnouncement, setAttachmentAnnouncement] = useState("");
+
+    // Mirror the latest attachments + task id so concurrent attachment writes
+    // (description paste, manual upload, delete) build on the freshest list, and
+    // so a write that resolves after the modal switches tasks can bail out.
+    const attachmentsRef = useRef(attachments);
+    const taskIdRef = useRef(task.id);
+    // True once the user changes any attachment for this task, so a slow initial
+    // load (getTask) resolving afterward can't overwrite it with a pre-change
+    // snapshot and silently drop the change.
+    const attachmentsTouchedRef = useRef(false);
+    // Serializes EVERY attachments-column write through one queue. The column is
+    // PATCHed as a whole, so unserialized concurrent writers would clobber each
+    // other (lost update); chaining keeps the last write carrying the full list.
+    const descImagePersistRef = useRef<Promise<unknown>>(Promise.resolve());
+
+    useEffect(() => {
+        attachmentsRef.current = attachments;
+    }, [attachments]);
+
+    useEffect(() => {
+        taskIdRef.current = task.id;
+        attachmentsTouchedRef.current = false;
+        // Real task switch only: start a fresh write queue. In-flight ops from
+        // the previous task bail via their captured-id guard. (Keyed on task.id,
+        // so a same-task re-feed from onUpdate does NOT disturb the queue.)
+        descImagePersistRef.current = Promise.resolve();
+    }, [task.id]);
 
     useEffect(() => {
         if (recentlyReplaced.length === 0) return;
         const timeout = setTimeout(() => setRecentlyReplaced([]), 1600);
         return () => clearTimeout(timeout);
     }, [recentlyReplaced]);
+
+    useEffect(() => {
+        if (recentlyAdded.length === 0) return;
+        const timeout = setTimeout(() => setRecentlyAdded([]), 1600);
+        return () => clearTimeout(timeout);
+    }, [recentlyAdded]);
 
     useEffect(() => {
         if (!descSaved) return;
@@ -348,6 +387,8 @@ export function TaskDetailModal({ task, projectColumns: initialProjectColumns, o
         setImagePreviewIndex(null);
         setPendingReplace(null);
         setRecentlyReplaced([]);
+        setRecentlyAdded([]);
+        setAttachmentAnnouncement("");
         setIsEditingTitle(false);
         setIsEditingDesc(false);
         setIsSavingDesc(false);
@@ -398,7 +439,12 @@ export function TaskDetailModal({ task, projectColumns: initialProjectColumns, o
             if (fetchedTask) {
                 setTaskState(fetchedTask);
                 setLabels(fetchedTask.labels || []);
-                setAttachments(fetchedTask.attachments || []);
+                // Don't clobber an attachment the user changed while this load was
+                // in flight; their local list (attachmentsRef) is the newer truth.
+                if (!attachmentsTouchedRef.current) {
+                    setAttachments(fetchedTask.attachments || []);
+                    attachmentsRef.current = fetchedTask.attachments || [];
+                }
             }
         } catch (error) {
             console.error("Failed to load task details", error);
@@ -469,13 +515,21 @@ export function TaskDetailModal({ task, projectColumns: initialProjectColumns, o
     const handleUpdateTask = async (updates: Partial<Task>, options?: { silent?: boolean }) => {
         try {
             const updated = await updateTask(task.id, updates);
-            setTaskState(updated);
-            setTitle(updated.title);
-            setDescription(updated.description || "");
-            setAttachments(updated.attachments || []);
-            setLabels(updated.labels || []);
-            onUpdate?.(updated);
-            return updated;
+            // A metadata-only update (priority, title, dates, etc.) must not let
+            // its response overwrite the attachments list: a concurrent
+            // description-image add may not be reflected in it yet. Keep our local
+            // list (attachmentsRef) as the source of truth for attachments unless
+            // this very update changed them.
+            const merged: Task =
+                "attachments" in updates ? updated : { ...updated, attachments: attachmentsRef.current };
+            attachmentsRef.current = merged.attachments || [];
+            setTaskState(merged);
+            setTitle(merged.title);
+            setDescription(merged.description || "");
+            setAttachments(merged.attachments || []);
+            setLabels(merged.labels || []);
+            onUpdate?.(merged);
+            return merged;
         } catch (error) {
             console.error("Failed to update task:", error);
             // Centralized error feedback for every task-update action (assign,
@@ -485,6 +539,105 @@ export function TaskDetailModal({ task, projectColumns: initialProjectColumns, o
             return null;
         }
     };
+
+    // Single serialized path for manual attachment writes (upload + delete).
+    // `mutate` runs against the freshest list (attachmentsRef), the result is
+    // persisted, and state is reconciled to the server only on success. Chaining
+    // on descImagePersistRef keeps these ordered with description-paste writes so
+    // the whole-column PATCH never drops a concurrent change.
+    const commitAttachments = useCallback(
+        (mutate: (current: string[]) => string[]): Promise<string[]> => {
+            const ownerTaskId = task.id;
+            const op = descImagePersistRef.current
+                .catch(() => undefined)
+                .then(async () => {
+                    if (taskIdRef.current !== ownerTaskId) return attachmentsRef.current;
+                    // Each queued op has exclusive access to the list while it runs,
+                    // so a captured snapshot is a safe rollback target, and we never
+                    // reconcile the ref from the (whole-column) response, which would
+                    // be a stale snapshot relative to later queued writes.
+                    const before = attachmentsRef.current;
+                    const next = mutate(before);
+                    attachmentsRef.current = next;
+                    setAttachments(next);
+                    try {
+                        const updated = await updateTask(ownerTaskId, { attachments: next });
+                        if (taskIdRef.current !== ownerTaskId) return next;
+                        setTaskState((prev) => ({ ...prev, attachments: next }));
+                        onUpdate?.({ ...updated, attachments: next });
+                        return next;
+                    } catch (error) {
+                        if (taskIdRef.current === ownerTaskId) {
+                            attachmentsRef.current = before;
+                            setAttachments(before);
+                        }
+                        throw error;
+                    }
+                });
+            descImagePersistRef.current = op.catch(() => undefined);
+            return op;
+        },
+        [task.id, onUpdate],
+    );
+
+    // Pasting or dropping an image into the description uploads it and embeds it
+    // inline (existing behavior); we additionally register that same URL in the
+    // task's Attachments list so it's available for preview, download, and
+    // reference without a second upload. One-way: the attachment persists even
+    // if the inline image is later removed, exactly like a manual upload.
+    //
+    // The upload runs in parallel (outside the queue), but the list mutation +
+    // PATCH run together INSIDE the serialized queue so concurrent pastes/writers
+    // never clobber each other on the whole-column PATCH. Crucially this path
+    // never calls onUpdate: doing so would push a new task object to the board,
+    // which feeds back as the `task` prop and re-runs the reset effect, discarding
+    // the user's in-progress description.
+    const handleDescriptionImageUpload = useCallback(
+        async (file: File): Promise<string> => {
+            const ownerTaskId = task.id;
+            attachmentsTouchedRef.current = true;
+            // Upload OUTSIDE the serialized queue: pastes upload in parallel and a
+            // slow/failed upload never stalls other pastes, the editor, or task
+            // updates. The editor awaits this to swap the inline image.
+            const { url } = await uploadFile(file);
+            if (taskIdRef.current !== ownerTaskId) return url;
+
+            descImagePersistRef.current = descImagePersistRef.current
+                .catch(() => undefined)
+                .then(async () => {
+                    // Dedup by exact URL (append, never replace). The op has
+                    // exclusive access to the list while it runs, so the optimistic
+                    // add can't be clobbered by a concurrent writer.
+                    if (taskIdRef.current !== ownerTaskId || attachmentsRef.current.includes(url)) return;
+                    const next = [...attachmentsRef.current, url];
+                    attachmentsRef.current = next;
+                    setAttachments(next);
+                    setRecentlyAdded((prev) => (prev.includes(url) ? prev : [...prev, url]));
+                    try {
+                        await updateTask(ownerTaskId, { attachments: next });
+                        if (taskIdRef.current !== ownerTaskId) return;
+                        setTaskState((prev) => ({ ...prev, attachments: next }));
+                        // Reveal the row if the list was collapsed (>3) and announce
+                        // politely for screen readers, only once it persisted.
+                        if (next.length > 3) setShowAllAttachments(true);
+                        setAttachmentAnnouncement(`Image added to attachments (${next.length}).`);
+                    } catch (error) {
+                        console.error("Failed to add description image to attachments:", error);
+                        toast.error("Couldn't add the image to attachments.");
+                        // Roll back the optimistic add; the inline image upload
+                        // itself still succeeded and stays in the description.
+                        if (taskIdRef.current !== ownerTaskId) return;
+                        const reverted = attachmentsRef.current.filter((item) => item !== url);
+                        attachmentsRef.current = reverted;
+                        setAttachments(reverted);
+                        setRecentlyAdded((prev) => prev.filter((item) => item !== url));
+                    }
+                });
+
+            return url;
+        },
+        [task.id],
+    );
 
     const refreshActivities = async () => {
         const logs = await getTaskActivities(task.id);
@@ -754,38 +907,38 @@ export function TaskDetailModal({ task, projectColumns: initialProjectColumns, o
     // Uploads files, then replaces any same-named attachment in place (preserving
     // its position) and appends the rest. Old URLs are dropped from the task.
     const performUpload = async (files: File[]) => {
+        attachmentsTouchedRef.current = true;
         setIsUploading(true);
 
         try {
             const uploadedFiles = await Promise.all(files.map((file) => uploadFile(file)));
-            const nextAttachments = [...attachments];
-            const usedIndexes = new Set<number>();
-            const appended: string[] = [];
             const replacedNames: string[] = [];
 
-            files.forEach((file, fileIndex) => {
-                const url = uploadedFiles[fileIndex].url;
-                const targetName = file.name.toLowerCase();
-                const existingIndex = nextAttachments.findIndex(
-                    (item, itemIndex) =>
-                        !usedIndexes.has(itemIndex) && getFileName(item).toLowerCase() === targetName,
-                );
+            await commitAttachments((current) => {
+                const nextAttachments = [...current];
+                const usedIndexes = new Set<number>();
+                const appended: string[] = [];
 
-                if (existingIndex !== -1) {
-                    nextAttachments[existingIndex] = url;
-                    usedIndexes.add(existingIndex);
-                    replacedNames.push(targetName);
-                } else {
-                    appended.push(url);
-                }
+                files.forEach((file, fileIndex) => {
+                    const url = uploadedFiles[fileIndex].url;
+                    const targetName = file.name.toLowerCase();
+                    const existingIndex = nextAttachments.findIndex(
+                        (item, itemIndex) =>
+                            !usedIndexes.has(itemIndex) && getFileName(item).toLowerCase() === targetName,
+                    );
+
+                    if (existingIndex !== -1) {
+                        nextAttachments[existingIndex] = url;
+                        usedIndexes.add(existingIndex);
+                        replacedNames.push(targetName);
+                    } else {
+                        appended.push(url);
+                    }
+                });
+
+                return [...nextAttachments, ...appended];
             });
 
-            const newAttachments = [...nextAttachments, ...appended];
-            const updated = await updateTask(task.id, { attachments: newAttachments });
-
-            setAttachments(newAttachments);
-            setTaskState(updated);
-            onUpdate?.(updated);
             if (replacedNames.length > 0) {
                 setRecentlyReplaced(replacedNames);
             }
@@ -837,14 +990,11 @@ export function TaskDetailModal({ task, projectColumns: initialProjectColumns, o
 
     const handleRemoveAttachment = async (url: string) => {
         if (removingAttachmentUrl) return;
-        const newAttachments = attachments.filter((item) => item !== url);
 
+        attachmentsTouchedRef.current = true;
         setRemovingAttachmentUrl(url);
         try {
-            const updated = await updateTask(task.id, { attachments: newAttachments });
-            setAttachments(newAttachments);
-            setTaskState(updated);
-            onUpdate?.(updated);
+            await commitAttachments((current) => current.filter((item) => item !== url));
         } catch (error) {
             console.error("Failed to remove attachment:", error);
             toast.error("Couldn't remove the attachment. Please try again.");
@@ -1333,7 +1483,7 @@ export function TaskDetailModal({ task, projectColumns: initialProjectColumns, o
                                                 placeholder="Add a detailed description…"
                                                 className="min-h-[180px]"
                                                 enableImageUpload
-                                                onImageUpload={async (file) => (await uploadFile(file)).url}
+                                                onImageUpload={handleDescriptionImageUpload}
                                                 maxImageSizeMb={maxImageSizeMb}
                                                 onUploadingChange={setIsUploadingDescImage}
                                             />
@@ -1478,6 +1628,9 @@ export function TaskDetailModal({ task, projectColumns: initialProjectColumns, o
                                     </div>
                                 </SectionCard>
 
+                                <p className="sr-only" role="status" aria-live="polite">
+                                    {attachmentAnnouncement}
+                                </p>
                                 <SectionCard
                                     title={`Attachments (${attachments.length})`}
                                     icon={Paperclip}
@@ -1523,13 +1676,14 @@ export function TaskDetailModal({ task, projectColumns: initialProjectColumns, o
                                                 const FileIcon = fileInfo.icon;
                                                 const fileName = getFileName(url);
                                                 const isReplaced = recentlyReplaced.includes(fileName.toLowerCase());
+                                                const isJustAdded = recentlyAdded.includes(url);
 
                                                 return (
                                                     <div
                                                         key={`${url}-${index}`}
                                                         className={cn(
                                                             "flex items-center gap-3 rounded-[1.15rem] border border-slate-200/80 bg-white/68 p-3 transition-[border-color,background-color] hover:border-primary/30 hover:bg-white",
-                                                            isReplaced && "attachment-replaced-flash",
+                                                            (isReplaced || isJustAdded) && "attachment-replaced-flash",
                                                         )}
                                                     >
                                                         {isImage ? (
