@@ -43,6 +43,9 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
         pathname.startsWith("/invite/") ||
         pathname.startsWith("/invites/team/") ||
         pathname.startsWith("/invites/project/");
+    // Public Progress Page: the share token is the credential, so it must render
+    // for logged-out clients (and unverified users) without any auth redirect.
+    const isSharePath = pathname.startsWith("/share/");
 
     // Wait for Zustand to hydrate from localStorage
     useEffect(() => {
@@ -74,8 +77,9 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
         if (!hasHydrated) return;
 
         const checkAuth = async () => {
-            // Special case for invite links - allow them to handle their own auth redirects/logic
-            if (isInvitePath) {
+            // Special case for invite + public share links - allow them to
+            // handle their own auth redirects/logic (or none at all).
+            if (isInvitePath || isSharePath) {
                 setChecked(true);
                 return;
             }
@@ -164,7 +168,7 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
         };
 
         checkAuth();
-    }, [accessToken, hasHydrated, hasLoadedTeams, isInvitePath, isPublicPath, isTeamsLoading, loadTeams, pathname, router, teams, user]);
+    }, [accessToken, hasHydrated, hasLoadedTeams, isInvitePath, isSharePath, isPublicPath, isTeamsLoading, loadTeams, pathname, router, teams, user]);
 
     useEffect(() => {
         const handleAuthExpired = () => {
@@ -179,7 +183,7 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
         return () => window.removeEventListener(AUTH_EXPIRED_EVENT, handleAuthExpired);
     }, [logout, pathname, router]);
 
-    if (!checked && !isPublicPath && !isInvitePath) {
+    if (!checked && !isPublicPath && !isInvitePath && !isSharePath) {
         // Show loading only for protected routes while checking
         // return (
         //    <div className="flex h-screen items-center justify-center bg-background">
