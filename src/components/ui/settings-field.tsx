@@ -1,19 +1,24 @@
 import type { ReactNode } from "react";
-import { cn } from "@/lib/utils";
+import { FormField } from "@/components/ui/form-field";
 
 export function SettingsField({
   label,
   children,
   className,
+  htmlFor,
+  description,
+  error,
 }: {
   label: string;
   children: ReactNode;
   className?: string;
+  htmlFor?: string;
+  description?: ReactNode;
+  error?: ReactNode;
 }) {
   return (
-    <div className={cn("space-y-2.5", className)}>
-      <label className="text-[12px] font-semibold uppercase tracking-[0.16em] text-slate-400">{label}</label>
+    <FormField label={label} className={className} htmlFor={htmlFor} description={description} error={error}>
       {children}
-    </div>
+    </FormField>
   );
 }

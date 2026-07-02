@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ModalShell } from "@/components/ui/modal-shell";
 import { SettingsField } from "@/components/ui/settings-field";
+import { Textarea } from "@/components/ui/textarea";
 import { ToggleSwitch } from "@/components/ui/toggle-switch";
 import Link from "@/components/app-link";
 import { AlertTriangle, ArrowUpRight } from "lucide-react";
@@ -123,12 +124,12 @@ export function CreateProjectModal({ isOpen, onClose, onSubmit, currentCount, ma
                         </SettingsField>
 
                         <SettingsField label="Description">
-                            <textarea
+                            <Textarea
                                 value={description}
                                 onChange={(e) => setDescription(e.target.value)}
                                 placeholder="Describe your project..."
                                 rows={3}
-                                className="w-full resize-none rounded-[1.15rem] border border-black/6 bg-white/75 px-4 py-3 text-[15px] text-slate-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.75)] backdrop-blur-xl transition-[border-color,box-shadow,background-color] placeholder:text-slate-400 focus-visible:border-slate-300 focus-visible:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20"
+                                className="resize-none"
                             />
                         </SettingsField>
 

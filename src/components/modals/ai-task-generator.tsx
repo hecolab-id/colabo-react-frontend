@@ -10,6 +10,7 @@ import {
     isAcceptedDocument,
 } from "@/lib/extract-document-text";
 import { useEscapeKey } from "@/lib/hooks/use-escape-key";
+import { Textarea } from "@/components/ui/textarea";
 import { formatTaskDate } from "@/lib/task-ui";
 import { cn } from "@/lib/utils";
 
@@ -484,13 +485,13 @@ export function AITaskGenerator({
                                                 <span className="h-px flex-1 bg-slate-200" aria-hidden="true" />
                                             </div>
 
-                                            <textarea
+                                            <Textarea
                                                 id="ai-planner-input"
                                                 value={prompt}
                                                 onChange={(event) => setPrompt(event.target.value)}
                                                 placeholder="Paste the PRD or feature brief here."
                                                 rows={6}
-                                                className="w-full resize-none rounded-[1rem] border border-slate-300 bg-white px-4 py-3 text-sm leading-6 text-slate-950 outline-none transition-[border-color,box-shadow] placeholder:text-slate-400 focus:border-primary focus:ring-4 focus:ring-primary/15"
+                                                className="resize-none rounded-[var(--radius-md)] text-sm leading-6"
                                             />
                                         </>
                                     )}
@@ -507,13 +508,13 @@ export function AITaskGenerator({
                                     <label htmlFor="ai-planner-input" className="mb-2 block text-sm font-semibold text-slate-900">
                                         Prompt
                                     </label>
-                                    <textarea
+                                    <Textarea
                                         id="ai-planner-input"
                                         value={prompt}
                                         onChange={(event) => setPrompt(event.target.value)}
                                         placeholder="Example: Create tasks for user authentication with password reset and email verification."
                                         rows={5}
-                                        className="w-full resize-none rounded-[1rem] border border-slate-300 bg-white px-4 py-3 text-sm leading-6 text-slate-950 outline-none transition-[border-color,box-shadow] placeholder:text-slate-400 focus:border-primary focus:ring-4 focus:ring-primary/15"
+                                        className="resize-none rounded-[var(--radius-md)] text-sm leading-6"
                                     />
                                 </div>
                             )}

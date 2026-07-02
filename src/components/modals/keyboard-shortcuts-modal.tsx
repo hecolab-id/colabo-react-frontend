@@ -1,7 +1,7 @@
 "use client";
 
-import { X, Command } from "lucide-react";
-import { useEscapeKey } from "@/lib/hooks/use-escape-key";
+import { Command } from "lucide-react";
+import { ModalShell } from "@/components/ui/modal-shell";
 
 interface KeyboardShortcutsModalProps {
   isOpen: boolean;
@@ -29,8 +29,6 @@ const shortcuts: Shortcut[] = [
 ];
 
 export function KeyboardShortcutsModal({ isOpen, onClose }: KeyboardShortcutsModalProps) {
-  useEscapeKey(isOpen, onClose);
-
   if (!isOpen) return null;
 
   // Group shortcuts by category
@@ -43,24 +41,21 @@ export function KeyboardShortcutsModal({ isOpen, onClose }: KeyboardShortcutsMod
   }, {} as Record<string, Shortcut[]>);
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-background rounded-lg border border-border max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        {/* Header */}
-        <div className="sticky top-0 bg-background border-b border-border px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Command className="h-5 w-5 text-primary" />
-            <h2 className="text-xl font-bold">Keyboard Shortcuts</h2>
-          </div>
-          <button
-            onClick={onClose}
-            className="text-muted-foreground hover:text-foreground transition-colors"
-          >
-            <X className="h-5 w-5" />
-          </button>
+    <ModalShell
+      title="Keyboard Shortcuts"
+      description="Quick actions available across your workspace."
+      onClose={onClose}
+      maxWidthClassName="max-w-2xl"
+      bodyClassName="max-h-[90vh] overflow-y-auto"
+      mobileSheet={false}
+    >
+      <div className="space-y-6">
+        <div className="flex items-center gap-2 rounded-[var(--radius-lg)] border border-border bg-muted/50 px-4 py-3 text-sm text-muted-foreground">
+          <Command className="h-5 w-5 text-primary" aria-hidden="true" />
+          Press <kbd className="rounded border border-border bg-background px-1.5 py-0.5 text-xs font-semibold text-foreground">?</kbd> anytime to open this dialog
         </div>
 
-        {/* Content */}
-        <div className="p-6 space-y-6">
+        <div className="space-y-6">
           {Object.entries(groupedShortcuts).map(([category, categoryShortcuts]) => (
             <div key={category}>
               <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">
@@ -89,14 +84,7 @@ export function KeyboardShortcutsModal({ isOpen, onClose }: KeyboardShortcutsMod
             </div>
           ))}
         </div>
-
-        {/* Footer */}
-        <div className="border-t border-border px-6 py-4 bg-muted/30">
-          <p className="text-xs text-muted-foreground text-center">
-            Press <kbd className="px-1.5 py-0.5 text-xs font-semibold bg-background border border-border rounded">?</kbd> anytime to open this dialog
-          </p>
-        </div>
       </div>
-    </div>
+    </ModalShell>
   );
 }

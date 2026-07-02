@@ -3,8 +3,8 @@ import { cn } from "@/lib/utils"
 
 const Progress = React.forwardRef<
     HTMLDivElement,
-    React.HTMLAttributes<HTMLDivElement> & { value?: number }
->(({ className, value, ...props }, ref) => (
+    React.HTMLAttributes<HTMLDivElement> & { value?: number; indicatorClassName?: string }
+>(({ className, indicatorClassName, value, ...props }, ref) => (
     <div
         ref={ref}
         className={cn(
@@ -14,7 +14,7 @@ const Progress = React.forwardRef<
         {...props}
     >
         <div
-            className="h-full flex-1 bg-primary transition-all duration-300"
+            className={cn("h-full flex-1 rounded-full bg-primary transition-all duration-300", indicatorClassName)}
             style={{ width: `${Math.min(100, Math.max(0, value || 0))}%` }}
         />
     </div>

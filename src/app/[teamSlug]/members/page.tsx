@@ -1,10 +1,9 @@
 "use client";
 
 import { use } from "react";
-import { Fragment, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "@/components/app-link";
 import { useRouter } from "@/lib/navigation";
-import { Menu, Transition } from "@headlessui/react";
 import {
     AlertCircle,
     ArrowRight,
@@ -26,6 +25,12 @@ import { toast } from "@/components/ui/toast";
 import { useStore } from "@/lib/store";
 import { Role, User } from "@/lib/types";
 import { Avatar } from "@/components/ui/avatar";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { EmptyState } from "@/components/ui/empty-state";
 
 export default function MembersPage({ params }: { params: Promise<{ teamSlug: string }> }) {
@@ -362,42 +367,24 @@ export default function MembersPage({ params }: { params: Promise<{ teamSlug: st
                                                 </div>
 
                                                 {hasAdminPermission && !isOwner && (
-                                                    <Menu as="div" className="relative inline-block text-left w-full lg:max-w-[240px]">
-                                                        <Menu.Button
+                                                    <DropdownMenu className="relative inline-block w-full text-left lg:max-w-[240px]">
+                                                        <DropdownMenuTrigger
                                                             aria-label={`Open actions for ${member.name}`}
-                                                            className="inline-flex min-h-11 w-full justify-center items-center gap-2 rounded-full bg-slate-100 px-4 py-2.5 text-[14px] font-semibold text-slate-600 transition-all hover:bg-slate-200 md:min-h-0"
+                                                            className="min-h-11 w-full bg-muted px-4 py-2.5 text-[14px] md:min-h-0"
                                                         >
                                                             <MoreHorizontal className="h-4 w-4" aria-hidden="true" />
                                                             Actions
-                                                        </Menu.Button>
-                                                        <Transition
-                                                            as={Fragment}
-                                                            enter="transition ease-out duration-100"
-                                                            enterFrom="transform opacity-0 scale-95"
-                                                            enterTo="transform opacity-100 scale-100"
-                                                            leave="transition ease-in duration-75"
-                                                            leaveFrom="transform opacity-100 scale-100"
-                                                            leaveTo="transform opacity-0 scale-95"
-                                                        >
-                                                            <Menu.Items className="absolute right-0 z-10 mt-2 w-52 origin-top-right rounded-[20px] border border-black/5 bg-white/80 backdrop-blur-xl p-1.5 shadow-xl focus:outline-none">
-                                                                <Menu.Item>
-                                                                    {({ active }) => (
-                                                                        <button
-                                                                            onClick={() => setMemberToRemove(member)}
-                                                                            className={`flex min-h-11 w-full items-center gap-2 rounded-[16px] px-4 py-2.5 text-[14px] font-medium transition-colors md:min-h-0 ${
-                                                                                active
-                                                                                    ? "bg-red-50 text-red-600"
-                                                                                    : "text-red-500"
-                                                                            }`}
-                                                                        >
-                                                                            <Trash2 className="h-4 w-4" aria-hidden="true" />
-                                                                            Remove Member
-                                                                        </button>
-                                                                    )}
-                                                                </Menu.Item>
-                                                            </Menu.Items>
-                                                        </Transition>
-                                                    </Menu>
+                                                        </DropdownMenuTrigger>
+                                                        <DropdownMenuContent widthClassName="w-52">
+                                                            <DropdownMenuItem
+                                                                danger
+                                                                icon={<Trash2 className="h-4 w-4" aria-hidden="true" />}
+                                                                onClick={() => setMemberToRemove(member)}
+                                                            >
+                                                                Remove Member
+                                                            </DropdownMenuItem>
+                                                        </DropdownMenuContent>
+                                                    </DropdownMenu>
                                                 )}
                                             </div>
                                         </div>

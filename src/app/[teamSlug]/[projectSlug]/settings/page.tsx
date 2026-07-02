@@ -30,6 +30,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { Input } from "@/components/ui/input";
 import { SettingsField } from "@/components/ui/settings-field";
 import { SettingsSection } from "@/components/ui/settings-section";
+import { Textarea } from "@/components/ui/textarea";
 import { ToggleSwitch } from "@/components/ui/toggle-switch";
 import { toast } from "@/components/ui/toast";
 import { useProjectBySlugs, useProjectDocuments, useProjectMeetingNotes, useProjectWeeklySummaries, useGenerateProjectWeeklySummary, useDownloadProjectWeeklySummaryPdf, useUpdateProject, useCreateProjectDocument, useDeleteProjectDocument, useCreateProjectMeetingNote, useUpdateProjectMeetingNote, useDeleteProjectMeetingNote } from "@/lib/hooks/use-project";
@@ -453,12 +454,12 @@ function ProjectSettingsPageContent({ params }: { params: Promise<{ teamSlug: st
                                     />
                                 </SettingsField>
                                 <SettingsField label="Description" className="md:col-span-2">
-                                    <textarea
+                                    <Textarea
                                         value={description}
                                         onChange={(event) => setDescription(event.target.value)}
                                         disabled={!canManageProject}
                                         rows={5}
-                                        className="w-full resize-none rounded-[1.15rem] border border-black/6 bg-white/75 px-4 py-3 text-[15px] text-slate-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.75)] backdrop-blur-xl transition-[border-color,box-shadow,background-color] placeholder:text-slate-400 focus-visible:border-slate-300 focus-visible:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 disabled:cursor-not-allowed disabled:opacity-50"
+                                        className="resize-none"
                                         placeholder="What is this project trying to accomplish?"
                                     />
                                 </SettingsField>
@@ -729,12 +730,11 @@ function ProjectSettingsPageContent({ params }: { params: Promise<{ teamSlug: st
                                         />
                                     </SettingsField>
                                     <SettingsField label="Notes">
-                                        <textarea
+                                        <Textarea
                                             value={meetingContent}
                                             onChange={(event) => setMeetingContent(event.target.value)}
                                             rows={4}
                                             required
-                                            className="w-full resize-y rounded-[1.15rem] border border-black/6 bg-white/75 px-4 py-3 text-[15px] text-slate-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.75)] backdrop-blur-xl transition-[border-color,box-shadow,background-color] placeholder:text-slate-400 focus-visible:border-slate-300 focus-visible:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20"
                                             placeholder="Write the meeting notes..."
                                         />
                                     </SettingsField>

@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { FormField } from "@/components/ui/form-field";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
@@ -14,23 +15,23 @@ export function AuthField({
   icon?: ReactNode;
   inputClassName?: string;
 }) {
+  const fieldId = props.id?.toString() || (typeof props.name === "string" ? `auth-${props.name}` : undefined);
+
   return (
-    <label className="block space-y-2">
-      <span className="text-[12px] font-semibold uppercase tracking-[0.16em] text-slate-400">
-        {label}
-      </span>
+    <FormField label={label} htmlFor={fieldId} error={error}>
       <div className="relative">
         {icon ? (
-          <div className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
+          <div className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground">
             {icon}
           </div>
         ) : null}
         <Input
-          className={cn(icon ? "pl-11" : "", error ? "border-red-300 focus-visible:ring-red-200" : "", inputClassName)}
+          invalid={Boolean(error)}
+          className={cn(icon ? "pl-11" : "", inputClassName)}
+          id={fieldId}
           {...props}
         />
       </div>
-      {error ? <p className="text-[13px] font-medium text-red-500">{error}</p> : null}
-    </label>
+    </FormField>
   );
 }

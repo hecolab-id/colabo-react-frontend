@@ -3,13 +3,13 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const emptyStateVariants = cva(
-    "flex flex-col items-center justify-center text-center border border-dashed border-slate-200 bg-slate-50/60",
+    "flex flex-col items-center justify-center border border-border bg-muted/40 text-center text-muted-foreground",
     {
         variants: {
             size: {
-                compact: "rounded-[1.25rem] px-4 py-8 gap-2",
-                default: "rounded-[24px] px-6 py-14 gap-3",
-                hero: "rounded-[32px] px-6 py-16 gap-4 md:py-24",
+                compact: "gap-2 rounded-[var(--radius-lg)] px-4 py-8",
+                default: "gap-3 rounded-[var(--radius-xl)] px-6 py-14",
+                hero: "gap-4 rounded-[var(--radius-2xl)] px-6 py-16 md:py-24",
             },
         },
         defaultVariants: {
@@ -19,7 +19,7 @@ const emptyStateVariants = cva(
 );
 
 const iconWrapperVariants = cva(
-    "flex shrink-0 items-center justify-center rounded-full bg-white shadow-sm",
+    "flex shrink-0 items-center justify-center rounded-full border border-border bg-[var(--surface-card-solid)] text-muted-foreground shadow-sm",
     {
         variants: {
             size: {
@@ -32,7 +32,7 @@ const iconWrapperVariants = cva(
     },
 );
 
-const titleVariants = cva("font-semibold tracking-tight text-slate-900", {
+const titleVariants = cva("font-semibold tracking-tight text-foreground", {
     variants: {
         size: {
             compact: "text-sm",
@@ -43,7 +43,7 @@ const titleVariants = cva("font-semibold tracking-tight text-slate-900", {
     defaultVariants: { size: "default" },
 });
 
-const descriptionVariants = cva("text-slate-500 leading-relaxed", {
+const descriptionVariants = cva("leading-relaxed text-muted-foreground", {
     variants: {
         size: {
             compact: "text-xs max-w-xs",

@@ -1,8 +1,8 @@
 "use client";
 
 import { Checklist as ChecklistType } from "@/lib/types";
-import { useState } from "react";
-import { Plus, CheckSquare } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { MoreHorizontal, Plus, CheckSquare, Trash2 } from "lucide-react";
 import { ChecklistItem } from "./checklist-item";
 import { createChecklistItem, deleteChecklist, deleteChecklistItem, updateChecklistItem } from "@/lib/api";
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from "@dnd-kit/core";
@@ -22,6 +22,8 @@ export function Checklist({ checklist, onUpdate, onDelete }: ChecklistProps) {
     const [isSavingItem, setIsSavingItem] = useState(false);
     const [showDeleteDialog, setShowDeleteDialog] = useState(false);
     const [isDeletingChecklist, setIsDeletingChecklist] = useState(false);
+    const [isActionsOpen, setIsActionsOpen] = useState(false);
+    const actionsRef = useRef<HTMLDivElement>(null);
 
     const sensors = useSensors(
         useSensor(PointerSensor),
@@ -33,6 +35,25 @@ export function Checklist({ checklist, onUpdate, onDelete }: ChecklistProps) {
     const completedCount = checklist.items?.filter(i => i.is_done).length || 0;
     const totalCount = checklist.items?.length || 0;
     const progress = totalCount > 0 ? (completedCount / totalCount) * 100 : 0;
+
+    useEffect(() => {
+        if (!isActionsOpen) return;
+
+        const handlePointerDown = (event: MouseEvent) => {
+            if (actionsRef.current?.contains(event.target as Node)) return;
+            setIsActionsOpen(false);
+        };
+        const handleKeyDown = (event: KeyboardEvent) => {
+            if (event.key === "Escape") setIsActionsOpen(false);
+        };
+
+        document.addEventListener("mousedown", handlePointerDown);
+        document.addEventListener("keydown", handleKeyDown);
+        return () => {
+            document.removeEventListener("mousedown", handlePointerDown);
+            document.removeEventListener("keydown", handleKeyDown);
+        };
+    }, [isActionsOpen]);
 
     const handleAddItem = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -129,18 +150,36 @@ export function Checklist({ checklist, onUpdate, onDelete }: ChecklistProps) {
 
     return (
         <div className="space-y-3">
-            <div className="flex items-center justify-between group">
+            <div className="group flex items-center justify-between gap-3">
                 <div className="flex items-center gap-2">
-                    <CheckSquare className="w-4 h-4 text-primary" />
-                    <h3 className="font-medium text-foreground">{checklist.title}</h3>
+                    <CheckSquare className="h-4 w-4 text-muted-foreground" />
+                    <h3 className="min-w-0 truncate font-medium text-foreground">{checklist.title}</h3>
                 </div>
-                <div className="flex items-center gap-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+                <div ref={actionsRef} className="relative opacity-100 transition-opacity md:opacity-0 md:group-hover:opacity-100 md:focus-within:opacity-100">
                     <button
-                        onClick={() => setShowDeleteDialog(true)}
-                        className="-my-2 flex min-h-11 items-center rounded px-3 py-1 text-xs text-muted-foreground transition-[background-color,color] hover:bg-[var(--danger-bg)] hover:text-[var(--danger-fg)] md:my-0 md:min-h-0 md:px-2"
+                        type="button"
+                        onClick={() => setIsActionsOpen((current) => !current)}
+                        aria-label={`Open actions for ${checklist.title}`}
+                        aria-expanded={isActionsOpen}
+                        className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20"
                     >
-                        Delete
+                        <MoreHorizontal className="h-4 w-4" aria-hidden="true" />
                     </button>
+                    {isActionsOpen ? (
+                        <div className="absolute right-0 top-full z-30 mt-1 w-44 overflow-hidden rounded-[var(--radius-lg)] border border-border bg-[var(--modal-surface)] p-1 shadow-[var(--modal-shadow)]">
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setIsActionsOpen(false);
+                                    setShowDeleteDialog(true);
+                                }}
+                                className="flex w-full items-center gap-2 rounded-[var(--radius-md)] px-3 py-2 text-left text-sm font-medium text-[var(--danger-fg)] transition-colors hover:bg-[var(--danger-bg)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--danger-fg)]/20"
+                            >
+                                <Trash2 className="h-4 w-4" aria-hidden="true" />
+                                Delete checklist
+                            </button>
+                        </div>
+                    ) : null}
                 </div>
             </div>
 
@@ -186,7 +225,7 @@ export function Checklist({ checklist, onUpdate, onDelete }: ChecklistProps) {
                         type="text"
                         value={newItemContent}
                         onChange={(e) => setNewItemContent(e.target.value)}
-                        placeholder="Add an item..."
+                            placeholder="Add checklist item..."
                         autoFocus
                         className="flex-1 text-sm bg-transparent border border-primary/20 rounded px-2 py-1 outline-none focus:border-primary"
                     />
@@ -212,7 +251,7 @@ export function Checklist({ checklist, onUpdate, onDelete }: ChecklistProps) {
                     onClick={() => setIsAddingItem(true)}
                     className="flex min-h-11 items-center gap-2 text-sm text-muted-foreground hover:text-primary pl-2 py-1 transition-colors md:min-h-0"
                 >
-                    <Plus className="w-4 h-4" /> Add an item
+                    <Plus className="w-4 h-4" /> Add checklist item
                 </button>
             )}
 

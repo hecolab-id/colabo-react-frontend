@@ -1,13 +1,29 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
 
-const Input = React.forwardRef<HTMLInputElement, React.ComponentProps<"input">>(
-  ({ className, ...props }, ref) => {
+interface InputProps extends Omit<React.ComponentProps<"input">, "size"> {
+  invalid?: boolean;
+  controlSize?: "sm" | "md" | "lg";
+}
+
+const inputSizeClasses = {
+  sm: "h-[var(--control-height-sm)] px-3 text-sm",
+  md: "h-[var(--control-height-md)] px-4 text-[15px]",
+  lg: "h-[var(--control-height-lg)] px-4 text-base",
+} as const;
+
+const Input = React.forwardRef<HTMLInputElement, InputProps>(
+  ({ className, invalid = false, controlSize = "lg", "aria-invalid": ariaInvalid, ...props }, ref) => {
+    const isInvalid = invalid || ariaInvalid === true || ariaInvalid === "true";
+
     return (
       <input
         ref={ref}
+        aria-invalid={isInvalid || undefined}
         className={cn(
-          "flex h-12 w-full rounded-[1.15rem] border border-black/6 bg-white/75 px-4 py-3 text-[15px] text-slate-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.75)] backdrop-blur-xl transition-[border-color,box-shadow,background-color] placeholder:text-slate-400 focus-visible:border-slate-300 focus-visible:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 disabled:cursor-not-allowed disabled:opacity-50",
+          "flex w-full rounded-[var(--radius-lg)] border border-[var(--control-border)] bg-[var(--control-bg)] py-3 text-foreground shadow-[var(--control-shadow)] backdrop-blur-xl transition-[border-color,box-shadow,background-color] placeholder:text-[var(--control-placeholder)] hover:border-[var(--control-border-hover)] hover:bg-[var(--control-bg-hover)] focus-visible:border-[var(--control-border-hover)] focus-visible:bg-[var(--control-bg-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] disabled:cursor-not-allowed disabled:bg-[var(--control-bg-disabled)] disabled:opacity-60",
+          inputSizeClasses[controlSize],
+          isInvalid && "border-[var(--danger-border)] text-[var(--danger-fg)] focus-visible:border-[var(--danger-border)] focus-visible:ring-[var(--control-error-ring)]",
           className,
         )}
         {...props}
@@ -19,3 +35,4 @@ const Input = React.forwardRef<HTMLInputElement, React.ComponentProps<"input">>(
 Input.displayName = "Input";
 
 export { Input };
+export type { InputProps };

@@ -4,6 +4,9 @@ import { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "@/lib/navigation";
 import { resetPassword } from "@/lib/api";
 import { CheckCircle, AlertCircle, Loader2, ArrowRight, Lock } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 
 function InviteContent() {
     const router = useRouter();
@@ -20,13 +23,13 @@ function InviteContent() {
     if (!token) {
         return (
             <div className="flex min-h-[100dvh] items-center justify-center bg-background p-4">
-                <div className="max-w-md w-full text-center space-y-4">
-                    <div className="bg-red-100 text-red-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto">
+                <Card variant="elevated" padding="lg" className="w-full max-w-md text-center">
+                    <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-destructive/10 text-destructive">
                         <AlertCircle className="w-8 h-8" />
                     </div>
-                    <h1 className="text-2xl font-bold text-foreground">Invalid Invite Link</h1>
-                    <p className="text-muted-foreground">The invite link is missing a token.</p>
-                </div>
+                    <h1 className="mt-4 text-2xl font-semibold text-foreground">Invalid Invite Link</h1>
+                    <p className="mt-2 text-muted-foreground">The invite link is missing a token.</p>
+                </Card>
             </div>
         );
     }
@@ -62,26 +65,26 @@ function InviteContent() {
     if (status === "success") {
         return (
             <div className="flex min-h-[100dvh] items-center justify-center bg-background p-4">
-                <div className="max-w-md w-full text-center space-y-4">
-                    <div className="bg-green-100 text-green-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto">
+                <Card variant="elevated" padding="lg" className="w-full max-w-md text-center">
+                    <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-700">
                         <CheckCircle className="w-8 h-8" />
                     </div>
-                    <h1 className="text-2xl font-bold text-foreground">Account Setup Complete!</h1>
-                    <p className="text-muted-foreground">Your password has been set.</p>
-                    <p className="text-sm text-muted-foreground">Redirecting to login...</p>
-                </div>
+                    <h1 className="mt-4 text-2xl font-semibold text-foreground">Account Setup Complete!</h1>
+                    <p className="mt-2 text-muted-foreground">Your password has been set.</p>
+                    <p className="mt-1 text-sm text-muted-foreground">Redirecting to login...</p>
+                </Card>
             </div>
         );
     }
 
     return (
         <div className="flex min-h-[100dvh] items-center justify-center bg-background p-4">
-            <div className="max-w-md w-full bg-card border border-border rounded-xl shadow-lg p-8 space-y-6">
+            <Card variant="elevated" padding="lg" className="w-full max-w-md space-y-6">
                 <div className="text-center space-y-2">
                     <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
                         You have been invited to join
                     </h2>
-                    <h1 className="break-words text-3xl font-bold text-foreground">
+                    <h1 className="break-words text-3xl font-semibold tracking-tight text-foreground">
                         {projectName || "a Project"}
                     </h1>
                 </div>
@@ -103,13 +106,13 @@ function InviteContent() {
                             Set your Password
                         </label>
                         <div className="relative">
-                            <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                            <input
+                            <Lock className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                            <Input
                                 id="password"
                                 type="password"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
-                                className="flex h-11 md:h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 pl-10"
+                                className="pl-11"
                                 placeholder="Enter your password"
                                 required
                             />
@@ -120,13 +123,13 @@ function InviteContent() {
                             Confirm Password
                         </label>
                         <div className="relative">
-                            <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                            <input
+                            <Lock className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                            <Input
                                 id="confirmPassword"
                                 type="password"
                                 value={confirmPassword}
                                 onChange={(e) => setConfirmPassword(e.target.value)}
-                                className="flex h-11 md:h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 pl-10"
+                                className="pl-11"
                                 placeholder="Confirm your password"
                                 required
                             />
@@ -140,19 +143,20 @@ function InviteContent() {
                         </div>
                     )}
 
-                    <button
+                    <Button
                         type="submit"
                         disabled={status === "loading"}
-                        className="w-full bg-primary text-primary-foreground py-3 rounded-lg font-medium hover:opacity-90 transition-opacity flex items-center justify-center gap-2 disabled:opacity-50"
+                        size="lg"
+                        className="w-full"
                     >
                         {status === "loading" ? <Loader2 className="w-4 h-4 animate-spin" /> : <>Accept & Join <ArrowRight className="w-4 h-4" /></>}
-                    </button>
+                    </Button>
                 </form>
 
                 <p className="text-xs text-center text-muted-foreground">
                     By joining, you agree to our Terms of Service and Privacy Policy.
                 </p>
-            </div>
+            </Card>
         </div>
     );
 }

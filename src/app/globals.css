@@ -37,7 +37,45 @@
 
   --surface-raised: #fcfdff;
   --surface-overlay: #edf3fb;
+  --surface-hover: #f8fbff;
+  --surface-pressed: #eef4fb;
+  --surface-inverse: #172033;
+  --surface-card: rgba(255, 255, 255, 0.86);
+  --surface-card-solid: #ffffff;
+  --surface-card-border: rgba(15, 23, 42, 0.06);
+  --surface-card-shadow: 0 24px 70px rgba(15, 23, 42, 0.08);
+  --surface-card-shadow-sm: 0 12px 30px rgba(15, 23, 42, 0.05);
   --shadow-color: 15 23 42;
+
+  --radius-xs: 0.5rem;
+  --radius-sm: 0.75rem;
+  --radius-md: 1rem;
+  --radius-lg: 1.25rem;
+  --radius-xl: 1.5rem;
+  --radius-2xl: 2rem;
+  --radius-pill: 9999px;
+
+  --control-height-sm: 2.5rem;
+  --control-height-md: 2.75rem;
+  --control-height-lg: 3rem;
+  --control-height-icon: 2.5rem;
+  --control-bg: rgba(255, 255, 255, 0.75);
+  --control-bg-hover: #ffffff;
+  --control-bg-disabled: #eef4fb;
+  --control-border: rgba(15, 23, 42, 0.06);
+  --control-border-hover: #c8d3e4;
+  --control-placeholder: #94a3b8;
+  --control-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.75);
+  --control-error-ring: rgba(179, 66, 66, 0.16);
+
+  --shadow-button-primary: 0 16px 36px rgba(109, 93, 252, 0.22);
+  --shadow-button-secondary: 0 10px 28px rgba(15, 23, 42, 0.08);
+  --shadow-button-danger: 0 16px 30px rgba(179, 66, 66, 0.18);
+  --modal-overlay: rgba(15, 23, 42, 0.34);
+  --modal-surface: rgba(255, 255, 255, 0.9);
+  --modal-border: rgba(255, 255, 255, 0.8);
+  --modal-shadow: 0 30px 100px rgba(15, 23, 42, 0.18);
+  --modal-radius: var(--radius-2xl);
 
   /* Tag colors */
   --tag-important: #6657f0;
@@ -76,9 +114,14 @@
   --danger-bg: #fdeced;
   --danger-fg: #b34242;
   --danger-border: #f1c1c5;
+  --destructive: var(--danger-fg);
+  --destructive-foreground: #ffffff;
   --warning-bg: #fff7e8;
   --warning-fg: #9a5b12;
   --warning-border: #f4d5a4;
+  --success-bg: var(--status-done-bg);
+  --success-fg: var(--status-done-fg);
+  --success-border: var(--status-done-border);
 }
 
 .dark,
@@ -117,7 +160,31 @@
 
   --surface-raised: #162033;
   --surface-overlay: #1e2940;
+  --surface-hover: #202b42;
+  --surface-pressed: #29364f;
+  --surface-inverse: #edf2fb;
+  --surface-card: rgba(18, 26, 43, 0.88);
+  --surface-card-solid: #121a2b;
+  --surface-card-border: rgba(237, 242, 251, 0.10);
+  --surface-card-shadow: 0 24px 70px rgba(0, 0, 0, 0.28);
+  --surface-card-shadow-sm: 0 12px 30px rgba(0, 0, 0, 0.18);
   --shadow-color: 0 0 0;
+
+  --shadow-button-primary: 0 16px 36px rgba(184, 173, 255, 0.18);
+  --shadow-button-secondary: 0 10px 28px rgba(0, 0, 0, 0.18);
+  --shadow-button-danger: 0 16px 30px rgba(255, 190, 192, 0.12);
+  --modal-overlay: rgba(2, 6, 23, 0.64);
+  --modal-surface: rgba(18, 26, 43, 0.94);
+  --modal-border: rgba(237, 242, 251, 0.12);
+  --modal-shadow: 0 30px 100px rgba(0, 0, 0, 0.42);
+  --control-bg: rgba(22, 32, 51, 0.75);
+  --control-bg-hover: #202b42;
+  --control-bg-disabled: #182133;
+  --control-border: rgba(237, 242, 251, 0.08);
+  --control-border-hover: #34415a;
+  --control-placeholder: #6f7e95;
+  --control-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  --control-error-ring: rgba(255, 190, 192, 0.14);
 
   --status-todo-bg: #1d2740;
   --status-todo-fg: #c8d3e4;
@@ -147,9 +214,14 @@
   --danger-bg: #40262a;
   --danger-fg: #ffbec0;
   --danger-border: #8b4b52;
+  --destructive: var(--danger-fg);
+  --destructive-foreground: #101828;
   --warning-bg: #3a2c19;
   --warning-fg: #f4d5a4;
   --warning-border: #7f5b2b;
+  --success-bg: var(--status-done-bg);
+  --success-fg: var(--status-done-fg);
+  --success-border: var(--status-done-border);
 }
 
 @layer base {

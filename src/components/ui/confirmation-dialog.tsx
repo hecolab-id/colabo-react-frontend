@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-import type { ReactNode } from "react";
+import { useId, type ReactNode } from "react";
 import { AlertTriangle } from "lucide-react";
-import { useEscapeKey } from "@/lib/hooks/use-escape-key";
+import { Button } from "@/components/ui/button";
+import { DialogShell } from "@/components/ui/dialog-shell";
 
 interface ConfirmationDialogProps {
     isOpen: boolean;
@@ -30,66 +30,61 @@ export function ConfirmationDialog({
     variant = "danger",
     children,
 }: ConfirmationDialogProps) {
-    const dialogRef = useRef<HTMLDivElement>(null);
-    useEscapeKey(isOpen && !isLoading, onCancel);
-
-    useEffect(() => {
-        if (isOpen) {
-            document.body.style.overflow = "hidden";
-        }
-
-        return () => {
-            document.body.style.overflow = "unset";
-        };
-    }, [isOpen]);
+    const id = useId();
+    const titleId = `${id}-title`;
+    const descriptionId = `${id}-description`;
+    const tone = variant === "danger" ? "danger" : variant === "warning" ? "warning" : "info";
 
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-            <div
-                ref={dialogRef}
-                className="bg-card w-full max-w-md rounded-xl border border-border shadow-2xl overflow-hidden scale-100 animate-in zoom-in-95 duration-200"
-                role="dialog"
-                aria-modal="true"
-            >
-                <div className="p-6">
-                    <div className="flex items-center gap-4 mb-4">
-                        <div className={`w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 ${variant === 'danger' ? 'bg-red-100 text-red-600' : 'bg-orange-100 text-orange-600'
-                            }`}>
-                            <AlertTriangle className="w-6 h-6" />
-                        </div>
-                        <div>
-                            <h3 className="text-lg font-semibold text-foreground">{title}</h3>
-                        </div>
+        <DialogShell
+            onClose={onCancel}
+            zIndexClassName="z-[100]"
+            maxWidthClassName="max-w-md"
+            mobileSheet={false}
+            closeOnOverlayClick={!isLoading}
+            escapeEnabled={!isLoading}
+            labelledBy={titleId}
+            describedBy={descriptionId}
+            panelClassName="overflow-hidden"
+        >
+            <div className="p-6">
+                <div className="mb-4 flex items-center gap-4">
+                    <div className={getIconClassName(tone)}>
+                        <AlertTriangle className="h-6 w-6" aria-hidden="true" />
                     </div>
-
-                    <p className="text-muted-foreground text-sm mb-6 leading-relaxed">
-                        {description}
-                    </p>
-                    {children ? <div className="mb-6">{children}</div> : null}
-
-                    <div className="flex items-center justify-end gap-3">
-                        <button
-                            onClick={onCancel}
-                            disabled={isLoading}
-                            className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors"
-                        >
-                            {cancelText}
-                        </button>
-                        <button
-                            onClick={onConfirm}
-                            disabled={isLoading}
-                            className={`px-4 py-2 text-sm font-medium text-white rounded-lg shadow-sm transition-opacity disabled:opacity-50 ${variant === 'danger'
-                                    ? 'bg-red-600 hover:bg-red-700'
-                                    : 'bg-primary hover:bg-primary/90'
-                                }`}
-                        >
-                            {isLoading ? "Processing..." : confirmText}
-                        </button>
+                    <div>
+                        <h3 id={titleId} className="text-lg font-semibold text-foreground">{title}</h3>
                     </div>
                 </div>
+
+                <p id={descriptionId} className="mb-6 text-sm leading-relaxed text-muted-foreground">
+                    {description}
+                </p>
+                {children ? <div className="mb-6">{children}</div> : null}
+
+                <div className="flex items-center justify-end gap-3">
+                    <Button type="button" variant="ghost" size="sm" onClick={onCancel} disabled={isLoading}>
+                        {cancelText}
+                    </Button>
+                    <Button type="button" variant={variant === "danger" ? "danger" : "default"} size="sm" onClick={onConfirm} disabled={isLoading}>
+                        {isLoading ? "Processing..." : confirmText}
+                    </Button>
+                </div>
             </div>
-        </div>
+        </DialogShell>
     );
+}
+
+function getIconClassName(tone: "danger" | "warning" | "info") {
+    if (tone === "danger") {
+        return "flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full border border-[var(--danger-border)] bg-[var(--danger-bg)] text-[var(--danger-fg)]";
+    }
+
+    if (tone === "warning") {
+        return "flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full border border-[var(--warning-border)] bg-[var(--warning-bg)] text-[var(--warning-fg)]";
+    }
+
+    return "flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full border border-border bg-muted text-muted-foreground";
 }
