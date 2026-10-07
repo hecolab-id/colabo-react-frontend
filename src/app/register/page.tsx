@@ -1,9 +1,9 @@
 "use client";
 
 import { Suspense, useMemo, useState } from "react";
-import { ErrorMessage, Field, Form, Formik } from "formik";
+import { Field, Form, Formik } from "formik";
 import * as Yup from "yup";
-import { AlertCircle, Loader2, Lock, Mail, User2 } from "lucide-react";
+import { AlertCircle, Loader2 } from "lucide-react";
 import AppLink from "@/components/app-link";
 import { AuthDivider } from "@/components/auth/auth-divider";
 import { AuthField } from "@/components/auth/auth-field";
@@ -71,8 +71,9 @@ function RegisterPageContent() {
 
   return (
     <AuthShell
+      simple
       title="Create your account"
-      description="Set up your workspace access with the same calm system you’ll use across projects, tasks, and teams."
+      description="Get started with Colabo."
     >
       <div className="space-y-6">
         {inviteType === "team" && teamName ? (
@@ -107,50 +108,51 @@ function RegisterPageContent() {
           onSubmit={handleSubmit}
         >
           {({ isSubmitting, errors, touched }) => (
-            <Form className="space-y-4">
+            <Form noValidate className="space-y-5">
               <Field name="name">
                 {({ field }: any) => (
                   <AuthField
+                    simple
                     {...field}
                     type="text"
+                    autoComplete="name"
                     label="Name"
-                    placeholder="John Doe"
-                    icon={<User2 className="h-4 w-4" />}
+                    placeholder="Your name"
                     error={touched.name ? errors.name : undefined}
                   />
                 )}
               </Field>
-              <ErrorMessage name="name" component="div" className="hidden" />
 
               <Field name="email">
                 {({ field }: any) => (
                   <AuthField
+                    simple
                     {...field}
                     type="email"
+                    autoComplete="email"
+                    autoCapitalize="none"
                     label="Email"
                     placeholder="you@example.com"
-                    icon={<Mail className="h-4 w-4" />}
                     error={touched.email ? errors.email : undefined}
                   />
                 )}
               </Field>
-              <ErrorMessage name="email" component="div" className="hidden" />
 
               <Field name="password">
                 {({ field }: any) => (
                   <AuthField
+                    simple
                     {...field}
                     type="password"
+                    autoComplete="new-password"
                     label="Password"
-                    placeholder="••••••••"
-                    icon={<Lock className="h-4 w-4" />}
+                    placeholder="At least 6 characters"
                     error={touched.password ? errors.password : undefined}
                   />
                 )}
               </Field>
-              <ErrorMessage name="password" component="div" className="hidden" />
 
-              <Button type="submit" size="lg" className="w-full rounded-[1.2rem]" disabled={isSubmitting}>
+              <Button type="submit" size="lg" className="w-full" disabled={isSubmitting}>
                 {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
                 {isSubmitting ? "Creating account..." : "Create account"}
               </Button>
@@ -161,9 +163,9 @@ function RegisterPageContent() {
         <AuthDivider />
         <GoogleAuthButton />
 
-        <p className="text-center text-[14px] text-slate-500">
+        <p className="text-center text-sm text-muted-foreground">
           Already have an account?{" "}
-          <AppLink href={loginHref} className="font-semibold text-slate-950 transition-colors hover:text-slate-700">
+          <AppLink href={loginHref} className="inline-flex min-h-11 items-center font-semibold text-foreground underline-offset-4 hover:underline">
             Sign in
           </AppLink>
         </p>

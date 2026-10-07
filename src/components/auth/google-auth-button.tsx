@@ -9,7 +9,7 @@ export function GoogleAuthButton() {
       prefetch={false}
       className={cn(
         buttonVariants({ variant: "secondary", size: "lg" }),
-        "w-full rounded-[var(--radius-lg)]",
+        "w-full",
       )}
     >
       <span className="flex w-full items-center justify-center gap-3">

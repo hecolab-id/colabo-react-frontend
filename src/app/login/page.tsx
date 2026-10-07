@@ -1,9 +1,9 @@
 "use client";
 
 import { Suspense, useEffect, useMemo, useState } from "react";
-import { ErrorMessage, Field, Form, Formik } from "formik";
+import { Field, Form, Formik } from "formik";
 import * as Yup from "yup";
-import { AlertCircle, Loader2, Lock, Mail } from "lucide-react";
+import { AlertCircle, Loader2 } from "lucide-react";
 import AppLink from "@/components/app-link";
 import { AuthDivider } from "@/components/auth/auth-divider";
 import { AuthField } from "@/components/auth/auth-field";
@@ -84,8 +84,9 @@ function LoginPageContent() {
 
   return (
     <AuthShell
+      simple
       title="Welcome back"
-      description="Sign in to your workspace, resume your board, and keep the team in motion."
+      description="Sign in to your Colabo account."
     >
       <div className="space-y-6">
         {inviteType === "team" && teamName ? (
@@ -120,45 +121,42 @@ function LoginPageContent() {
 
         <Formik initialValues={{ email: inviteEmail || "", password: "" }} validationSchema={loginSchema} onSubmit={handleSubmit}>
           {({ isSubmitting, errors, touched }) => (
-            <Form className="space-y-4">
+            <Form noValidate className="space-y-5">
               <Field name="email">
                 {({ field }: any) => (
                   <AuthField
+                    simple
                     {...field}
                     type="email"
+                    autoComplete="email"
+                    autoCapitalize="none"
                     label="Email"
                     placeholder="you@example.com"
-                    icon={<Mail className="h-4 w-4" />}
                     error={touched.email ? errors.email : undefined}
                   />
                 )}
               </Field>
-              <ErrorMessage name="email" component="div" className="hidden" />
 
-              <div className="space-y-2">
-                <div className="flex items-center justify-between gap-3">
-                  <span className="text-[12px] font-semibold uppercase tracking-[0.16em] text-slate-400">Password</span>
-                  <AppLink href="/forgot-password" className="inline-flex min-h-11 items-center text-[13px] font-semibold text-slate-700 transition-colors hover:text-slate-950 md:min-h-0">
-                    Forgot password?
-                  </AppLink>
-                </div>
-                <Field name="password">
-                  {({ field }: any) => (
-                    <AuthField
-                      {...field}
-                      type="password"
-                      label=""
-                      placeholder="••••••••"
-                      icon={<Lock className="h-4 w-4" />}
-                      error={touched.password ? errors.password : undefined}
-                      inputClassName="mt-0"
-                    />
-                  )}
-                </Field>
-                <ErrorMessage name="password" component="div" className="hidden" />
-              </div>
+              <Field name="password">
+                {({ field }: any) => (
+                  <AuthField
+                    simple
+                    {...field}
+                    type="password"
+                    autoComplete="current-password"
+                    label="Password"
+                    placeholder="Enter your password"
+                    labelAction={
+                      <AppLink href="/forgot-password" className="inline-flex min-h-6 items-center text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline">
+                        Forgot password?
+                      </AppLink>
+                    }
+                    error={touched.password ? errors.password : undefined}
+                  />
+                )}
+              </Field>
 
-              <Button type="submit" size="lg" className="mt-2 w-full rounded-[1.2rem]" disabled={isSubmitting}>
+              <Button type="submit" size="lg" className="w-full" disabled={isSubmitting}>
                 {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
                 {isSubmitting ? "Signing in..." : "Sign in"}
               </Button>
@@ -169,9 +167,9 @@ function LoginPageContent() {
         <AuthDivider />
         <GoogleAuthButton />
 
-        <p className="text-center text-[14px] text-slate-500">
+        <p className="text-center text-sm text-muted-foreground">
           Don&apos;t have an account?{" "}
-          <AppLink href={registerHref} className="font-semibold text-slate-950 transition-colors hover:text-slate-700">
+          <AppLink href={registerHref} className="inline-flex min-h-11 items-center font-semibold text-foreground underline-offset-4 hover:underline">
             Sign up
           </AppLink>
         </p>

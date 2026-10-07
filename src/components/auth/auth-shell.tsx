@@ -8,12 +8,41 @@ export function AuthShell({
   description,
   children,
   className,
+  simple = false,
 }: {
   title: string;
   description: string;
   children: ReactNode;
   className?: string;
+  simple?: boolean;
 }) {
+  if (simple) {
+    return (
+      <main className="flex min-h-[100dvh] items-center justify-center bg-card px-6 py-12 text-card-foreground selection:bg-primary-100 selection:text-foreground">
+        <section aria-labelledby="auth-title" className={cn("w-full max-w-sm", className)}>
+          <div className="mb-10 flex items-center gap-2.5">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary-600">
+              <AppImage
+                src="/logo.webp"
+                alt=""
+                width={22}
+                height={22}
+                loading="eager"
+                className="h-[22px] w-[22px] object-contain invert brightness-0"
+              />
+            </div>
+            <span className="text-xl font-semibold tracking-tight">Colabo</span>
+          </div>
+          <header className="mb-8">
+            <h1 id="auth-title" className="text-[28px] font-semibold leading-tight tracking-tight">{title}</h1>
+            <p className="mt-2 text-sm leading-6 text-muted-foreground">{description}</p>
+          </header>
+          {children}
+        </section>
+      </main>
+    );
+  }
+
   return (
     <div className="relative min-h-[100dvh] overflow-hidden bg-background px-4 py-10">
       <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-border" />
